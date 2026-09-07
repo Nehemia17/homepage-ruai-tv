@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kelola Program — Admin Ruai TV</title>
+  <link rel="icon" href="../assets/images/logo ruai.png" type="image/png" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Admin Stylesheet -->
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+
+  <!-- ─── Sidebar ─── -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
+      <span class="sidebar-brand">RUAI TV ADMIN</span>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-label">Navigasi Utama</div>
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="programs.html" class="nav-item active">
+        <span class="nav-icon">📺</span>
+        <span>Kelola Program</span>
+      </a>
+
+      <div class="menu-label">Pengaturan</div>
+      <a href="#" class="nav-item" onclick="alert('Fitur Pengaturan Server akan aktif saat terhubung Backend Database.')">
+        <span class="nav-icon">⚙️</span>
+        <span>Sistem Backend</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="../index.html" target="_blank" class="btn-public-site">
+        <span>🌐</span>
+        <span>Lihat Website Publik</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ─── Main Wrapper ─── -->
+  <div class="admin-wrapper">
+    
+    <!-- Top Header -->
+    <header class="admin-header">
+      <h1 class="header-title">Manajemen Katalog Program</h1>
+      
+      <div class="header-actions">
+        <button class="btn-primary" id="btn-add-program">
+          <span>+</span>
+          <span>Tambah Program Baru</span>
+        </button>
+        <div class="admin-profile">
+          <div class="avatar">A</div>
+          <div>
+            <div class="admin-name">Admin Redaksi</div>
+            <div class="admin-role">Ruai TV Kalbar</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="admin-container">
+      
+      <!-- Controls & Data Table Card -->
+      <section class="admin-card">
+        <div class="card-header-bar">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="card-title-text">Daftar Program Ruai TV</span>
+            <span class="cat-pill" id="program-count-badge">0 Program</span>
+          </div>
+
+          <div class="toolbar-controls">
+            <!-- Search -->
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-program" placeholder="Cari nama atau deskripsi program..." />
+            </div>
+
+            <!-- Filter Status -->
+            <select id="filter-status" class="filter-select">
+              <option value="all">Semua Status</option>
+              <option value="aktif">🟢 Aktif Tayang</option>
+              <option value="arsip">📁 Arsip</option>
+            </select>
+
+            <!-- Filter Kategori -->
+            <select id="filter-category" class="filter-select">
+              <option value="all">Semua Kategori</option>
+              <option value="berita">Program Berita</option>
+              <option value="non-news">Non-News</option>
+              <option value="kerja-sama">Kerja Sama</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Banner</th>
+                <th>Nama Program & Slug</th>
+                <th>Kategori</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th>Durasi</th>
+                <th style="width: 110px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="programs-table-body">
+              <!-- Dynamically populated via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ─── Modal Form (Tambah / Edit Program) ─── -->
+  <div class="modal-overlay" id="program-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title-text">Tambah Program Baru</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+
+      <form id="program-form">
+        <div class="modal-body">
+          <input type="hidden" id="form-id-input" />
+
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="form-title">Nama / Judul Program <span style="color:red">*</span></label>
+              <input type="text" id="form-title" placeholder="Contoh: Warta Ruai" required />
+            </div>
+
+            <div class="form-group">
+              <label for="form-slug">Slug Identifier</label>
+              <input type="text" id="form-slug" placeholder="Contoh: warta-ruai" />
+            </div>
+
+            <div class="form-group">
+              <label for="form-category">Kategori Program</label>
+              <select id="form-category">
+                <option value="berita">Program Berita</option>
+                <option value="non-news">Non-News</option>
+                <option value="kerja-sama">Kerja Sama</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="form-format">Format Program</label>
+              <input type="text" id="form-format" placeholder="Contoh: Berita / Talkshow / Dokumenter" />
+            </div>
+
+            <div class="form-group">
+              <label for="form-status">Status Tayang</label>
+              <select id="form-status">
+                <option value="aktif">🟢 Aktif</option>
+                <option value="arsip">📁 Arsip</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="form-duration">Durasi Program</label>
+              <input type="text" id="form-duration" placeholder="Contoh: 60 Menit / 30 Menit" />
+            </div>
+
+            <div class="form-group">
+              <label for="form-thumb">Path / URL Cover Banner Card <span style="color:red">*</span></label>
+              <input type="text" id="form-thumb" placeholder="assets/images/programs/Warta-Ruai.png" required />
+            </div>
+
+            <div class="form-group">
+              <label for="form-promo-video">Link Video Bumper Promosi (YouTube)</label>
+              <input type="text" id="form-promo-video" placeholder="https://www.youtube.com/watch?v=... atau ID video" />
+            </div>
+
+            <div class="form-group full">
+              <label for="form-desc">Deskripsi & Sinopsis Program</label>
+              <textarea id="form-desc" placeholder="Tuliskan deskripsi lengkap mengenai isi program berita/acara ini..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="modal-cancel-btn">Batal</button>
+          <button type="submit" class="btn-primary">Simpan Program</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Script -->
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>

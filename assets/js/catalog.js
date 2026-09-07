@@ -212,13 +212,36 @@
     const metaEl = document.getElementById('modal-meta');
     if (metaEl) metaEl.textContent = `Format: ${p.format} · Durasi: ${p.duration}`;
 
-    // Thumbnail
+    // Thumbnail Cover Banner
     const thumb = document.getElementById('modal-thumb');
     if (thumb) {
       thumb.src = p.thumbnail_url || HERO_IMG;
       thumb.alt = p.title;
       thumb.style.display = 'block';
       thumb.onerror = () => { thumb.style.display = 'none'; };
+    }
+
+    // Video Bumper Promosi (YouTube Embed)
+    const videoWrap   = document.getElementById('modal-video-wrap');
+    const videoIframe = document.getElementById('modal-video-iframe');
+    if (videoWrap && videoIframe) {
+      if (p.promo_video_url) {
+        let embedUrl = p.promo_video_url;
+        if (embedUrl.includes('youtube.com/watch?v=')) {
+          const vId = embedUrl.split('v=')[1]?.split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        } else if (embedUrl.includes('youtu.be/')) {
+          const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        } else if (!embedUrl.includes('/embed/')) {
+          embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
+        }
+        videoIframe.src = embedUrl;
+        videoWrap.style.display = 'block';
+      } else {
+        videoIframe.src = '';
+        videoWrap.style.display = 'none';
+      }
     }
 
     // Slots
@@ -275,6 +298,8 @@
   const closeModal = () => {
     overlay?.classList.remove('open');
     document.body.style.overflow = '';
+    const videoIframe = document.getElementById('modal-video-iframe');
+    if (videoIframe) videoIframe.src = '';
   };
 
   // Expose to main.js (hero detail button)

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "warta-ruai",
     "title": "Warta Ruai",
@@ -10,6 +10,7 @@
     "duration": "60 Menit",
     "description": "Paket buletin berita hasil liputan harian pada peristiwa dan isu aktual yang terjadi di Pontianak dan sekitarnya, serta Kalimantan Barat pada umumnya. Tayang tiga kali sehari — pagi, siang, dan malam — untuk memastikan pemirsa selalu mendapatkan informasi terkini.",
     "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "promo_video_url": "https://www.youtube.com/embed/live_stream?channel=UCruaitv",
     "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
     "schedule": {
       "pagi": {
@@ -247,7 +248,7 @@
     "format": "News Feature",
     "duration": "30 Menit",
     "description": "Acara Gong Ruai adalah ruai dokumenter reporting indept terhadap suatu kasus atau masalah yang sedang menjadi perhatian publik atau masyarakat tertentu seperti isu pengukuhan dan atau pengakuan akan hak masyarakat adat. Laporannya lebih dalam, tajam, kritis dan solutif. Menyajikan data primer, data sekunder dan sudut pandang dari sejumlah pakar dan pihak-pihak yang terlibat dalam topik dokumenter.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -281,7 +282,7 @@
     "format": "Program Berita / Talkshow",
     "duration": "—",
     "description": "Program berita unggulan Ruai TV yang disajikan dalam lima bahasa daerah Kalimantan Barat, menjangkau berbagai komunitas etnis di seluruh pelosok Kalbar.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -315,7 +316,7 @@
     "format": "—",
     "duration": "—",
     "description": "Jendela berita ekonomi kerakyatan berbasis koperasi simpan pinjam (Credit Union) di Kalimantan Barat, salah satu gerakan CU terbesar di Indonesia.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -553,7 +554,7 @@
     "format": "Religi",
     "duration": "—",
     "description": "Program rohani yang menghadirkan ceramah, renungan, dan tayangan inspiratif untuk memperkuat keimanan dan spiritualitas pemirsa Ruai TV.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -587,7 +588,7 @@
     "format": "Kuliner",
     "duration": "—",
     "description": "Program kuliner yang mengeksplorasi kekayaan cita rasa masakan khas dan istimewa Kalimantan Barat, menghadirkan resep, teknik memasak, dan cerita di balik hidangan tradisional maupun modern.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -621,7 +622,7 @@
     "format": "Seni Budaya",
     "duration": "—",
     "description": "Ruang pelestarian seni pantun dan sastra lisan Melayu Kalimantan Barat yang menampilkan pertunjukan pantun, syair, dan gurindam dari seniman lokal terpilih.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -859,7 +860,7 @@
     "format": "Animasi Anak",
     "duration": "—",
     "description": "Tayangan animasi anak-anak berbasis kisah inspiratif hasil kerja sama dengan CBN, menghadirkan nilai moral dan karakter positif untuk anak-anak.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/CBN-Super-Youth.png",
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -961,7 +962,7 @@
     "format": "Program Religi",
     "duration": "—",
     "description": "Tayangan religi kerja sama yang menghadirkan ceramah dan pencerahan spiritual dari narasumber terpilih untuk masyarakat Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -995,7 +996,7 @@
     "format": "Berita",
     "duration": "—",
     "description": "Berita nasional dan daerah dari kantor berita ANTARA yang disiarkan melalui Ruai TV untuk melengkapi cakupan informasi bagi pemirsa Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
