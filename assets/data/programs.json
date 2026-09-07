@@ -578,40 +578,7 @@
     },
     "featured": false
   },
-  {
-    "id": "pantun-rias",
-    "title": "Pantun Rias",
-    "slug": "pantun-rias",
-    "category": "non-news",
-    "category_label": "Non-News",
-    "status": "arsip",
-    "format": "Seni Budaya",
-    "duration": "—",
-    "description": "Ruang pelestarian seni pantun dan sastra lisan Melayu Kalimantan Barat yang menampilkan pertunjukan pantun, syair, dan gurindam dari seniman lokal terpilih.",
-    "thumbnail_url": "assets/images/programs/",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi": {
-        "active": false,
-        "label": "PAGI",
-        "time": null,
-        "days": null
-      },
-      "siang": {
-        "active": false,
-        "label": "SIANG",
-        "time": null,
-        "days": null
-      },
-      "malam": {
-        "active": false,
-        "label": "MALAM",
-        "time": null,
-        "days": null
-      }
-    },
-    "featured": false
-  },
+
   {
     "id": "voa-jalan-jalan",
     "title": "VOA — Jalan-Jalan Amerika",
@@ -826,7 +793,7 @@
     "format": "Animasi Anak",
     "duration": "—",
     "description": "Tayangan animasi anak-anak berbasis kisah inspiratif hasil kerja sama dengan CBN, menghadirkan nilai moral dan karakter positif untuk anak-anak.",
-    "thumbnail_url": "assets/images/programs/",
+    "thumbnail_url": "assets/images/programs/bungaran-logo.png",
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -950,6 +917,139 @@
         "time": null,
         "days": null
       }
+    },
+    "featured": false
+  },
+  {
+    "id": "ringkus",
+    "title": "Ringkus (Ringkasan Kriminal)",
+    "slug": "ringkus",
+    "category": "berita",
+    "category_label": "Program Berita",
+    "status": "arsip",
+    "format": "Feature Berita",
+    "duration": "—",
+    "description": "Program ringkasan berita kriminal yang menyajikan laporan singkat dan aktual tentang peristiwa hukum dan kriminalitas di Kalimantan Barat.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "bersama-sosok",
+    "title": "Bersama Sosok",
+    "slug": "bersama-sosok",
+    "category": "berita",
+    "category_label": "Program Berita",
+    "status": "arsip",
+    "format": "Feature / Talkshow",
+    "duration": "—",
+    "description": "Program yang mengangkat profil dan kisah inspiratif tokoh-tokoh berpengaruh di Kalimantan Barat dari berbagai bidang kehidupan.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "pentas-aksi",
+    "title": "Pentas Aksi",
+    "slug": "pentas-aksi",
+    "category": "non-news",
+    "category_label": "Non-News",
+    "status": "arsip",
+    "format": "Hiburan",
+    "duration": "—",
+    "description": "Program hiburan yang menampilkan pertunjukan seni dan aksi panggung dari para seniman dan pelaku seni budaya Kalimantan Barat.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "bincang-cu",
+    "title": "Bincang CU",
+    "slug": "bincang-cu",
+    "category": "non-news",
+    "category_label": "Non-News",
+    "status": "arsip",
+    "format": "Talkshow",
+    "duration": "—",
+    "description": "Program bincang-bincang seputar dunia Credit Union (CU) dan koperasi simpan pinjam di Kalimantan Barat, menghadirkan edukasi finansial berbasis ekonomi kerakyatan.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "bursa-musik-ruai",
+    "title": "Bursa Musik Ruai (BMR)",
+    "slug": "bursa-musik-ruai",
+    "category": "non-news",
+    "category_label": "Non-News",
+    "status": "arsip",
+    "format": "Hiburan Musik",
+    "duration": "—",
+    "description": "Program musik Ruai TV yang menghadirkan bursa lagu-lagu pilihan dari berbagai genre, menemani pemirsa dengan sajian musik terbaik dari artis lokal dan nasional.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "bumi-hijau",
+    "title": "Bumi Hijau",
+    "slug": "bumi-hijau",
+    "category": "kerja-sama",
+    "category_label": "Kerja Sama",
+    "status": "arsip",
+    "format": "Dokumenter",
+    "duration": "—",
+    "description": "Program dokumenter hasil kerja sama yang mengangkat isu lingkungan hidup, konservasi alam, dan upaya penghijauan di Kalimantan Barat dan sekitarnya.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
+    },
+    "featured": false
+  },
+  {
+    "id": "beranda-ruai",
+    "title": "Beranda Ruai",
+    "slug": "beranda-ruai",
+    "category": "non-news",
+    "category_label": "Non-News",
+    "status": "arsip",
+    "format": "Hiburan",
+    "duration": "—",
+    "description": "Program Non-News Ruai TV yang menghadirkan konten hiburan dan informasi ringan untuk menemani pemirsa di rumah.",
+    "thumbnail_url": null,
+    "youtube_live_url": null,
+    "schedule": {
+      "pagi": { "active": false, "label": "PAGI",  "time": null, "days": null },
+      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
+      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
     },
     "featured": false
   }
