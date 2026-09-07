@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruai TV — Stasiun Televisi Kalimantan Barat | Kabar Kalbar dari Mata Ruai</title>
+  <meta name="description" content="Ruai TV adalah stasiun televisi lokal terpercaya Kalimantan Barat. Saksikan berita terkini, program budaya, dan siaran langsung YouTube Ruai TV. Kanal 43 UHF & Satelit Telkom-4." />
+  <meta name="keywords" content="Ruai TV, TV Kalimantan Barat, Berita Pontianak, Warta Ruai, Live Streaming Kalbar" />
+  <meta property="og:title" content="Ruai TV — Kabar Kalbar dari Mata Ruai" />
+  <meta property="og:description" content="Stasiun televisi lokal terpercaya Kalimantan Barat." />
+  <meta property="og:image" content="assets/images/programs/warta-ruai.jpg" />
+  <link rel="icon" href="assets/images/logo ruai.png" type="image/png" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Playfair Display','serif'] } } }
+    }
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR (Loaded dynamically from includes/navbar.html)
+═══════════════════════════════════════ -->
+<div id="navbar-container"></div>
+
+
+
+<!-- ═══════════════════════════════════════
+     HERO — FEAT-02
+═══════════════════════════════════════ -->
+<section id="beranda" aria-label="Hero — Program Unggulan Warta Ruai">
+  <!-- Background studio image -->
+  <div class="hero-bg-img" aria-hidden="true"></div>
+  
+  <!-- Gradient fade to orange -->
+  <div class="hero-bottom-fade" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <!-- LEFT: Text content -->
+    <div>
+      <div class="hero-label">
+        <span class="hero-label-dot"></span>
+        PROGRAM UNGGULAN RUAI TV
+      </div>
+
+      <h1 class="hero-title">
+        Kabar Kalbar,<br />dari <em>mata</em> Ruai.
+      </h1>
+
+      <p class="hero-desc">
+        Warta Ruai menghadirkan berita utama seputar Kalimantan Barat dan
+        nasional tayang tiga kali sehari untuk seluruh warga Bumi Khatulistiwa.
+      </p>
+
+      <!-- Schedule row -->
+      <div class="hero-sched">
+        <div class="hero-sched-item">
+          <div class="hero-sched-label">Tayang</div>
+          <div class="hero-sched-val">07.00 / 13.00 / 19.00</div>
+        </div>
+        <div class="hero-sched-item">
+          <div class="hero-sched-label">Durasi</div>
+          <div class="hero-sched-val">60 Menit</div>
+        </div>
+        <div class="hero-sched-item">
+          <div class="hero-sched-label">Frekuensi</div>
+          <div class="hero-sched-val">Senin – Sabtu</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="hero-cta">
+        <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer"
+           class="btn-hero-primary" id="hero-stream-btn" aria-label="Streaming Live Warta Ruai di YouTube">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          Streaming / Live
+        </a>
+        <button class="btn-hero-outline" id="hero-detail-btn" aria-label="Lihat detail program Warta Ruai">
+          Detail Program
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Prime Time card -->
+    <div class="hero-primetime-card" aria-label="Program Prime Time Ruai TV">
+      <div class="primetime-label">
+        <span class="primetime-label-dot"></span>
+        PRIME TIME
+      </div>
+
+      <!-- Concentric circles decoration -->
+      <div class="primetime-circles">
+        <!-- Gold circle group (top-right) -->
+        <div style="position:absolute;top:0;right:0;">
+          <div class="circle-group circle-gold">
+            <div class="circle-outer">
+              <div class="circle-inner">
+                <div class="circle-core"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Red circle group (bottom-left) -->
+        <div style="position:absolute;bottom:0;left:0;">
+          <div class="circle-group circle-red">
+            <div class="circle-outer">
+              <div class="circle-inner">
+                <div class="circle-core"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="primetime-info-title">Warta Ruai</div>
+      <div class="primetime-info-desc">
+        Liputan langsung dari studio Pontianak: politik, ekonomi,<br />
+        sosial-budaya, dan kabar dari pelosok Kalimantan Barat.
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     PROGRAM CATALOG — FEAT-03
+═══════════════════════════════════════ -->
+<section id="program" aria-label="Katalog Program Ruai TV">
+  <div class="section-inner">
+
+    <!-- Header -->
+    <div class="section-header-row">
+      <div>
+        <div class="section-eyebrow-line">KATALOG SIARAN</div>
+        <h2 class="section-title-dark">Program Acara</h2>
+        <p class="section-sub-dark">
+          Telusuri seluruh tayangan Ruai TV dari warta harian hingga program kerja sama,
+          aktif maupun arsip.
+        </p>
+      </div>
+      <div class="count-pills" aria-label="Jumlah program">
+        <div class="count-pill" id="pill-aktif"><span id="total-aktif">15</span> Aktif</div>
+        <div class="count-pill" id="pill-arsip"><span id="total-arsip">20</span> Arsip</div>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-row" role="tablist" aria-label="Filter kategori program">
+      <button class="filter-tab active" data-filter="semua"      id="tab-semua"      role="tab" aria-selected="true">Semua <span data-count="semua">34</span></button>
+      <button class="filter-tab"        data-filter="aktif"      id="tab-aktif"      role="tab">Aktif <span data-count="aktif">15</span></button>
+      <button class="filter-tab"        data-filter="berita"     id="tab-berita"     role="tab">Program Berita <span data-count="berita">12</span></button>
+      <button class="filter-tab"        data-filter="non-news"   id="tab-non-news"   role="tab">Non-News <span data-count="non-news">11</span></button>
+      <button class="filter-tab"        data-filter="kerja-sama" id="tab-kerja-sama" role="tab">Kerja Sama <span data-count="kerja-sama">11</span></button>
+      <button class="filter-tab"        data-filter="arsip"      id="tab-arsip"      role="tab">Arsip <span data-count="arsip">20</span></button>
+    </div>
+
+    <!-- Grid (rendered by catalog.js) -->
+    <div id="programs-grid" role="list" aria-label="Daftar program Ruai TV"></div>
+
+    <!-- Empty state -->
+    <div id="catalog-empty" style="display:none;text-align:center;padding:48px;color:#9CA3AF;">
+      <div style="font-size:36px;margin-bottom:10px;">📭</div>
+      <p>Tidak ada program untuk filter ini.</p>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     JADWAL SIARAN — FEAT-05
+═══════════════════════════════════════ -->
+<section id="jadwal" aria-label="Jadwal Siaran Mingguan Ruai TV">
+  <div class="section-inner">
+
+    <div class="jadwal-header-row">
+      <div>
+        <div class="section-eyebrow-line">RUNDOWN MINGGUAN</div>
+        <h2 class="section-title-dark">Jadwal Siaran Sepekan</h2>
+        <p class="section-desc-sub">
+          Blok waktu tetap setiap minggu Pagi, Siang, Sore, dan Malam untuk program berita berjadwal.
+        </p>
+      </div>
+    </div>
+
+    <div class="schedule-wrap">
+      <div class="schedule-scroll" role="region" aria-label="Tabel jadwal siaran mingguan" tabindex="0">
+        <table class="schedule-table" aria-label="Jadwal siaran mingguan Ruai TV">
+          <thead>
+            <tr>
+              <th scope="col" class="th-blok">BLOK</th>
+              <th scope="col">SENIN</th>
+              <th scope="col">SELASA</th>
+              <th scope="col">RABU</th>
+              <th scope="col">KAMIS</th>
+              <th scope="col">JUMAT</th>
+              <th scope="col">SABTU</th>
+              <th scope="col">MINGGU</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <!-- Rendered by schedule.js -->
+          </tbody>
+        </table>
+      </div>
+      <div class="scroll-hint" aria-hidden="true">← Geser untuk melihat jadwal lengkap →</div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     TENTANG KAMI — FEAT-06
+═══════════════════════════════════════ -->
+<section id="tentang" aria-label="Profil dan Tentang Ruai TV Kalimantan Barat">
+  <div class="section-inner">
+
+    <div class="section-eyebrow-line">— PROFIL LEMBAGA</div>
+    <h2 class="section-title-light" style="margin-bottom:8px;">Tentang Kami</h2>
+    <p class="section-desc-sub" style="margin-bottom:28px;">
+      Mengenal lebih dekat Ruai TV  televisi lokal Kalimantan Barat yang lahir dari semangat pemberdayaan masyarakat.
+    </p>
+
+    <!-- Motto Banner -->
+    <div class="motto-banner">
+      <span class="motto-tag">MOTTO</span>
+      <h3 class="motto-text">"Jendela Inspirasi Anda"</h3>
+    </div>
+
+    <!-- 3 Cards: Visi / Misi / Positioning -->
+    <div class="vmp-grid">
+      <div class="vmp-card">
+        <h4 class="vmp-title">Visi</h4>
+        <p class="vmp-text">
+          Menjadi TV pewarta masyarakat terbaik di Kalimantan Barat yang berpengaruh pada cara pandang, cara pikir pengambil kebijakan, pebisnis dan warga.
+        </p>
+      </div>
+
+      <div class="vmp-card">
+        <h4 class="vmp-title">Misi</h4>
+        <p class="vmp-text">
+          Kami adalah televisi yang memberdayakan masyarakat adat dan masyarakat terpinggirkan melalui tayangan yang mencerdaskan dan menginspirasi
+        </p>
+      </div>
+
+      <div class="vmp-card">
+        <h4 class="vmp-title">Positioning</h4>
+        <p class="vmp-text">
+          Televisi informasi terbaik dan mitra bisnis favorit di Kalimantan Barat.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2 Column details -->
+    <div class="tentang-detail-grid">
+      <!-- Left Column -->
+      <div class="tentang-col-left">
+        
+        <div class="tentang-subhead">— KONSEP: "BERITA DAN BUDAYA"</div>
+        <p class="tentang-p">
+          Ruai TV hadir dengan konsep perpaduan antara berita aktual dan kekayaan budaya Kalimantan Barat — dua pilar yang saling menguatkan dalam membangun identitas dan jati diri masyarakat Bumi Khatulistiwa.
+        </p>
+
+        <div class="tentang-subhead">— LATAR BELAKANG</div>
+        <p class="tentang-p">
+          Ruai TV resmi berdiri pada <strong>07 Juli 2007</strong> di Pontianak. Mengudara dengan jangkauan wilayah kota Pontianak, Kubu Raya, dan Kabupaten Mempawah. Didirikan oleh <strong>Gerakan Pemberdayaan Pancur Kasih Pontianak</strong>, sebuah lembaga pemberdayaan masyarakat.
+        </p>
+        <p class="tentang-p">
+          Pada tahun 2011 Ruai TV mendapat Izin Prinsip Penyiaran (IPP) oleh Kementerian Komunikasi dan Informatika Republik Indonesia dan mendapat lisensi mengadakan kegiatan penyiaran sebagai Televisi Swasta di Indonesia.
+        </p>
+
+        <div class="tentang-subhead">— INFO SIARAN</div>
+        <div class="info-siaran-grid">
+          <!-- Card 1 Terrestrial -->
+          <div class="siaran-card white-siaran-card">
+            <div class="siaran-card-icon">📺</div>
+            <div class="siaran-card-body">
+              <div class="siaran-label">SIARAN TERRESTRIAL</div>
+              <div class="siaran-main">Kanal 43 UHF — 647,25 MHz</div>
+              <div class="siaran-sub">Pontianak</div>
+            </div>
+          </div>
+
+          <!-- Card 2 Satellite -->
+          <div class="siaran-card red-siaran-card">
+            <div class="siaran-card-icon">📡</div>
+            <div class="siaran-card-body">
+              <div class="siaran-label text-red-600">SATELIT MERAH PUTIH (TELKOM 4)</div>
+              <div class="siaran-main">Frekuensi 4020 MHz</div>
+              <div class="siaran-sub">Symbol Rate 32.727 · Polaritas Vertikal · DVBS2 Mpeg 4 SD</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column -->
+      <div class="tentang-col-right">
+        
+        <div class="tentang-subhead">— FILOSOFI LOGO</div>
+        <ul class="filosofi-list">
+          <li>
+            <span class="dot dot-blue"></span>
+            <span><strong>Burung Ruai berwarna biru</strong>— warna perdamaian menuju rekonsiliasi yang didambakan masyarakat Kalbar.</span>
+          </li>
+          <li>
+            <span class="dot dot-red"></span>
+            <span>Warna <strong>merah</strong> pada "RUAI" — warna khas Masyarakat Dayak dan Tionghoa.</span>
+          </li>
+          <li>
+            <span class="dot dot-yellow"></span>
+            <span>Warna <strong>kuning</strong> pada "TV" — warna khas masyarakat Melayu.</span>
+          </li>
+          <li>
+            <span class="dot dot-green"></span>
+            <span>Lingkaran <strong>hijau</strong> — melambangkan bumi yang harus senantiasa dijaga kelestariannya.</span>
+          </li>
+          <li>
+            <span class="dot dot-black"></span>
+            <span>Tiga helai bulu Ruai — melambangkan tiga etnis besar: Dayak, Melayu, Tionghoa.</span>
+          </li>
+          <li>
+            <span class="dot dot-gray"></span>
+            <span>Pertemuan garis lintang &amp; bujur — melambangkan Pontianak sebagai kota Khatulistiwa, tempat kantor pusat Ruai TV.</span>
+          </li>
+        </ul>
+
+        <div class="tentang-subhead" style="margin-top:28px;">— TIM RUAI TV</div>
+        <div class="tim-pills-wrap">
+          <span class="tim-pill">News &amp; Penyiaran</span>
+          <span class="tim-pill">Produksi</span>
+          <span class="tim-pill">Teknik &amp; Penyiaran</span>
+          <span class="tim-pill">Marketing</span>
+        </div>
+
+        <div class="tentang-subhead" style="margin-top:28px;">— JARINGAN KAMI</div>
+        <div class="jaringan-pills-wrap">
+          <span class="jaringan-pill">ICFJ</span>
+          <span class="jaringan-pill">INTERNEWS</span>
+          <span class="jaringan-pill">TEMPO TV</span>
+          <span class="jaringan-pill">ANTARA TV</span>
+          <span class="jaringan-pill">JUNGLE RUN PRODUCTION</span>
+          <span class="jaringan-pill">MONGABAY INDONESIA</span>
+          <span class="jaringan-pill">CREDIT UNION</span>
+          <span class="jaringan-pill">RUAI CJTC</span>
+          <span class="jaringan-pill">KALIMANTAN REVIEW</span>
+          <span class="jaringan-pill">LABEL MUSIK INDONESIA</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     FOOTER (Loaded dynamically from includes/footer.html)
+═══════════════════════════════════════ -->
+<div id="footer-container"></div>
+
+
+
+<!-- ═══════════════════════════════════════
+     MODAL DETAIL PROGRAM — FEAT-04
+═══════════════════════════════════════ -->
+<div id="program-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div id="modal-box" class="modal-box" role="document">
+    <!-- Header -->
+    <div id="modal-head" class="modal-head aktif">
+      <button id="modal-close-btn" class="modal-close-btn" aria-label="Tutup detail program">✕</button>
+      <div class="modal-cat-row">
+        <span id="modal-cat-label" class="modal-cat-label">PROGRAM BERITA</span>
+        <span id="modal-status-badge" class="modal-status-badge aktif">AKTIF</span>
+      </div>
+      <h2 id="modal-title" class="modal-program-title">Judul Program</h2>
+      <div id="modal-meta" class="modal-program-meta">Format: — · Durasi: —</div>
+    </div>
+    <!-- Body -->
+    <div class="modal-body">
+      <img id="modal-thumb" class="modal-thumb" src="" alt="" />
+      <div class="jadwal-label">JADWAL TAYANG</div>
+      <div class="jadwal-grid" role="list">
+        <div id="slot-pagi"  class="jadwal-slot kosong-slot" role="listitem"></div>
+        <div id="slot-siang" class="jadwal-slot kosong-slot" role="listitem"></div>
+        <div id="slot-malam" class="jadwal-slot kosong-slot" role="listitem"></div>
+      </div>
+      <div class="sinopsis-label">SINOPSIS</div>
+      <p id="modal-sinopsis" class="sinopsis-text"></p>
+      <button id="modal-cta" class="btn-streaming" style="display:none;" aria-label="Streaming program ini di YouTube">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Streaming / Live
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scroll to top -->
+<button id="scroll-top" aria-label="Kembali ke atas">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+</button>
+
+<!-- Scripts -->
+<script src="assets/js/main.js"></script>
+<script src="assets/js/catalog.js"></script>
+<script src="assets/js/schedule.js"></script>
+
+</body>
+</html>

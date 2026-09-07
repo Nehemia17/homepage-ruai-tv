@@ -1,0 +1,159 @@
+﻿PRODUCT REQUIREMENTS DOCUMENT (PRD) & TECHNICAL REQUIREMENTS DOCUMENT (TRD)
+PROJECT: RUAI TV HOMEPAGE & SCHEDULE SYSTEM
+Status: Ready for Development / Vibe Coding Baseline
+Platform: Responsive Web (Desktop, Tablet, Mobile)
+Target Deployment: Fast Static Site / Hydrated Frontend with lightweight API & Admin Panel capability
+1. PRODUCT REQUIREMENTS DOCUMENT (PRD)
+1.1 Executive Summary & Purpose
+Dokumen ini merinci kebutuhan produk untuk pengembangan website portal/homepage resmi stasiun televisi Ruai TV (Kalimantan Barat). Website ini dirancang untuk menyajikan informasi menyeluruh tentang profil stasiun televisi, program unggulan, katalog seluruh program (aktif dan arsip), jadwal penayangan mingguan (sepekan), serta direct redirect interaktif menuju live streaming YouTube Ruai TV. Desain mengadopsi estetika clean modern, Bento-Grid modular cards, dan skema warna khas identitas Ruai TV (merah, emas, dark charcoal, dan putih).
+1.2 User Personas & Pain Points
+* Pemirsa Lokal & Diaspora Kalbar: Memerlukan akses instan untuk mengetahui jam tayang program favorit mereka (Warta Ruai, Rumah Kita, Special Dialog, Gong Ruai) dan tautan siaran langsung YouTube.
+* Mitra Kerja Sama & Klien Korporasi: Mencari informasi profil perusahaan, jangkauan kanal transmisi (UHF/Satelit), dan jenis program kemitraan (VOA, CBN, Dokumenter Lingkungan).
+* Internal Tim Redaksi/Broadcast Ruai TV: Memerlukan sistem manajemen data yang fleksibel untuk meng-update slot jam tayang, mengubah status arsip/aktif, atau memperbarui ringkasan deskripsi program tanpa merusak layout desain.
+1.3 Core Features & User Stories
+ID Fitur
+	Nama Fitur
+	Deskripsi Fungsional
+	Aksi Pengguna (User Interaction)
+ 
+	FEAT-01
+	Navbar & Sticky Header
+	Header navigasi transparan/glassmorphism dengan Logo Ruai TV, menu navigasi (Beranda, Program, Jadwal, Tentang Kami, Kontak), Search Bar dummy, dan tombol CTA "LIVE STREAMING".
+	Klik menu melakukan smooth-scroll ke anchor section; klik "LIVE STREAMING" membuka tab baru ke channel live YouTube Ruai TV.
+	FEAT-02
+	Hero Banner Showcase
+	Showcase program unggulan "Kabar Kalbar, dari mata Ruai" dengan badge program unggulan, preview video thumbnail, rincian tayang (Pukul 07.00 / 13.00 / 19.00 WIB, Durasi 60 Menit, Frekuensi: Senin - Sabtu), tombol CTA "Streaming / Live", dan "Detail Program".
+	Klik "Streaming / Live" membuka YouTube Live di tab baru; klik "Detail Program" membuka popup modal detail program Warta Ruai.
+	FEAT-03
+	Katalog Program (Bento-Grid) & Filter Kategori
+	Sistem grid kartu interaktif dengan filter tab: Semua (28), Aktif (15), Program Berita (12), Non-News (8), Kerja Sama (11), Arsip (13). Kartu menampilkan thumbnail, judul, tag status (Aktif/Arsip), tag kategori, dan format durasi.
+	Klik filter tab memicu filtering instan tanpa reload halaman. Grid otomatis menyesuaikan jumlah item yang tampil dengan transisi smooth.
+	FEAT-04
+	Modal Detail Program (Pop-up Overlay)
+	Modal dialog popup dengan header gradasi oranye-merah (untuk program aktif) atau abu-abu gelap (untuk arsip). Menampilkan judul, format, durasi, status badge, matriks jadwal tayang 3 slot (Pagi, Siang, Malam), sinopsis lengkap, thumbnail banner, dan CTA "Streaming / Live".
+	Terbuka saat kartu program diklik. Dapat ditutup melalui tombol silang (X), klik di luar container modal (backdrop click), atau menekan tombol Keyboard ESC.
+	FEAT-05
+	Matriks Jadwal Siaran Sepekan (Responsive Matrix)
+	Tabel matriks jadwal siaran 7 hari (Senin s.d. Minggu) dengan pembagian blok waktu siaran: Pagi (07.00 WIB, 10.00 WIB), Siang (13.00 WIB), Sore (15.00 WIB, 17.00 WIB, 18.30 WIB), Malam (19.00 WIB, 19.30 WIB, 20.05 WIB).
+	Desktop: grid visual yang kokoh. Mobile: container dengan horizontal scroll swipe-able dan visual scroll indicator agar susunan matriks tetap presisi.
+	FEAT-06
+	Profil Perusahaan, Transmisi & Footer
+	Bagian profil komprehensif menampilkan Visi, Misi, Positioning, Filosofi Logo, Info Transmisi (Terestrial Kanal 43 UHF & Satelit Telkom-4 Frekuensi 4020 MHz), Partner Jaringan, serta Footer navigasi dan alamat studio (Jl. 28 Oktober No. 25–26 Pontianak).
+	Interaksi informatif dan responsif lengkap dengan tautan kontak dan media sosial.
+	FEAT-07
+	Panel Admin CMS (Fase Transisi Data)
+	Dashboard ringan untuk mengelola database program: Create, Read, Update, Delete (CRUD) data program dan jadwal siaran.
+	Admin login, mengisi formulir metadata program, upload thumbnail, toggle status Aktif/Arsip, dan update slot jam tayang.
+	1.4 Skema UI & Design Tokens
+* Color Palette:
+   * Primary Accent: #E50914 / #DC2626 (Merah Berani Ruai)
+   * Secondary Gradient: linear-gradient(135deg, #FF6B00 0%, #D92323 100%) (Oranye ke Merah Khas Banner Modal Aktif)
+   * Neutral Dark: #1E1E1E & #2B2B2B (Header Modal Arsip & Kartu Non-Aktif)
+   * Background Body: #F8F9FA / #FFFFFF (Off-white bersih dan elegan)
+   * Accent Badge: #D97706 / #F59E0B (Kuning Emas untuk Tag Kerja Sama / Berita)
+* Typography Hierarchy:
+   * Headings: Modern Serif / Editorial Sans (misal: Playfair Display / Cinzel atau Plus Jakarta Sans font bold) untuk judul program di modal.
+   * Body & UI: Plus Jakarta Sans / Inter (sangat legible di ukuran kecil untuk blok jam tayang dan rincian teknis).
+2. TECHNICAL REQUIREMENTS DOCUMENT (TRD)
+2.1 Tech Stack & Bahasa Pemrograman
+Untuk menghasilkan performa ultra-cepat, layout pixel-perfect sesuai Figma, serta kemudahan integrasi Panel Admin CRUD di masa depan, stack yang digunakan adalah:
+Komponen
+	Teknologi / Bahasa Pemrograman
+	Alasan Pemilihan & Kegunaan
+ 
+	Frontend Core
+	HTML5 & JavaScript (ES6+ / TypeScript)
+	Struktur semantik ramah SEO serta manipulasi DOM untuk filter instan dan interaksi modal dinamis.
+	Styling Engine
+	Tailwind CSS 3.4+
+	Utility-first CSS framework untuk implementasi Bento-Grid, CSS Grid kompleks, styling state modal, responsive utility breakpoint, dan custom color tokens.
+	Reactive Library (Opsional)
+	Alpine.js atau Vue 3 / React (Vite)
+	Reaktivitas instan dengan footprint sangat kecil (< 15KB) untuk bind state filter kartu, filter count badge, dan modal detail.
+	Admin Backend API
+	Node.js (Express / Fastify) atau PHP (REST API / CodeIgniter)
+	Menyediakan endpoint RESTful JSON untuk melayani kebutuhan CRUD data program dan jadwal siaran untuk Panel Admin.
+	Database / Data Layer
+	SQLite / PostgreSQL atau JSON Flat-file
+	Penyimpanan relasi data program, jam tayang harian, thumbnail image URL, dan riwayat arsip.
+	2.2 Struktur Data Model (Data Schema)
+Data program dipisahkan ke dalam format terstruktur sehingga dapat dikonsumsi oleh frontend melalui fetch API lokal atau remote endpoint.
+{
+ "id": "warta-ruai",
+ "title": "Warta Ruai",
+ "slug": "warta-ruai",
+ "category": "program-berita",
+ "category_label": "Program Berita",
+ "status": "aktif",
+ "format": "Berita",
+ "duration": "60 Menit",
+ "description": "Paket buletin berita hasil liputan harian pada peristiwa dan isu aktual yang terjadi di Pontianak dan sekitarnya, serta Kalimantan Barat pada umumnya. Tayang tiga kali sehari — pagi, siang, dan malam — untuk memastikan pemirsa selalu mendapatkan informasi terkini.",
+ "thumbnail_url": "/assets/programs/warta-ruai.jpg",
+ "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+ "schedule": {
+   "pagi": {
+     "active": true,
+     "time": "07.00 – 08.00 WIB",
+     "days": "Senin – Sabtu"
+   },
+   "siang": {
+     "active": true,
+     "time": "13.00 – 14.00 WIB",
+     "days": "Senin – Sabtu"
+   },
+   "malam": {
+     "active": true,
+     "time": "19.00 – 20.00 WIB",
+     "days": "Senin – Sabtu"
+   }
+ }
+}
+
+2.3 Logika Implementasi Komponen Teknis
+A. Sistem Filter Katalog Program
+1. Tiap kartu memiliki atribut data: data-category (berita, non-news, kerja-sama) dan data-status (aktif, arsip).
+2. Tombol filter aktif memicu event listener yang mencocokkan status tab dengan item:
+   * Tab Semua: Menampilkan seluruh elemen DOM kartu (remove class hidden).
+   * Tab Aktif: Menampilkan elemen yang memiliki data-status="aktif".
+   * Tab Arsip: Menampilkan elemen yang memiliki data-status="arsip".
+   * Tab Kategori (Program Berita, Non-News, Kerja Sama): Menampilkan elemen yang sesuai dengan atribut data-category.
+3. Badge angka di samping tab dihitung secara reaktif melalui Array.filter() sesuai dataset yang aktif.
+B. Modal Dialog Controller
+1. Implementasi native menggunakan elemen HTML <dialog id="program-modal"> atau custom overlay fixed inset-0 z-50 dengan backdrop blur backdrop-blur-sm bg-black/60.
+2. Saat kartu diklik, fungsi openProgramModal(programId) akan membaca data program dari cache memory/JSON dan menginjeksi isi:
+   * Judul program, durasi, dan format pada header modal.
+   * Header modal berganti kelas warna background: bg-gradient-to-r from-orange-600 to-red-600 jika status = "aktif", atau bg-[#2B2B2B] jika status = "arsip".
+   * Rendering slot jadwal: Kartu jadwal yang aktif diberi background merah solid bg-[#C81E2E] dengan teks putih tebal, sedangkan slot yang tidak tayang diberi background putih dengan border abu-abu dan teks redup "Tidak tayang".
+   * Jika program berstatus aktif, tombol CTA "Streaming / Live" ditampilkan di bagian bawah modal dan diarahkan ke link YouTube Live dengan atribut target="_blank" rel="noopener noreferrer".
+3. Accessibility: Modal menangkap event keydown untuk tombol Escape agar menutup otomatis, dan mengunci scroll body (overflow: hidden) saat terbuka.
+C. Tabel Matriks Jadwal Siaran Sepekan (Mobile Swipe Strategy)
+1. Komponen tabel dibungkus di dalam container berkelas w-full overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-700.
+2. Lebar minimum tabel diatur ke min-w-[850px] untuk mencegah teks jam tayang dan judul program bertumpuk di resolusi ponsel (portrait).
+3. Ditambahkan elemen indikator visual di bawah tabel khusus untuk tampilan layar kecil (md:hidden): "Geser horizontal untuk melihat jadwal lengkap →".
+2.4 Endpoint Arsitektur Panel Admin (Next Phase CRUD)
+Metode HTTP
+	Endpoint URL
+	Fungsi / Deskripsi
+	Hak Akses
+ 
+	GET
+	/api/v1/programs
+	Mengambil daftar seluruh program dan jadwal siaran untuk frontend homepage.
+	Public
+	POST
+	/api/v1/programs
+	Menambahkan data program baru beserta jadwal dan asset thumbnail.
+	Admin Authenticated
+	PUT / PATCH
+	/api/v1/programs/:id
+	Mengubah rincian program, memindahkan status aktif ke arsip, atau update jam tayang.
+	Admin Authenticated
+	DELETE
+	/api/v1/programs/:id
+	Menghapus data program dari sistem database.
+	Admin Authenticated
+	2.5 Checklist Kesiapan Vibe Coding
+* [x] Semua konten teks, deskripsi program, dan data jam siaran telah terdokumentasi dari 28 program Ruai TV.
+* [x] Aturan perilaku tombol "Streaming / Live" telah ditetapkan untuk direct URL YouTube Live tab baru.
+* [x] Arsitektur data JSON telah disiapkan untuk transisi mudah ke Panel Admin CRUD.
+* [x] Layout tabel jadwal mobile telah diproteksi dengan isolasi horizontal-scrollable container.

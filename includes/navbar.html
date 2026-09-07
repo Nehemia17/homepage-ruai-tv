@@ -1,0 +1,49 @@
+<header id="navbar">
+  <div class="nav-inner">
+    <!-- Logo -->
+    <a href="#beranda" class="nav-logo" aria-label="Ruai TV - Beranda">
+      <img src="assets/images/logo ruai.png" alt="Logo Ruai TV Kalimantan Barat" />
+    </a>
+
+    <!-- Desktop nav links -->
+    <nav aria-label="Navigasi utama">
+      <ul class="nav-links">
+        <li><a href="#beranda">Beranda</a></li>
+        <li><a href="#program">Program</a></li>
+        <li><a href="#jadwal">Jadwal</a></li>
+        <li><a href="#tentang">Tentang Kami</a></li>
+        <li><a href="#kontak">Kontak</a></li>
+      </ul>
+    </nav>
+
+    <!-- Search + CTA -->
+    <div style="display:flex;align-items:center;gap:12px;margin-left:auto;">
+      <div class="nav-search-wrap" role="search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="search" placeholder="Cari program..." aria-label="Cari program Ruai TV" id="search-input" />
+      </div>
+
+      <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer"
+         class="btn-live-nav" id="nav-live-btn" aria-label="Tonton siaran langsung Ruai TV di YouTube">
+        <span class="live-dot"></span>
+        LIVE STREAMING
+      </a>
+
+      <!-- Mobile toggle -->
+      <button class="menu-toggle" id="menu-toggle" aria-label="Buka menu navigasi" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" role="navigation" aria-label="Menu navigasi mobile">
+    <a href="#beranda"  class="mobile-nav-link">Beranda</a>
+    <a href="#program"  class="mobile-nav-link">Program</a>
+    <a href="#jadwal"   class="mobile-nav-link">Jadwal Siaran</a>
+    <a href="#tentang"  class="mobile-nav-link">Tentang Kami</a>
+    <a href="#kontak"   class="mobile-nav-link">Kontak</a>
+  </div>
+</header>
