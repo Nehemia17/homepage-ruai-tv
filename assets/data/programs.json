@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": "warta-ruai",
     "title": "Warta Ruai",
@@ -339,40 +339,7 @@
     },
     "featured": false
   },
-  {
-    "id": "kilas-ruai-breaking-news",
-    "title": "Kilas Ruai (Breaking News)",
-    "slug": "kilas-ruai-breaking-news",
-    "category": "berita",
-    "category_label": "Program Berita",
-    "status": "arsip",
-    "format": "Breaking News",
-    "duration": "—",
-    "description": "Liputan berita kilat dan breaking news terpilih dari berbagai daerah di Kalimantan Barat. Kini sudah diintegrasikan ke dalam program Kilas Ruai reguler.",
-    "thumbnail_url": "assets/images/programs/Kilas-Ruai.png",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi": {
-        "active": false,
-        "label": "PAGI",
-        "time": null,
-        "days": null
-      },
-      "siang": {
-        "active": false,
-        "label": "SIANG",
-        "time": null,
-        "days": null
-      },
-      "malam": {
-        "active": false,
-        "label": "MALAM",
-        "time": null,
-        "days": null
-      }
-    },
-    "featured": false
-  },
+
   {
     "id": "slada-video-klip",
     "title": "Slada Video Klip",
@@ -417,7 +384,7 @@
     "format": "Dokumenter",
     "duration": "—",
     "description": "Tayangan dokumenter yang menampilkan keindahan alam dan budaya Kalimantan Barat serta Nusantara dalam format visual yang memukau.",
-    "thumbnail_url": "assets/images/programs/Borneo-Rawa-Island.png",
+    "thumbnail_url": null,
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -519,7 +486,7 @@
     "format": "Hiburan",
     "duration": "—",
     "description": "Program interaktif karaoke yang mengundang pemirsa untuk ikut bernyanyi bersama dan menikmati lagu-lagu favorit dalam format hiburan yang menyenangkan.",
-    "thumbnail_url": "assets/images/programs/Slada.png",
+    "thumbnail_url": null,
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -791,7 +758,7 @@
     "format": "Talkshow",
     "duration": "—",
     "description": "Program dialog kerja sama dengan CBN yang membahas berbagai topik kehidupan dan iman dari sudut pandang yang mencerahkan.",
-    "thumbnail_url": "assets/images/programs/Spesial-Dialog.png",
+    "thumbnail_url": null,
     "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
     "schedule": {
       "pagi": {
@@ -893,7 +860,7 @@
     "format": "Feature Berita",
     "duration": "—",
     "description": "Wawasan dunia internasional dari Voice of America (VOA) yang menyajikan feature-feature menarik tentang kehidupan dan perkembangan global.",
-    "thumbnail_url": "assets/images/programs/VOA-Jalan-Jalan-Amerika.png",
+    "thumbnail_url": null,
     "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
@@ -918,16 +885,16 @@
     "featured": false
   },
   {
-    "id": "ananda-borneo",
-    "title": "Ananda Borneo (On Target)",
-    "slug": "ananda-borneo",
+    "id": "ananda-buana",
+    "title": "Ananda Buana",
+    "slug": "ananda-buana",
     "category": "kerja-sama",
     "category_label": "Kerja Sama",
     "status": "arsip",
     "format": "Dokumenter",
     "duration": "—",
     "description": "Dokumenter alam liar dan eksplorasi Borneo yang mengangkat kekayaan biodiversitas dan keunikan ekosistem Kalimantan. Saat ini dalam status arsip.",
-    "thumbnail_url": "assets/images/programs/Borneo-Rawa-Island.png",
+    "thumbnail_url": null,
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -951,40 +918,7 @@
     },
     "featured": false
   },
-  {
-    "id": "darul-eliyas",
-    "title": "Darul Eliyas",
-    "slug": "darul-eliyas",
-    "category": "kerja-sama",
-    "category_label": "Kerja Sama",
-    "status": "arsip",
-    "format": "Program Religi",
-    "duration": "—",
-    "description": "Tayangan religi kerja sama yang menghadirkan ceramah dan pencerahan spiritual dari narasumber terpilih untuk masyarakat Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi": {
-        "active": false,
-        "label": "PAGI",
-        "time": null,
-        "days": null
-      },
-      "siang": {
-        "active": false,
-        "label": "SIANG",
-        "time": null,
-        "days": null
-      },
-      "malam": {
-        "active": false,
-        "label": "MALAM",
-        "time": null,
-        "days": null
-      }
-    },
-    "featured": false
-  },
+
   {
     "id": "antara",
     "title": "Antara",
