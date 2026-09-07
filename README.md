@@ -1,25 +1,32 @@
 # 📺 Homepage Ruai TV — Kalimantan Barat
 
-Website homepage statis untuk **Ruai TV**, stasiun televisi lokal terpercaya Kalimantan Barat yang menghadirkan berita, budaya, dan informasi untuk masyarakat Bumi Khatulistiwa.
+Website homepage untuk **Ruai TV**, stasiun televisi lokal terpercaya Kalimantan Barat yang menghadirkan berita, budaya, dan informasi untuk masyarakat Bumi Khatulistiwa.
 
 > *"Jendela Inspirasi Anda"* — Ruai TV, berdiri sejak 07 Juli 2007 di Pontianak.
 
 ---
 
-## 🌐 Demo Lokal
+## 🌐 Cara Menjalankan
 
-Jalankan perintah berikut di terminal:
+### Mode Statis (Tanpa Backend)
 
 ```bash
 cd "c:/Apps/Homepage Statis Ruai-TV"
 python -m http.server 3000
 ```
 
-Kemudian buka browser dan akses: **http://localhost:3000**
+Buka browser: **http://localhost:3000**
+
+### Mode Penuh dengan Backend PHP + MySQL (XAMPP)
+
+1. Pastikan **XAMPP** sudah terinstall dan **Apache + MySQL** dalam status **Start**.
+2. Letakkan folder proyek ini di dalam `C:/xampp/htdocs/`.
+3. Import database: buka **phpMyAdmin** → buat database `ruai_tv` → import file [`database/ruai_tv.sql`](database/ruai_tv.sql).
+4. Buka browser: **http://localhost/Homepage%20Statis%20Ruai-TV/**
 
 ---
 
-## ✨ Fitur
+## ✨ Fitur Website Publik
 
 | Fitur | Keterangan |
 |---|---|
@@ -30,7 +37,34 @@ Kemudian buka browser dan akses: **http://localhost:3000**
 | 🏛️ **Profil Lembaga** | Visi, Misi, Latar Belakang, Filosofi Logo, Jaringan |
 | 📡 **Info Siaran** | Detail kanal terrestrial UHF & Satelit Telkom 4 |
 | 🔴 **Indikator Live** | Tombol LIVE STREAMING aktif otomatis sesuai jam tayang Warta Ruai |
+| 🎬 **Video Promo** | Pemutaran video bumper YouTube di modal detail program |
 | 📱 **Responsive** | Tampilan menyesuaikan desktop, tablet, dan ponsel |
+
+---
+
+## 🔐 Admin Panel
+
+Akses pengelola tersedia di `/admin/login.html` atau **http://localhost:3000/admin/login.html**
+
+### Kredensial Default
+
+| Field | Value |
+|---|---|
+| **Username** | `admin` |
+| **Password** | `admin123` |
+
+### Fitur Admin Panel
+
+| Fitur | Keterangan |
+|---|---|
+| 🔒 **Login Page** | Halaman login dengan glassmorphism dark theme & SweetAlert2 |
+| 📊 **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel terbaru |
+| 📋 **Kelola Program** | CRUD program lengkap: tambah, edit, hapus, toggle aktif/arsip |
+| 🖼️ **Upload Banner** | Upload gambar banner via PHP API (XAMPP) atau preview lokal (statis) |
+| 🎬 **Video Promo** | Input link YouTube bumper promo per program |
+| 🕒 **Jadwal Tayang** | Input jam & hari untuk slot Pagi, Siang/Sore, dan Malam |
+| 🗄️ **MySQL Sync** | Sync otomatis ke MySQL API, fallback ke localStorage → programs.json |
+| 🔔 **SweetAlert2** | Semua notifikasi, konfirmasi hapus, dan logout via SweetAlert2 |
 
 ---
 
@@ -39,9 +73,28 @@ Kemudian buka browser dan akses: **http://localhost:3000**
 ```
 Homepage Statis Ruai-TV/
 │
-├── index.html                  # Halaman utama
+├── index.html                  # Halaman utama publik
 ├── .gitignore
 ├── README.md
+│
+├── admin/                      # Admin Panel
+│   ├── login.html              # Halaman login admin
+│   ├── index.html              # Dashboard pengelola
+│   ├── programs.html           # Manajemen katalog program
+│   └── assets/
+│       ├── css/admin.css       # Design system admin panel
+│       └── js/
+│           ├── admin.js        # Logika CRUD + auth guard + SweetAlert2
+│           └── login.js        # Logika autentikasi & session
+│
+├── api/                        # REST API Backend (PHP)
+│   ├── db.php                  # Koneksi PDO MySQL
+│   ├── programs.php            # CRUD API: GET/POST/PUT/DELETE
+│   ├── upload.php              # Upload gambar banner
+│   └── login.php               # Autentikasi admin
+│
+├── database/
+│   └── ruai_tv.sql             # Schema MySQL + 35 data program + tabel users
 │
 ├── includes/                   # Komponen modular (dimuat via JS)
 │   ├── navbar.html             # Header / navigasi
@@ -49,7 +102,7 @@ Homepage Statis Ruai-TV/
 │
 └── assets/
     ├── css/
-    │   └── style.css           # Seluruh styling (CSS murni)
+    │   └── style.css           # Seluruh styling frontend (CSS murni)
     │
     ├── js/
     │   ├── main.js             # Loader komponen, navbar scroll, live checker
@@ -57,35 +110,25 @@ Homepage Statis Ruai-TV/
     │   └── schedule.js         # Render tabel jadwal siaran
     │
     ├── data/
-    │   └── programs.json       # Data program (sementara flat file, akan migrasi ke DB)
+    │   └── programs.json       # Data program fallback (flat file)
     │
     └── images/
         ├── logo ruai.png       # Logo resmi Ruai TV
-        └── programs/           # Thumbnail gambar program
+        └── programs/           # Gambar banner program
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **HTML5** — Struktur halaman semantik
-- **CSS3 (Vanilla)** — Styling lengkap tanpa framework
-- **Tailwind CSS (CDN)** — Utilitas tambahan
-- **Vanilla JavaScript (ES6+)** — Logika interaktif
-- **Google Fonts** — Inter + Playfair Display
-- **Python HTTP Server** — Development server lokal
-
----
-
-## 📦 Data Program
-
-Saat ini data ~31 program disimpan di [`assets/data/programs.json`](assets/data/programs.json).
-
-**Rencana migrasi** (Phase 2):
-1. **XAMPP (lokal)** → PHP + MySQL + Admin Panel CRUD
-2. **Supabase (produksi)** → PostgreSQL + REST API
-
-Perubahan di frontend minimal — cukup ganti URL `fetch()` di `catalog.js`.
+| Layer | Teknologi |
+|---|---|
+| **Frontend** | HTML5, CSS3 (Vanilla), JavaScript ES6+ |
+| **Backend** | PHP 8+ (REST API) |
+| **Database** | MySQL 8 via XAMPP |
+| **Font** | Google Fonts — Inter |
+| **Notifikasi** | SweetAlert2 |
+| **Dev Server** | Python HTTP Server (mode statis) / Apache XAMPP (mode penuh) |
 
 ---
 
@@ -128,16 +171,20 @@ KOTA PONTIANAK, KALIMANTAN BARAT 78241
 ## 🗺️ Roadmap
 
 - [x] Homepage statis (HTML/CSS/JS)
-- [x] Katalog program dengan filter & modal
+- [x] Katalog program dengan filter & modal detail
 - [x] Jadwal siaran mingguan
 - [x] Profil lembaga & jaringan
 - [x] Komponen navbar & footer modular
 - [x] Indikator live otomatis berdasarkan jam
-- [ ] Backend PHP + MySQL via XAMPP
-- [ ] Admin panel CRUD program
-- [ ] Migrasi ke Supabase
-- [ ] Halaman detail program per URL
-- [ ] Upload thumbnail via admin panel
+- [x] Backend PHP + MySQL via XAMPP
+- [x] Admin Panel CRUD program (tambah, edit, hapus, toggle)
+- [x] Upload gambar banner via PHP API
+- [x] Video promo YouTube di modal program
+- [x] Jadwal tayang per slot (Pagi / Siang / Malam)
+- [x] Login page admin dengan session guard
+- [x] Notifikasi SweetAlert2 di seluruh admin panel
+- [ ] Migrasi ke Supabase (produksi)
+- [ ] Halaman detail program per URL slug
 
 ---
 
