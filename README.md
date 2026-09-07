@@ -46,13 +46,6 @@ Buka browser: **http://localhost:3000**
 
 Akses pengelola tersedia di `/admin/login.html` atau **http://localhost:3000/admin/login.html**
 
-### Kredensial Default
-
-| Field | Value |
-|---|---|
-| **Username** | `admin` |
-| **Password** | `admin123` |
-
 ### Fitur Admin Panel
 
 | Fitur | Keterangan |
