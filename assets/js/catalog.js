@@ -4,9 +4,8 @@
 
 (async () => {
 
-  const LIVE_URL     = 'https://www.youtube.com/@ruaitv/live';
-  const HERO_IMG     = 'assets/images/programs/Warta-Ruai.png';  // placeholder sementara
-  let   programs     = [];
+  const LIVE_URL = 'https://www.youtube.com/@ruaitv/live';
+  let   programs = [];
 
   // ─── Load data ────────────────────────────────────────────
   try {
@@ -69,6 +68,18 @@
   if (totalAktif) totalAktif.textContent = counts.aktif;
   if (totalArsip) totalArsip.textContent = counts.arsip;
 
+  // ─── Sort programs ────────────────────────────────────────
+  // Priority: aktif+bergambar(0) > aktif+tanpa gambar(1) > arsip+bergambar(2) > arsip+tanpa gambar(3)
+  const sortScore = (p) => {
+    const isAktif = p.status === 'aktif';
+    const hasImg  = !!(p.thumbnail_url);
+    if  (isAktif &&  hasImg) return 0;
+    if  (isAktif && !hasImg) return 1;
+    if (!isAktif &&  hasImg) return 2;
+    return 3;
+  };
+  programs.sort((a, b) => sortScore(a) - sortScore(b));
+
   // ─── Render cards ─────────────────────────────────────────
   const grid = document.getElementById('programs-grid');
   if (!grid) return;
@@ -78,15 +89,13 @@
     const isAktif   = p.status === 'aktif';
     const schedText = getScheduleText(p.schedule);
 
-    // Determine thumbnail: use actual if available, otherwise hero placeholder
-    const thumbSrc = p.thumbnail_url || HERO_IMG;
-
     // Card
     const card = document.createElement('article');
     card.className = `program-card${!isAktif ? ' arsip-card' : ''}`;
     card.dataset.status   = p.status;
     card.dataset.category = p.category;
     card.dataset.id       = p.id;
+    card.dataset.hasImg   = p.thumbnail_url ? 'true' : 'false';
     card.style.animationDelay = `${idx * 28}ms`;
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
@@ -97,16 +106,23 @@
       ? `<div class="card-duration-pill">${p.duration}</div>`
       : '';
 
-    // Image area — always show placeholder (HERO_IMG) until real image provided
-    const imgArea = `
+    // Image area — tampilkan gambar jika ada thumbnail, jika tidak tampilkan placeholder abu-abu
+    const imgArea = p.thumbnail_url ? `
       <div class="card-img-area">
         <img
           class="card-thumb"
-          src="${thumbSrc}"
+          src="${p.thumbnail_url}"
           alt="${p.title}"
           loading="lazy"
           onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'card-no-thumb\\'><div class=\\'card-circle-deco\\'></div></div>${durationHtml.replace(/"/g,"'")}<div class=\\'card-cat-badge\\'>${catLabel}</div><div class=\\'card-status-badge ${isAktif ? 'aktif' : 'arsip'}\\'>${isAktif ? 'Aktif' : 'ARSIP'}</div>'"
         />
+        ${durationHtml}
+        <div class="card-cat-badge">${catLabel}</div>
+        <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>
+      </div>
+    ` : `
+      <div class="card-img-area">
+        <div class="card-no-thumb"><div class="card-circle-deco"></div></div>
         ${durationHtml}
         <div class="card-cat-badge">${catLabel}</div>
         <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>
@@ -144,6 +160,21 @@
   const filterBtns = document.querySelectorAll('.filter-tab');
 
   const applyFilter = (filter) => {
+    // Re-sort DOM cards setiap kali filter berubah
+    const allCards = [...document.querySelectorAll('.program-card')];
+    allCards.sort((a, b) => {
+      const score = (card) => {
+        const isAktif = card.dataset.status === 'aktif';
+        const hasImg  = card.dataset.hasImg === 'true';
+        if  (isAktif &&  hasImg) return 0;
+        if  (isAktif && !hasImg) return 1;
+        if (!isAktif &&  hasImg) return 2;
+        return 3;
+      };
+      return score(a) - score(b);
+    });
+    allCards.forEach(c => grid.appendChild(c));
+
     let delay = 0;
     document.querySelectorAll('.program-card').forEach(card => {
       let show = false;
@@ -212,13 +243,51 @@
     const metaEl = document.getElementById('modal-meta');
     if (metaEl) metaEl.textContent = `Format: ${p.format} · Durasi: ${p.duration}`;
 
-    // Thumbnail Cover Banner
+    // Thumbnail — tampilkan jika ada thumbnail_url
     const thumb = document.getElementById('modal-thumb');
     if (thumb) {
-      thumb.src = p.thumbnail_url || HERO_IMG;
-      thumb.alt = p.title;
-      thumb.style.display = 'block';
-      thumb.onerror = () => { thumb.style.display = 'none'; };
+      if (p.thumbnail_url) {
+        thumb.src = p.thumbnail_url;
+        thumb.alt = p.title;
+        thumb.style.display = 'block';
+        thumb.onerror = () => { thumb.style.display = 'none'; };
+      } else {
+        thumb.style.display = 'none';
+      }
+    }
+
+    // Video Bumper Promosi (YouTube Embed)
+    const videoWrap   = document.getElementById('modal-video-wrap');
+    const videoIframe = document.getElementById('modal-video-iframe');
+    if (videoWrap && videoIframe) {
+      if (p.promo_video_url) {
+        let embedUrl = p.promo_video_url;
+        if (embedUrl.includes('youtube.com/watch?v=')) {
+          const vId = embedUrl.split('v=')[1]?.split('&')[0];
+          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        } else if (embedUrl.includes('youtu.be/')) {
+          const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        } else if (!embedUrl.includes('/embed/')) {
+          embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
+        }
+        videoIframe.src = embedUrl;
+        videoWrap.style.display = 'block';
+      } else {
+        videoIframe.src = '';
+        videoWrap.style.display = 'none';
+      }
+    }
+    const thumb = document.getElementById('modal-thumb');
+    if (thumb) {
+      if (p.thumbnail_url) {
+        thumb.src = p.thumbnail_url;
+        thumb.alt = p.title;
+        thumb.style.display = 'block';
+        thumb.onerror = () => { thumb.style.display = 'none'; };
+      } else {
+        thumb.style.display = 'none';
+      }
     }
 
     // Video Bumper Promosi (YouTube Embed)
