@@ -5,7 +5,7 @@
 (async () => {
 
   const LIVE_URL     = 'https://www.youtube.com/@ruaitv/live';
-  const HERO_IMG     = 'assets/images/programs/warta-ruai.jpg';  // placeholder sementara
+  const HERO_IMG     = 'assets/images/programs/Warta-Ruai.png';  // placeholder sementara
   let   programs     = [];
 
   // ─── Load data ────────────────────────────────────────────

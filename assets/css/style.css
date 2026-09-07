@@ -780,6 +780,7 @@ h1.hero-title em {
   /* 3 lines clamp */
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3; /* standard property for future compatibility */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
