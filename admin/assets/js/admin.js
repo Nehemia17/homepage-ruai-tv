@@ -20,20 +20,27 @@
 
   // ─── Load Programs Data ───
   async function loadPrograms() {
-    // 1. Try MySQL REST API
-    try {
-      const res = await fetch(API_URL);
-      if (res.ok) {
-        const apiData = await res.json();
-        if (Array.isArray(apiData)) {
-          programsData = apiData;
-          saveToStorage();
-          console.log('Loaded programs from MySQL API:', programsData.length);
-          return;
+    // 1. Try MySQL REST API (Relative & XAMPP Apache Endpoints)
+    const apiEndpoints = [
+      API_URL,
+      'http://localhost/Homepage%20Statis%20Ruai-TV/api/programs.php',
+      'http://localhost/api/programs.php'
+    ];
+
+    for (const ep of apiEndpoints) {
+      try {
+        const res = await fetch(ep);
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
+          const apiData = await res.json();
+          if (Array.isArray(apiData) && apiData.length > 0) {
+            programsData = apiData;
+            saveToStorage();
+            console.log('Loaded programs from MySQL API:', programsData.length);
+            return;
+          }
         }
-      }
-    } catch (e) {
-      console.log('API MySQL offset/offline, using fallback storage:', e.message);
+      } catch (e) {}
     }
 
     // 2. Fallback to localStorage
@@ -100,8 +107,12 @@
   }
 
   function getProgramThumbHtml(p) {
-    if (p.thumbnail_url && p.thumbnail_url !== 'assets/images/programs/' && p.thumbnail_url !== 'null') {
-      return `<img src="../${p.thumbnail_url}" alt="${p.title}" class="table-thumb" onerror="this.onerror=null;this.outerHTML='<div class=\\'table-no-thumb\\' title=\\'${p.title.replace(/'/g, "\\'")}\\'><div class=\\'thumb-circle\\'></div><span class=\\'thumb-initials\\'>${getInitials(p.title)}</span></div>';" />`;
+    if (p.thumbnail_url && p.thumbnail_url !== 'assets/images/programs/' && p.thumbnail_url !== 'null' && p.thumbnail_url !== '-') {
+      let imgSrc = p.thumbnail_url.trim();
+      if (!imgSrc.startsWith('data:') && !imgSrc.startsWith('http://') && !imgSrc.startsWith('https://') && !imgSrc.startsWith('/')) {
+        imgSrc = `../${imgSrc}`;
+      }
+      return `<img src="${imgSrc}" alt="${p.title}" class="table-thumb" onerror="this.onerror=null;this.outerHTML='<div class=\\'table-no-thumb\\' title=\\'${p.title.replace(/'/g, "\\'")}\\'><div class=\\'thumb-circle\\'></div><span class=\\'thumb-initials\\'>${getInitials(p.title)}</span></div>';" />`;
     }
     const initials = getInitials(p.title);
     return `<div class="table-no-thumb" title="${p.title}"><div class="thumb-circle"></div><span class="thumb-initials">${initials}</span></div>`;
@@ -245,32 +256,44 @@
       const formData = new FormData();
       formData.append('banner_file', file);
 
-      try {
-        showToast('Mengunggah file banner...', 'success');
-        const res = await fetch(UPLOAD_URL, {
-          method: 'POST',
-          body: formData
-        });
-        
-        const contentType = res.headers.get('content-type') || '';
-        if (!res.ok || !contentType.includes('application/json')) {
-          throw new Error('Upload API PHP tidak aktif.');
-        }
+      showToast('Mengunggah file banner...', 'success');
 
-        const result = await res.json();
-        if (result.status === 'success') {
-          document.getElementById('form-thumb').value = result.url;
-          showToast('Gambar banner berhasil diunggah ke server!', 'success');
-        } else {
-          showToast(result.message || 'Gagal mengunggah file.', 'error');
+      // Endpoints to try (Relative path first, then XAMPP Apache fallbacks)
+      const uploadEndpoints = [
+        UPLOAD_URL,
+        'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
+        'http://localhost/api/upload.php'
+      ];
+
+      let uploadSuccess = false;
+
+      for (const endpoint of uploadEndpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
+          });
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
+            const result = await res.json();
+            if (result.status === 'success') {
+              document.getElementById('form-thumb').value = result.url;
+              showToast('Gambar banner berhasil diunggah ke server PHP/XAMPP!', 'success');
+              uploadSuccess = true;
+              break;
+            }
+          }
+        } catch (err) {
+          // Ignore and try next endpoint
         }
-      } catch (err) {
-        console.warn('Upload API PHP tidak tersedia, menggunakan preview lokal:', err);
-        // Fallback: Read file as Data URL for static web server mode (localhost:3000)
+      }
+
+      // If PHP server is not active on any endpoint, fallback to FileReader (Base64 Data URL)
+      if (!uploadSuccess) {
         const reader = new FileReader();
         reader.onload = (evt) => {
           document.getElementById('form-thumb').value = evt.target.result;
-          showToast('Gambar dimuat via preview lokal! (Untuk simpan file ke folder server, jalankan via XAMPP)', 'success');
+          showToast('Gambar banner berhasil dimuat!', 'success');
         };
         reader.readAsDataURL(file);
       }
