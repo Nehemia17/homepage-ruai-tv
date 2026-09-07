@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "id": "warta-ruai",
     "title": "Warta Ruai",
@@ -183,9 +183,9 @@
     "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
     "schedule": {
       "pagi": {
-        "active": false,
+        "active": true,
         "label": "PAGI",
-        "time": null,
+        "time": "Tentatif / Kondisioanl",
         "days": null
       },
       "siang": {
@@ -195,10 +195,10 @@
         "days": null
       },
       "malam": {
-        "active": true,
+        "active": false,
         "label": "MALAM",
-        "time": "20.05 – 21.05 WIB",
-        "days": "Selasa"
+        "time": null,
+        "days": null
       }
     },
     "featured": false
@@ -209,7 +209,7 @@
     "slug": "kilas-ruai",
     "category": "berita",
     "category_label": "Program Berita",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Breaking News",
     "duration": "—",
     "description": "Kilas ruai adalah ruang aktual penyajian berita dari berbagai jenis peristiwa yang terjadi disetiap redaksi mendapat informasi yang langsung direspon dengan cepat, cekat dan profesional tanpa mengurangi nilai kebenaran peristiwa. Selalu mengacu kepada 5W+1H",
@@ -247,7 +247,7 @@
     "format": "News Feature",
     "duration": "30 Menit",
     "description": "Acara Gong Ruai adalah ruai dokumenter reporting indept terhadap suatu kasus atau masalah yang sedang menjadi perhatian publik atau masyarakat tertentu seperti isu pengukuhan dan atau pengakuan akan hak masyarakat adat. Laporannya lebih dalam, tajam, kritis dan solutif. Menyajikan data primer, data sekunder dan sudut pandang dari sejumlah pakar dan pihak-pihak yang terlibat dalam topik dokumenter.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -272,50 +272,16 @@
     "featured": false
   },
   {
-    "id": "forum-ruai-on-target",
-    "title": "Forum Ruai (On Target)",
-    "slug": "forum-ruai-on-target",
-    "category": "berita",
-    "category_label": "Program Berita",
-    "status": "arsip",
-    "format": "Talkshow",
-    "duration": "60 Menit",
-    "description": "Versi On Target dari Forum Ruai yang telah selesai produksinya dan kini menjadi bagian dari arsip program Ruai TV.",
-    "thumbnail_url": "assets/images/programs/Forum-Ruai.png",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi": {
-        "active": false,
-        "label": "PAGI",
-        "time": null,
-        "days": null
-      },
-      "siang": {
-        "active": false,
-        "label": "SIANG",
-        "time": null,
-        "days": null
-      },
-      "malam": {
-        "active": false,
-        "label": "MALAM",
-        "time": null,
-        "days": null
-      }
-    },
-    "featured": false
-  },
-  {
-    "id": "warta-ruai-5-bahasa",
-    "title": "Warta Ruai 5 Bahasa",
-    "slug": "warta-ruai-5-bahasa",
+    "id": "warta-ruai-3-bahasa",
+    "title": "Warta Ruai 3 Bahasa",
+    "slug": "warta-ruai-3-bahasa",
     "category": "berita",
     "category_label": "Program Berita",
     "status": "arsip",
     "format": "Program Berita / Talkshow",
     "duration": "—",
     "description": "Program berita unggulan Ruai TV yang disajikan dalam lima bahasa daerah Kalimantan Barat, menjangkau berbagai komunitas etnis di seluruh pelosok Kalbar.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -349,7 +315,7 @@
     "format": "—",
     "duration": "—",
     "description": "Jendela berita ekonomi kerakyatan berbasis koperasi simpan pinjam (Credit Union) di Kalimantan Barat, salah satu gerakan CU terbesar di Indonesia.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -447,12 +413,12 @@
     "slug": "galeri-khatulistiwa",
     "category": "non-news",
     "category_label": "Non-News",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Dokumenter",
     "duration": "—",
     "description": "Tayangan dokumenter yang menampilkan keindahan alam dan budaya Kalimantan Barat serta Nusantara dalam format visual yang memukau.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "thumbnail_url": "assets/images/programs/Borneo-Rawa-Island.png",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -486,7 +452,7 @@
     "duration": "—",
     "description": "Senandung Lagu Daerah (SLADA) reguler — program yang melestarikan dan memopulerkan lagu-lagu daerah Kalimantan Barat dalam format tayangan yang modern.",
     "thumbnail_url": "assets/images/programs/Slada.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -520,7 +486,7 @@
     "duration": "—",
     "description": "Edisi akhir pekan dari program Senandung Lagu Daerah (SLADA) yang hadir dengan nuansa lebih santai dan pilihan lagu yang lebih beragam untuk menemani waktu weekend keluarga.",
     "thumbnail_url": "assets/images/programs/Slada.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -553,8 +519,8 @@
     "format": "Hiburan",
     "duration": "—",
     "description": "Program interaktif karaoke yang mengundang pemirsa untuk ikut bernyanyi bersama dan menikmati lagu-lagu favorit dalam format hiburan yang menyenangkan.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "thumbnail_url": "assets/images/programs/Slada.png",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -587,8 +553,8 @@
     "format": "Religi",
     "duration": "—",
     "description": "Program rohani yang menghadirkan ceramah, renungan, dan tayangan inspiratif untuk memperkuat keimanan dan spiritualitas pemirsa Ruai TV.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "thumbnail_url": "assets/images/programs/",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -621,7 +587,7 @@
     "format": "Kuliner",
     "duration": "—",
     "description": "Program kuliner yang mengeksplorasi kekayaan cita rasa masakan khas dan istimewa Kalimantan Barat, menghadirkan resep, teknik memasak, dan cerita di balik hidangan tradisional maupun modern.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -655,7 +621,7 @@
     "format": "Seni Budaya",
     "duration": "—",
     "description": "Ruang pelestarian seni pantun dan sastra lisan Melayu Kalimantan Barat yang menampilkan pertunjukan pantun, syair, dan gurindam dari seniman lokal terpilih.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -792,7 +758,7 @@
     "duration": "—",
     "description": "Program talkshow hasil kerja sama dengan CBN yang menghadirkan solusi praktis untuk berbagai permasalahan kehidupan sehari-hari.",
     "thumbnail_url": "assets/images/programs/CBN-Solusi.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -893,8 +859,8 @@
     "format": "Animasi Anak",
     "duration": "—",
     "description": "Tayangan animasi anak-anak berbasis kisah inspiratif hasil kerja sama dengan CBN, menghadirkan nilai moral dan karakter positif untuk anak-anak.",
-    "thumbnail_url": "assets/images/programs/CBN-Super-Youth.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "thumbnail_url": "assets/images/programs/",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -928,7 +894,7 @@
     "duration": "—",
     "description": "Wawasan dunia internasional dari Voice of America (VOA) yang menyajikan feature-feature menarik tentang kehidupan dan perkembangan global.",
     "thumbnail_url": "assets/images/programs/VOA-Jalan-Jalan-Amerika.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/",
     "schedule": {
       "pagi": {
         "active": false,
@@ -952,9 +918,9 @@
     "featured": false
   },
   {
-    "id": "amanda-borneo",
-    "title": "Amanda Borneo (On Target)",
-    "slug": "amanda-borneo",
+    "id": "ananda-borneo",
+    "title": "Ananda Borneo (On Target)",
+    "slug": "ananda-borneo",
     "category": "kerja-sama",
     "category_label": "Kerja Sama",
     "status": "arsip",
@@ -995,7 +961,7 @@
     "format": "Program Religi",
     "duration": "—",
     "description": "Tayangan religi kerja sama yang menghadirkan ceramah dan pencerahan spiritual dari narasumber terpilih untuk masyarakat Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
@@ -1029,7 +995,7 @@
     "format": "Berita",
     "duration": "—",
     "description": "Berita nasional dan daerah dari kantor berita ANTARA yang disiarkan melalui Ruai TV untuk melengkapi cakupan informasi bagi pemirsa Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
+    "thumbnail_url": "assets/images/programs/",
     "youtube_live_url": null,
     "schedule": {
       "pagi": {
