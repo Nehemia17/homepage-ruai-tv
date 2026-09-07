@@ -8,19 +8,32 @@
   let   programs = [];
 
   // ─── Load data ────────────────────────────────────────────
-  try {
-    const res = await fetch('assets/data/programs.json');
-    if (!res.ok) throw new Error(res.status);
-    programs = await res.json();
-  } catch (e) {
-    console.error('Gagal load programs.json:', e);
-    const grid = document.getElementById('programs-grid');
-    if (grid) grid.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#9CA3AF;">
-        <p style="font-size:14px;font-weight:600;margin-bottom:6px;">⚠️ Data gagal dimuat</p>
-        <p style="font-size:12px;">Pastikan akses via <code>http://localhost:3000</code></p>
-      </div>`;
-    return;
+  const STORAGE_KEY = 'ruai_tv_programs_data';
+  const localData = localStorage.getItem(STORAGE_KEY);
+
+  if (localData) {
+    try {
+      programs = JSON.parse(localData);
+    } catch (e) {
+      console.warn('Failed to parse localStorage in catalog.js:', e);
+    }
+  }
+
+  if (!programs || programs.length === 0) {
+    try {
+      const res = await fetch('assets/data/programs.json');
+      if (!res.ok) throw new Error(res.status);
+      programs = await res.json();
+    } catch (e) {
+      console.error('Gagal load programs.json:', e);
+      const grid = document.getElementById('programs-grid');
+      if (grid) grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#9CA3AF;">
+          <p style="font-size:14px;font-weight:600;margin-bottom:6px;">⚠️ Data gagal dimuat</p>
+          <p style="font-size:12px;">Pastikan akses via <code>http://localhost:3000</code></p>
+        </div>`;
+      return;
+    }
   }
 
   // ─── Category config ─────────────────────────────────────
@@ -32,6 +45,7 @@
 
   // ─── Format helpers ───────────────────────────────────────
   const getScheduleText = (schedule) => {
+    if (!schedule) return '—';
     const { pagi, siang, malam } = schedule;
     if (pagi?.active && pagi.time && pagi.days) {
       return `${pagi.days}, ${pagi.time}`;
@@ -51,11 +65,11 @@
   // ─── Update counters ──────────────────────────────────────
   const counts = {
     semua:        programs.length,
-    aktif:        programs.filter(p => p.status === 'aktif').length,
-    arsip:        programs.filter(p => p.status === 'arsip').length,
-    berita:       programs.filter(p => p.category === 'berita').length,
-    'non-news':   programs.filter(p => p.category === 'non-news').length,
-    'kerja-sama': programs.filter(p => p.category === 'kerja-sama').length,
+    aktif:        programs.filter(p => p && p.status === 'aktif').length,
+    arsip:        programs.filter(p => p && p.status === 'arsip').length,
+    berita:       programs.filter(p => p && p.category === 'berita').length,
+    'non-news':   programs.filter(p => p && p.category === 'non-news').length,
+    'kerja-sama': programs.filter(p => p && p.category === 'kerja-sama').length,
   };
 
   document.querySelectorAll('[data-count]').forEach(el => {
@@ -71,6 +85,7 @@
   // ─── Sort programs ────────────────────────────────────────
   // Priority: aktif+bergambar(0) > aktif+tanpa gambar(1) > arsip+bergambar(2) > arsip+tanpa gambar(3)
   const sortScore = (p) => {
+    if (!p) return 99;
     const isAktif = p.status === 'aktif';
     const hasImg  = !!(p.thumbnail_url);
     if  (isAktif &&  hasImg) return 0;
@@ -85,7 +100,8 @@
   if (!grid) return;
 
   programs.forEach((p, idx) => {
-    const catLabel  = catMap[p.category] || p.category.toUpperCase();
+    if (!p) return;
+    const catLabel  = catMap[p.category] || (p.category ? p.category.toUpperCase() : 'PROGRAM');
     const isAktif   = p.status === 'aktif';
     const schedText = getScheduleText(p.schedule);
 
@@ -278,40 +294,7 @@
         videoWrap.style.display = 'none';
       }
     }
-    const thumb = document.getElementById('modal-thumb');
-    if (thumb) {
-      if (p.thumbnail_url) {
-        thumb.src = p.thumbnail_url;
-        thumb.alt = p.title;
-        thumb.style.display = 'block';
-        thumb.onerror = () => { thumb.style.display = 'none'; };
-      } else {
-        thumb.style.display = 'none';
-      }
-    }
 
-    // Video Bumper Promosi (YouTube Embed)
-    const videoWrap   = document.getElementById('modal-video-wrap');
-    const videoIframe = document.getElementById('modal-video-iframe');
-    if (videoWrap && videoIframe) {
-      if (p.promo_video_url) {
-        let embedUrl = p.promo_video_url;
-        if (embedUrl.includes('youtube.com/watch?v=')) {
-          const vId = embedUrl.split('v=')[1]?.split('&')[0];
-          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
-        } else if (embedUrl.includes('youtu.be/')) {
-          const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
-        } else if (!embedUrl.includes('/embed/')) {
-          embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
-        }
-        videoIframe.src = embedUrl;
-        videoWrap.style.display = 'block';
-      } else {
-        videoIframe.src = '';
-        videoWrap.style.display = 'none';
-      }
-    }
 
     // Slots
     const slotKeys  = ['pagi', 'siang', 'malam'];
