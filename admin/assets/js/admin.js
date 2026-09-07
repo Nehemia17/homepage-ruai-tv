@@ -88,6 +88,25 @@
     renderRecentTable();
   }
 
+  // ─── Thumbnail Helper for Admin Table ───
+  function getInitials(title) {
+    if (!title) return 'RT';
+    const clean = title.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+    const words = clean.split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return clean.substring(0, 2).toUpperCase();
+  }
+
+  function getProgramThumbHtml(p) {
+    if (p.thumbnail_url && p.thumbnail_url !== 'assets/images/programs/' && p.thumbnail_url !== 'null') {
+      return `<img src="../${p.thumbnail_url}" alt="${p.title}" class="table-thumb" onerror="this.onerror=null;this.outerHTML='<div class=\\'table-no-thumb\\' title=\\'${p.title.replace(/'/g, "\\'")}\\'><div class=\\'thumb-circle\\'></div><span class=\\'thumb-initials\\'>${getInitials(p.title)}</span></div>';" />`;
+    }
+    const initials = getInitials(p.title);
+    return `<div class="table-no-thumb" title="${p.title}"><div class="thumb-circle"></div><span class="thumb-initials">${initials}</span></div>`;
+  }
+
   function renderRecentTable() {
     const tbody = document.getElementById('recent-programs-tbody');
     if (!tbody) return;
@@ -99,9 +118,7 @@
       const tr = document.createElement('tr');
       const isAktif = p.status === 'aktif';
       tr.innerHTML = `
-        <td>
-          <img src="../${p.thumbnail_url || 'assets/images/programs/Warta-Ruai.png'}" alt="${p.title}" class="table-thumb" onerror="this.src='../assets/images/programs/Warta-Ruai.png'" />
-        </td>
+        <td>${getProgramThumbHtml(p)}</td>
         <td>
           <div class="program-title-cell">
             <span>${p.title}</span>
@@ -164,9 +181,7 @@
       const isAktif = p.status === 'aktif';
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>
-          <img src="../${p.thumbnail_url || 'assets/images/programs/Warta-Ruai.png'}" alt="${p.title}" class="table-thumb" onerror="this.src='../assets/images/programs/Warta-Ruai.png'" />
-        </td>
+        <td>${getProgramThumbHtml(p)}</td>
         <td>
           <div class="program-title-cell">
             <span>${p.title}</span>

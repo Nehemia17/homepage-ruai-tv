@@ -436,6 +436,54 @@ body {
   background: #E2E8F0;
 }
 
+/* Visual placeholder for programs without dedicated banner photo */
+.table-no-thumb {
+  width: 60px;
+  height: 40px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E2E8F0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+.table-no-thumb::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.04) 6px,
+    rgba(255, 255, 255, 0.04) 12px
+  );
+}
+
+.table-no-thumb .thumb-initials {
+  position: relative;
+  z-index: 2;
+  text-transform: uppercase;
+}
+
+.table-no-thumb .thumb-circle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .program-title-cell {
   font-weight: 600;
   color: var(--text-main);
