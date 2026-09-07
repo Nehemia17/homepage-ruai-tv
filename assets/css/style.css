@@ -504,7 +504,7 @@ h1.hero-title em {
   font-weight: 700;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: rgb(255, 49, 49);
+  color: rgb(255, 88, 88);
   margin-bottom: 8px;
 }
 
@@ -513,7 +513,7 @@ h1.hero-title em {
   display: inline-block;
   width: 24px;
   height: 1.5px;
-  background: rgb(255, 49, 49);
+  background: rgb(255, 88, 88);
   border-radius: 2px;
 }
 

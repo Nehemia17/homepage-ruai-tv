@@ -189,6 +189,47 @@
               <input type="text" id="form-promo-video" placeholder="https://www.youtube.com/watch?v=... atau ID video" />
             </div>
 
+            <!-- Section Pengaturan Jadwal Tayang -->
+            <div class="form-group full" style="margin-top: 6px; padding: 12px 0; border-top: 1px solid var(--border-color);">
+              <label style="font-size: 13px; font-weight: 700; color: var(--primary);">🕒 Pengaturan Jam & Hari Tayang</label>
+              
+              <!-- Slot Pagi -->
+              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+                  <input type="checkbox" id="sched-pagi-active" />
+                  <span>🌅 Slot Pagi</span>
+                </label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                  <input type="text" id="sched-pagi-time" placeholder="Jam (Contoh: 07.00 – 08.00 WIB)" />
+                  <input type="text" id="sched-pagi-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
+                </div>
+              </div>
+
+              <!-- Slot Siang / Sore -->
+              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+                  <input type="checkbox" id="sched-siang-active" />
+                  <span>☀️ Slot Siang / Sore</span>
+                </label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                  <input type="text" id="sched-siang-time" placeholder="Jam (Contoh: 13.00 – 14.00 WIB)" />
+                  <input type="text" id="sched-siang-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
+                </div>
+              </div>
+
+              <!-- Slot Malam -->
+              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+                  <input type="checkbox" id="sched-malam-active" />
+                  <span>🌙 Slot Malam</span>
+                </label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                  <input type="text" id="sched-malam-time" placeholder="Jam (Contoh: 19.00 – 20.00 WIB)" />
+                  <input type="text" id="sched-malam-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
+                </div>
+              </div>
+            </div>
+
             <div class="form-group full">
               <label for="form-desc">Deskripsi & Sinopsis Program</label>
               <textarea id="form-desc" placeholder="Tuliskan deskripsi lengkap mengenai isi program berita/acara ini..."></textarea>

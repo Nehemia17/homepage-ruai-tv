@@ -275,39 +275,44 @@
     const metaEl = document.getElementById('modal-meta');
     if (metaEl) metaEl.textContent = `Format: ${p.format} · Durasi: ${p.duration}`;
 
-    // Thumbnail — tampilkan jika ada thumbnail_url
-    const thumb = document.getElementById('modal-thumb');
-    if (thumb) {
-      if (p.thumbnail_url) {
-        thumb.src = p.thumbnail_url;
-        thumb.alt = p.title;
-        thumb.style.display = 'block';
-        thumb.onerror = () => { thumb.style.display = 'none'; };
-      } else {
-        thumb.style.display = 'none';
-      }
-    }
-
-    // Video Bumper Promosi (YouTube Embed)
+    // Media Display (Video Bumper atau Foto Banner)
+    const thumb       = document.getElementById('modal-thumb');
     const videoWrap   = document.getElementById('modal-video-wrap');
     const videoIframe = document.getElementById('modal-video-iframe');
-    if (videoWrap && videoIframe) {
-      if (p.promo_video_url) {
-        let embedUrl = p.promo_video_url;
-        if (embedUrl.includes('youtube.com/watch?v=')) {
-          const vId = embedUrl.split('v=')[1]?.split('&')[0];
-          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
-        } else if (embedUrl.includes('youtu.be/')) {
-          const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-          embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
-        } else if (!embedUrl.includes('/embed/')) {
-          embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
-        }
-        videoIframe.src = embedUrl;
-        videoWrap.style.display = 'block';
-      } else {
+
+    const hasVideo = !!(p.promo_video_url);
+    const hasThumb = !!(p.thumbnail_url);
+
+    if (hasVideo && videoWrap && videoIframe) {
+      let embedUrl = p.promo_video_url;
+      if (embedUrl.includes('youtube.com/watch?v=')) {
+        const vId = embedUrl.split('v=')[1]?.split('&')[0];
+        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+      } else if (embedUrl.includes('youtu.be/')) {
+        const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
+        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+      } else if (!embedUrl.includes('/embed/')) {
+        embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
+      }
+      videoIframe.src = embedUrl;
+      videoWrap.style.display = 'block';
+
+      // Sembunyikan foto banner agar tidak menumpuk atas-bawah
+      if (thumb) thumb.style.display = 'none';
+    } else {
+      if (videoWrap && videoIframe) {
         videoIframe.src = '';
         videoWrap.style.display = 'none';
+      }
+      if (thumb) {
+        if (hasThumb) {
+          thumb.src = p.thumbnail_url;
+          thumb.alt = p.title;
+          thumb.style.display = 'block';
+          thumb.onerror = () => { thumb.style.display = 'none'; };
+        } else {
+          thumb.style.display = 'none';
+        }
       }
     }
 

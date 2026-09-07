@@ -251,16 +251,28 @@
           method: 'POST',
           body: formData
         });
+        
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok || !contentType.includes('application/json')) {
+          throw new Error('Upload API PHP tidak aktif.');
+        }
+
         const result = await res.json();
         if (result.status === 'success') {
           document.getElementById('form-thumb').value = result.url;
-          showToast('Gambar banner berhasil diunggah!', 'success');
+          showToast('Gambar banner berhasil diunggah ke server!', 'success');
         } else {
           showToast(result.message || 'Gagal mengunggah file.', 'error');
         }
       } catch (err) {
-        console.warn('File upload API not available on static host:', err);
-        showToast('Upload API memerlukan server XAMPP/PHP.', 'error');
+        console.warn('Upload API PHP tidak tersedia, menggunakan preview lokal:', err);
+        // Fallback: Read file as Data URL for static web server mode (localhost:3000)
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          document.getElementById('form-thumb').value = evt.target.result;
+          showToast('Gambar dimuat via preview lokal! (Untuk simpan file ke folder server, jalankan via XAMPP)', 'success');
+        };
+        reader.readAsDataURL(file);
       }
     });
   }
@@ -297,6 +309,17 @@
     document.getElementById('form-status').value = 'aktif';
     document.getElementById('form-category').value = 'berita';
 
+    // Reset Schedule inputs
+    document.getElementById('sched-pagi-active').checked = false;
+    document.getElementById('sched-pagi-time').value = '';
+    document.getElementById('sched-pagi-days').value = '';
+    document.getElementById('sched-siang-active').checked = false;
+    document.getElementById('sched-siang-time').value = '';
+    document.getElementById('sched-siang-days').value = '';
+    document.getElementById('sched-malam-active').checked = false;
+    document.getElementById('sched-malam-time').value = '';
+    document.getElementById('sched-malam-days').value = '';
+
     const modal = document.getElementById('program-modal');
     modal?.classList.add('active');
   }
@@ -316,6 +339,20 @@
     document.getElementById('form-thumb').value = p.thumbnail_url || '';
     document.getElementById('form-promo-video').value = p.promo_video_url || '';
     document.getElementById('form-desc').value = p.description || '';
+
+    // Populate Schedule inputs
+    const sched = p.schedule || {};
+    document.getElementById('sched-pagi-active').checked = !!(sched.pagi?.active);
+    document.getElementById('sched-pagi-time').value = sched.pagi?.time || '';
+    document.getElementById('sched-pagi-days').value = sched.pagi?.days || '';
+
+    document.getElementById('sched-siang-active').checked = !!(sched.siang?.active);
+    document.getElementById('sched-siang-time').value = sched.siang?.time || '';
+    document.getElementById('sched-siang-days').value = sched.siang?.days || '';
+
+    document.getElementById('sched-malam-active').checked = !!(sched.malam?.active);
+    document.getElementById('sched-malam-time').value = sched.malam?.time || '';
+    document.getElementById('sched-malam-days').value = sched.malam?.days || '';
 
     const modal = document.getElementById('program-modal');
     modal?.classList.add('active');
@@ -337,6 +374,27 @@
     const thumb     = document.getElementById('form-thumb').value.trim() || 'assets/images/programs/Warta-Ruai.png';
     const promoVideo= document.getElementById('form-promo-video').value.trim();
     const desc      = document.getElementById('form-desc').value.trim();
+
+    const scheduleObj = {
+      pagi: {
+        active: document.getElementById('sched-pagi-active').checked,
+        label: 'PAGI',
+        time: document.getElementById('sched-pagi-time').value.trim() || null,
+        days: document.getElementById('sched-pagi-days').value.trim() || null
+      },
+      siang: {
+        active: document.getElementById('sched-siang-active').checked,
+        label: 'SIANG',
+        time: document.getElementById('sched-siang-time').value.trim() || null,
+        days: document.getElementById('sched-siang-days').value.trim() || null
+      },
+      malam: {
+        active: document.getElementById('sched-malam-active').checked,
+        label: 'MALAM',
+        time: document.getElementById('sched-malam-time').value.trim() || null,
+        days: document.getElementById('sched-malam-days').value.trim() || null
+      }
+    };
 
     if (!title) {
       showToast('Judul program tidak boleh kosong!', 'error');
@@ -360,6 +418,7 @@
         targetProg.thumbnail_url = thumb;
         targetProg.promo_video_url = promoVideo;
         targetProg.description = desc;
+        targetProg.schedule = scheduleObj;
       }
     } else {
       const newId = slug || `prog-${Date.now()}`;
@@ -376,11 +435,7 @@
         thumbnail_url: thumb,
         promo_video_url: promoVideo,
         youtube_live_url: 'https://www.youtube.com/@ruaitv/live',
-        schedule: {
-          pagi: { active: false, label: 'PAGI', time: null, days: null },
-          siang: { active: false, label: 'SIANG', time: null, days: null },
-          malam: { active: false, label: 'MALAM', time: null, days: null }
-        },
+        schedule: scheduleObj,
         featured: false
       };
       programsData.unshift(targetProg);
