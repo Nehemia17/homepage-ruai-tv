@@ -246,29 +246,11 @@
     },
     "featured": false
   },
+
   {
-    "id": "dansa-musik-ruai",
-    "title": "Dansa Musik Ruai Sampai Puas",
-    "slug": "dansa-musik-ruai",
-    "category": "non-news",
-    "category_label": "Non-News",
-    "status": "aktif",
-    "format": "Hiburan Musik",
-    "duration": "—",
-    "description": "Program musik dan hiburan keluarga yang menghadirkan sajian lagu-lagu daerah dan nasional yang menghibur untuk menemani waktu santai keluarga Indonesia.",
-    "thumbnail_url": "assets/images/programs/gong-ruai.jpg",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
-    "schedule": {
-      "pagi":  { "active": false, "label": "PAGI",  "time": null, "days": null },
-      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
-      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
-    },
-    "featured": false
-  },
-  {
-    "id": "galery-kharisniwa",
-    "title": "Galery Kharisniwa / Nusantara",
-    "slug": "galery-kharisniwa",
+    "id": "galeri-khatulistiwa",
+    "title": "Galeri Khatulistiwa",
+    "slug": "galeri-khatulistiwa",
     "category": "non-news",
     "category_label": "Non-News",
     "status": "aktif",
@@ -290,7 +272,7 @@
     "slug": "slada-reguler",
     "category": "non-news",
     "category_label": "Non-News",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Hiburan",
     "duration": "—",
     "description": "Senandung Lagu Daerah (SLADA) reguler — program yang melestarikan dan memopulerkan lagu-lagu daerah Kalimantan Barat dalam format tayangan yang modern.",
@@ -309,7 +291,7 @@
     "slug": "slada-week-end",
     "category": "non-news",
     "category_label": "Non-News",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Hiburan",
     "duration": "—",
     "description": "Edisi akhir pekan dari program Senandung Lagu Daerah (SLADA) yang hadir dengan nuansa lebih santai dan pilihan lagu yang lebih beragam untuk menemani waktu weekend keluarga.",
@@ -323,12 +305,12 @@
     "featured": false
   },
   {
-    "id": "kaproan-karaoke",
-    "title": "Kaproan (Karaoke Sampai Puas)",
-    "slug": "kaproan-karaoke",
+    "id": "kapuas-karaoke",
+    "title": "Kapuas (Karaoke Sampai Puas)",
+    "slug": "kapuas-karaoke",
     "category": "non-news",
     "category_label": "Non-News",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Hiburan",
     "duration": "—",
     "description": "Program interaktif karaoke yang mengundang pemirsa untuk ikut bernyanyi bersama dan menikmati lagu-lagu favorit dalam format hiburan yang menyenangkan.",
@@ -347,7 +329,7 @@
     "slug": "penyejuk-iman",
     "category": "non-news",
     "category_label": "Non-News",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Religi",
     "duration": "—",
     "description": "Program rohani yang menghadirkan ceramah, renungan, dan tayangan inspiratif untuk memperkuat keimanan dan spiritualitas pemirsa Ruai TV.",
@@ -379,25 +361,7 @@
     },
     "featured": false
   },
-  {
-    "id": "pantun-rias",
-    "title": "Pantun Rias",
-    "slug": "pantun-rias",
-    "category": "non-news",
-    "category_label": "Non-News",
-    "status": "arsip",
-    "format": "Seni Budaya",
-    "duration": "—",
-    "description": "Ruang pelestarian seni pantun dan sastra lisan Melayu Kalimantan Barat yang menampilkan pertunjukan pantun, syair, dan gurindam dari seniman lokal terpilih.",
-    "thumbnail_url": "assets/images/programs/gong-ruai.jpg",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi":  { "active": false, "label": "PAGI",  "time": null, "days": null },
-      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
-      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
-    },
-    "featured": false
-  },
+
   {
     "id": "voa-jalan-jalan",
     "title": "VOA — Jalan-Jalan Amerika",
@@ -418,9 +382,9 @@
     "featured": false
   },
   {
-    "id": "voa-wanang-kita",
-    "title": "VOA — Wanang Kita",
-    "slug": "voa-wanang-kita",
+    "id": "voa-warung-kita",
+    "title": "VOA — Warung Kita",
+    "slug": "voa-warung-kita",
     "category": "kerja-sama",
     "category_label": "Kerja Sama",
     "status": "aktif",
@@ -537,7 +501,7 @@
     "slug": "voa-dunia-kita",
     "category": "kerja-sama",
     "category_label": "Kerja Sama",
-    "status": "aktif",
+    "status": "arsip",
     "format": "Feature Berita",
     "duration": "—",
     "description": "Wawasan dunia internasional dari Voice of America (VOA) yang menyajikan feature-feature menarik tentang kehidupan dan perkembangan global.",
@@ -569,25 +533,7 @@
     },
     "featured": false
   },
-  {
-    "id": "darul-eliyas",
-    "title": "Darul Eliyas",
-    "slug": "darul-eliyas",
-    "category": "kerja-sama",
-    "category_label": "Kerja Sama",
-    "status": "arsip",
-    "format": "Program Religi",
-    "duration": "—",
-    "description": "Tayangan religi kerja sama yang menghadirkan ceramah dan pencerahan spiritual dari narasumber terpilih untuk masyarakat Kalimantan Barat.",
-    "thumbnail_url": "assets/images/programs/warta-ruai.jpg",
-    "youtube_live_url": null,
-    "schedule": {
-      "pagi":  { "active": false, "label": "PAGI",  "time": null, "days": null },
-      "siang": { "active": false, "label": "SIANG", "time": null, "days": null },
-      "malam": { "active": false, "label": "MALAM", "time": null, "days": null }
-    },
-    "featured": false
-  },
+
   {
     "id": "antara",
     "title": "Antara",
