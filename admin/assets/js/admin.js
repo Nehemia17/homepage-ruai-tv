@@ -1,10 +1,13 @@
 /* ============================================================
    RUAI TV — Admin Panel Logic (admin.js)
+   Backend & MySQL REST API Integrated
    ============================================================ */
 
 (() => {
   let programsData = [];
   const STORAGE_KEY = 'ruai_tv_programs_data';
+  const API_URL = '../api/programs.php';
+  const UPLOAD_URL = '../api/upload.php';
 
   // ─── Initializer ───
   document.addEventListener('DOMContentLoaded', async () => {
@@ -12,10 +15,28 @@
     initDashboardStats();
     initProgramsTable();
     initModalHandlers();
+    initFileUpload();
   });
 
   // ─── Load Programs Data ───
   async function loadPrograms() {
+    // 1. Try MySQL REST API
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        const apiData = await res.json();
+        if (Array.isArray(apiData)) {
+          programsData = apiData;
+          saveToStorage();
+          console.log('Loaded programs from MySQL API:', programsData.length);
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('API MySQL offset/offline, using fallback storage:', e.message);
+    }
+
+    // 2. Fallback to localStorage
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
       try {
@@ -23,16 +44,18 @@
         console.log('Loaded programs from localStorage:', programsData.length);
         return;
       } catch (e) {
-        console.warn('Failed to parse localStorage data, refetching JSON:', e);
+        console.warn('Failed to parse localStorage:', e);
       }
     }
 
+    // 3. Fallback to programs.json
     try {
       const res = await fetch('../assets/data/programs.json');
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      programsData = await res.json();
-      saveToStorage();
-      console.log('Loaded programs from JSON:', programsData.length);
+      if (res.ok) {
+        programsData = await res.json();
+        saveToStorage();
+        console.log('Loaded programs from programs.json:', programsData.length);
+      }
     } catch (err) {
       console.error('Error loading programs.json:', err);
       showToast('Gagal memuat data program.', 'error');
@@ -96,11 +119,10 @@
   // ─── Programs Table Management ───
   function initProgramsTable() {
     const tbody = document.getElementById('programs-table-body');
-    if (!tbody) return; // Not on programs page
+    if (!tbody) return;
 
     renderProgramsTable();
 
-    // Event listeners for search & filter
     const searchInput  = document.getElementById('search-program');
     const filterStatus = document.getElementById('filter-status');
     const filterCat    = document.getElementById('filter-category');
@@ -172,13 +194,12 @@
       tbody.appendChild(tr);
     });
 
-    // Update count badge if exists
     const countBadge = document.getElementById('program-count-badge');
     if (countBadge) countBadge.textContent = `${filtered.length} Program`;
   }
 
   // ─── Toggle Status Action ───
-  window.toggleStatus = (id) => {
+  window.toggleStatus = async (id) => {
     const p = programsData.find(x => x.id === id);
     if (!p) return;
 
@@ -186,8 +207,48 @@
     saveToStorage();
     renderProgramsTable();
     initDashboardStats();
+
+    // Sync to MySQL API if online
+    try {
+      await fetch(API_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+      });
+    } catch (e) {}
+
     showToast(`Status "${p.title}" diubah menjadi ${p.status.toUpperCase()}`, 'success');
   };
+
+  // ─── File Upload Handler ───
+  function initFileUpload() {
+    const fileInput = document.getElementById('form-file-upload');
+    fileInput?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('banner_file', file);
+
+      try {
+        showToast('Mengunggah file banner...', 'success');
+        const res = await fetch(UPLOAD_URL, {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          document.getElementById('form-thumb').value = result.url;
+          showToast('Gambar banner berhasil diunggah!', 'success');
+        } else {
+          showToast(result.message || 'Gagal mengunggah file.', 'error');
+        }
+      } catch (err) {
+        console.warn('File upload API not available on static host:', err);
+        showToast('Upload API memerlukan server XAMPP/PHP.', 'error');
+      }
+    });
+  }
 
   // ─── Modal Handlers ───
   function initModalHandlers() {
@@ -218,8 +279,6 @@
     form.reset();
     document.getElementById('modal-title-text').textContent = 'Tambah Program Baru';
     document.getElementById('form-id-input').value = '';
-    
-    // Default preset values
     document.getElementById('form-status').value = 'aktif';
     document.getElementById('form-category').value = 'berita';
 
@@ -252,7 +311,7 @@
     modal?.classList.remove('active');
   }
 
-  function saveProgramForm() {
+  async function saveProgramForm() {
     const idInput   = document.getElementById('form-id-input').value.trim();
     const title     = document.getElementById('form-title').value.trim();
     const slug      = document.getElementById('form-slug').value.trim() || title.toLowerCase().replace(/\s+/g, '-');
@@ -269,26 +328,27 @@
       return;
     }
 
+    let isEdit = false;
+    let targetProg = null;
+
     if (idInput) {
-      // Edit existing
-      const p = programsData.find(x => x.id === idInput);
-      if (p) {
-        p.title = title;
-        p.slug = slug;
-        p.category = cat;
-        p.category_label = cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama');
-        p.format = format;
-        p.status = status;
-        p.duration = duration;
-        p.thumbnail_url = thumb;
-        p.promo_video_url = promoVideo;
-        p.description = desc;
-        showToast(`Program "${title}" berhasil diperbarui!`, 'success');
+      isEdit = true;
+      targetProg = programsData.find(x => x.id === idInput);
+      if (targetProg) {
+        targetProg.title = title;
+        targetProg.slug = slug;
+        targetProg.category = cat;
+        targetProg.category_label = cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama');
+        targetProg.format = format;
+        targetProg.status = status;
+        targetProg.duration = duration;
+        targetProg.thumbnail_url = thumb;
+        targetProg.promo_video_url = promoVideo;
+        targetProg.description = desc;
       }
     } else {
-      // Add new
       const newId = slug || `prog-${Date.now()}`;
-      const newProg = {
+      targetProg = {
         id: newId,
         title: title,
         slug: slug,
@@ -308,18 +368,35 @@
         },
         featured: false
       };
-      programsData.unshift(newProg);
-      showToast(`Program baru "${title}" berhasil ditambahkan!`, 'success');
+      programsData.unshift(targetProg);
     }
 
     saveToStorage();
     closeModal();
     renderProgramsTable();
     initDashboardStats();
+
+    // Sync to MySQL API
+    try {
+      const res = await fetch(API_URL, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(targetProg)
+      });
+      const resData = await res.json();
+      if (resData.status === 'success') {
+        showToast(`Program "${title}" berhasil disimpan di MySQL Database!`, 'success');
+        return;
+      }
+    } catch (e) {
+      console.log('MySQL API offline, saved to local storage:', e.message);
+    }
+
+    showToast(`Program "${title}" berhasil disimpan!`, 'success');
   }
 
   // ─── Delete Action ───
-  window.confirmDelete = (id) => {
+  window.confirmDelete = async (id) => {
     const p = programsData.find(x => x.id === id);
     if (!p) return;
 
@@ -328,11 +405,19 @@
       saveToStorage();
       renderProgramsTable();
       initDashboardStats();
+
+      // Sync to MySQL API
+      try {
+        await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {}
+
       showToast(`Program "${p.title}" telah dihapus!`, 'success');
     }
   };
 
-  // ─── Toast Notification Helper ───
+  // ─── Toast Helper ───
   function showToast(message, type = 'success') {
     let container = document.querySelector('.toast-container');
     if (!container) {

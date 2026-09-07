@@ -9,16 +9,32 @@
 
   // ─── Load data ────────────────────────────────────────────
   const STORAGE_KEY = 'ruai_tv_programs_data';
-  const localData = localStorage.getItem(STORAGE_KEY);
+  const API_URL = 'api/programs.php';
 
-  if (localData) {
-    try {
-      programs = JSON.parse(localData);
-    } catch (e) {
-      console.warn('Failed to parse localStorage in catalog.js:', e);
+  // 1. Try MySQL REST API
+  try {
+    const res = await fetch(API_URL);
+    if (res.ok) {
+      const apiData = await res.json();
+      if (Array.isArray(apiData) && apiData.length > 0) {
+        programs = apiData;
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fallback to localStorage
+  if (!programs || programs.length === 0) {
+    const localData = localStorage.getItem(STORAGE_KEY);
+    if (localData) {
+      try {
+        programs = JSON.parse(localData);
+      } catch (e) {
+        console.warn('Failed to parse localStorage in catalog.js:', e);
+      }
     }
   }
 
+  // 3. Fallback to programs.json
   if (!programs || programs.length === 0) {
     try {
       const res = await fetch('assets/data/programs.json');
