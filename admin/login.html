@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Admin — RUAI TV</title>
+  
+  <!-- Favicon & Styles -->
+  <link rel="icon" href="../assets/images/logo-ruai-tv.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body class="login-page-body">
+
+  <div class="login-card-wrapper">
+    <div class="login-brand-header">
+      <img src="../assets/images/logo-ruai-tv.png" alt="Ruai TV Logo" onerror="this.style.display='none';" />
+      <h1 class="login-brand-title">RUAI TV ADMIN</h1>
+      <p class="login-brand-subtitle">Masuk untuk mengelola katalog & siaran program</p>
+    </div>
+
+    <!-- Alert Box for Login Errors -->
+    <div class="login-alert-box" id="login-alert-box">
+      ⚠️ <span id="login-alert-text">Username atau password salah.</span>
+    </div>
+
+    <form id="login-form">
+      <div class="login-form-group">
+        <label for="login-username">Username Admin</label>
+        <div class="login-input-wrap">
+          <input type="text" id="login-username" placeholder="Masukkan username admin..." required autocomplete="username" autofocus />
+        </div>
+      </div>
+
+      <div class="login-form-group">
+        <label for="login-password">Password</label>
+        <div class="login-input-wrap">
+          <input type="password" id="login-password" placeholder="Masukkan password..." required autocomplete="current-password" />
+          <button type="button" class="password-toggle-btn" id="btn-toggle-password" title="Tampilkan/Sembunyikan Password" tabindex="-1">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <div class="login-options-row">
+        <label class="login-remember-me">
+          <input type="checkbox" id="login-remember" checked />
+          <span>Ingat Saya</span>
+        </label>
+        <a href="#" style="color:#94A3B8; text-decoration:none;" id="link-forgot-pass">Lupa Password?</a>
+      </div>
+
+      <button type="submit" class="btn-login-submit" id="btn-login">
+        <span>Masuk ke Admin Panel</span>
+        <span>➔</span>
+      </button>
+    </form>
+
+    <div class="login-footer-info">
+      <p>&copy; 2026 PT. Ruai Televisi — System Secured</p>
+      <p style="margin-top: 6px;"><a href="../index.html">← Kembali ke Website Utama</a></p>
+    </div>
+  </div>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Login Script -->
+  <script src="assets/js/login.js"></script>
+</body>
+</html>

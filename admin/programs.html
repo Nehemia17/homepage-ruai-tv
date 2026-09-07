@@ -39,11 +39,15 @@
       </a>
     </nav>
 
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:8px;">
       <a href="../index.html" target="_blank" class="btn-public-site">
         <span>🌐</span>
         <span>Lihat Website Publik</span>
       </a>
+      <button class="btn-admin-logout" style="width:100%; padding:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#FCA5A5; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;">
+        <span>🚪</span>
+        <span>Keluar (Logout)</span>
+      </button>
     </div>
   </aside>
 
@@ -59,11 +63,11 @@
           <span>+</span>
           <span>Tambah Program Baru</span>
         </button>
-        <div class="admin-profile">
+        <div class="admin-profile" style="cursor:pointer;" title="Klik untuk keluar">
           <div class="avatar">A</div>
           <div>
-            <div class="admin-name">Admin Redaksi</div>
-            <div class="admin-role">Ruai TV Kalbar</div>
+            <div class="admin-name" id="admin-user-fullname">Admin Redaksi</div>
+            <div class="admin-role">Ruai TV Kalbar (Logout 🚪)</div>
           </div>
         </div>
       </div>
@@ -245,6 +249,8 @@
     </div>
   </div>
 
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Admin Script -->
   <script src="assets/js/admin.js"></script>
 </body>

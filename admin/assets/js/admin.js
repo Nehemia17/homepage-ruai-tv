@@ -6,17 +6,79 @@
 (() => {
   let programsData = [];
   const STORAGE_KEY = 'ruai_tv_programs_data';
+  const SESSION_KEY = 'ruai_admin_session';
   const API_URL = '../api/programs.php';
   const UPLOAD_URL = '../api/upload.php';
 
   // ─── Initializer ───
   document.addEventListener('DOMContentLoaded', async () => {
+    if (!checkAuthGuard()) return;
+    initLogoutHandler();
     await loadPrograms();
     initDashboardStats();
     initProgramsTable();
     initModalHandlers();
     initFileUpload();
   });
+
+  // ─── Auth Guard & Session ───
+  function checkAuthGuard() {
+    const rawSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+    if (!rawSession) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    try {
+      const parsed = JSON.parse(rawSession);
+      if (!parsed || !parsed.authenticated) {
+        window.location.href = 'login.html';
+        return false;
+      }
+      const userEl = document.getElementById('admin-user-fullname');
+      if (userEl && parsed.user && parsed.user.fullname) {
+        userEl.textContent = parsed.user.fullname;
+      }
+    } catch (e) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
+  }
+
+  // ─── Logout Handler ───
+  function initLogoutHandler() {
+    const logoutBtns = document.querySelectorAll('.btn-admin-logout, #btn-logout, .admin-profile');
+    logoutBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Keluar dari Admin?',
+            text: 'Anda perlu melakukan login kembali untuk mengakses panel pengelola.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#64748B',
+            confirmButtonText: 'Ya, Logout',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+          }).then((result) => {
+            if (result.isConfirmed) {
+              localStorage.removeItem(SESSION_KEY);
+              sessionStorage.removeItem(SESSION_KEY);
+              window.location.href = 'login.html';
+            }
+          });
+        } else {
+          if (confirm('Apakah Anda yakin ingin keluar dari Admin Panel?')) {
+            localStorage.removeItem(SESSION_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
+            window.location.href = 'login.html';
+          }
+        }
+      });
+    });
+  }
 
   // ─── Load Programs Data ───
   async function loadPrograms() {
@@ -493,7 +555,7 @@
     const p = programsData.find(x => x.id === id);
     if (!p) return;
 
-    if (confirm(`Apakah Anda yakin ingin menghapus program "${p.title}"?`)) {
+    const doDelete = async () => {
       programsData = programsData.filter(x => x.id !== id);
       saveToStorage();
       renderProgramsTable();
@@ -507,11 +569,56 @@
       } catch (e) {}
 
       showToast(`Program "${p.title}" telah dihapus!`, 'success');
+    };
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Hapus Program?',
+        html: `Apakah Anda yakin ingin menghapus program <strong>"${p.title}"</strong>?<br><small style="color:#64748B;">Tindakan ini tidak dapat dibatalkan.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#DC2626',
+        cancelButtonColor: '#64748B',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          doDelete();
+        }
+      });
+    } else {
+      if (confirm(`Apakah Anda yakin ingin menghapus program "${p.title}"?`)) {
+        doDelete();
+      }
     }
   };
 
   // ─── Toast Helper ───
   function showToast(message, type = 'success') {
+    if (typeof Swal !== 'undefined') {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom-end',
+        showConfirmButton: false,
+        timer: 3500,
+        timerProgressBar: true,
+        background: '#0F172A',
+        color: '#FFFFFF',
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer);
+          toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+      });
+
+      Toast.fire({
+        icon: type === 'success' ? 'success' : (type === 'error' ? 'error' : 'info'),
+        title: message
+      });
+      return;
+    }
+
+    // DOM Fallback
     let container = document.querySelector('.toast-container');
     if (!container) {
       container = document.createElement('div');

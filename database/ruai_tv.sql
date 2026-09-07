@@ -74,3 +74,26 @@ INSERT INTO `programs` (`id`, `title`, `slug`, `category`, `category_label`, `st
 ('bursa-musik-ruai', 'Bursa Musik Ruai (BMR)', 'bursa-musik-ruai', 'non-news', 'Non-News', 'arsip', 'Hiburan Musik', '—', 'Program musik Ruai TV yang menghadirkan bursa lagu-lagu pilihan dari berbagai genre, menemani pemirsa dengan sajian musik terbaik dari artis lokal dan nasional.', NULL, NULL, NULL, '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}', 0),
 ('bumi-hijau', 'Bumi Hijau', 'bumi-hijau', 'kerja-sama', 'Kerja Sama', 'arsip', 'Dokumenter', '—', 'Berita nasional dan daerah dari kantor berita ANTARA yang disiarkan melalui Ruai TV untuk melengkapi cakupan informasi bagi pemirsa Kalimantan Barat.', NULL, NULL, NULL, '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}', 0),
 ('beranda-ruai', 'Beranda Ruai', 'beranda-ruai', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Program Non-News Ruai TV yang menghadirkan konten hiburan dan informasi ringan untuk menemani pemirsa di rumah.', NULL, NULL, NULL, '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}', 0);
+
+-- --------------------------------------------------------
+-- Table structure for table `users`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `fullname` VARCHAR(100) NOT NULL,
+  `role` VARCHAR(20) NOT NULL DEFAULT 'admin',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Seed data for table `users` (Default: admin / admin123)
+-- --------------------------------------------------------
+
+INSERT INTO `users` (`id`, `username`, `password_hash`, `fullname`, `role`) VALUES
+(1, 'admin', '$2y$10$E9s0s4tEaW5V31kOqMhGme1oXkOQxYjO6mQ7rPZ/B8Yn0Q2Z3Z4W6', 'Admin Redaksi Ruai TV', 'superadmin')
+ON DUPLICATE KEY UPDATE `username` = `username`;
+
