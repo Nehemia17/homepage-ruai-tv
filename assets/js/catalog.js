@@ -319,7 +319,7 @@
 
     // Slots
     const slotKeys  = ['pagi', 'siang', 'malam'];
-    const slotIcons = { pagi: '🌅', siang: '☀️', malam: '🌙' };
+    const slotIcons = { pagi:'', siang: '', malam: '' };
     const slotNames = { pagi: 'PAGI', siang: 'SIANG', malam: 'MALAM' };
 
     slotKeys.forEach(key => {

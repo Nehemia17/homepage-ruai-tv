@@ -58,7 +58,7 @@ switch ($method) {
         $format = !empty($data['format']) ? $data['format'] : '—';
         $duration = !empty($data['duration']) ? $data['duration'] : '—';
         $description = !empty($data['description']) ? $data['description'] : '';
-        $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : 'assets/images/programs/Warta-Ruai.png';
+        $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : null;
         $promo_video_url = !empty($data['promo_video_url']) ? $data['promo_video_url'] : null;
         $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@ruaitv/live';
         $schedule_json = isset($data['schedule']) ? json_encode($data['schedule'], JSON_UNESCAPED_UNICODE) : null;
@@ -97,7 +97,7 @@ switch ($method) {
         $format = !empty($data['format']) ? $data['format'] : '—';
         $duration = !empty($data['duration']) ? $data['duration'] : '—';
         $description = !empty($data['description']) ? $data['description'] : '';
-        $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : 'assets/images/programs/Warta-Ruai.png';
+        $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : null;
         $promo_video_url = isset($data['promo_video_url']) ? $data['promo_video_url'] : null;
         $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@ruaitv/live';
         $schedule_json = isset($data['schedule']) ? json_encode($data['schedule'], JSON_UNESCAPED_UNICODE) : null;

@@ -72,22 +72,41 @@ body {
   height: var(--admin-header-height);
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 0 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-logo {
-  height: 36px;
-  width: auto;
-  border-radius: 4px;
+.sidebar-header-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
 }
 
-.sidebar-brand {
-  font-size: 16px;
-  font-weight: 700;
+.sidebar-header-link:hover {
+  opacity: 0.9;
+}
+
+.sidebar-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.sidebar-admin-badge {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: #FFFFFF;
-  letter-spacing: 0.5px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
 }
 
 .sidebar-menu {
@@ -203,6 +222,13 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  transition: background 0.2s ease;
+}
+
+.admin-profile:hover {
+  background: var(--bg-hover);
 }
 
 .avatar {

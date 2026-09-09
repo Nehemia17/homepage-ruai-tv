@@ -108,6 +108,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ─── 9. Warta Ruai Live Schedule Status Checker ─────────
   const updateLiveIndicatorStatus = () => {
     const liveBtn = document.getElementById('nav-live-btn');
+    const heroStreamBtn = document.getElementById('hero-stream-btn');
+
+    if (liveBtn) liveBtn.href = LIVE_URL;
+    if (heroStreamBtn) heroStreamBtn.href = LIVE_URL;
+
     if (!liveBtn) return;
 
     // Check URL override for testing (?live=true or ?live=false)

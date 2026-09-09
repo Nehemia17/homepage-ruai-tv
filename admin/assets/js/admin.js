@@ -370,6 +370,15 @@
     const programForm = document.getElementById('program-form');
     const btnAdd      = document.getElementById('btn-add-program');
 
+    const btnRemoveThumb = document.getElementById('btn-remove-thumb');
+    btnRemoveThumb?.addEventListener('click', () => {
+      const thumbInput = document.getElementById('form-thumb');
+      const fileInput  = document.getElementById('form-file-upload');
+      if (thumbInput) thumbInput.value = '';
+      if (fileInput) fileInput.value = '';
+      showToast('Gambar banner dikosongkan.', 'info');
+    });
+
     btnAdd?.addEventListener('click', () => openAddModal());
     closeBtn?.addEventListener('click', closeModal);
     cancelBtn?.addEventListener('click', closeModal);
@@ -456,7 +465,8 @@
     const format    = document.getElementById('form-format').value.trim();
     const status    = document.getElementById('form-status').value;
     const duration  = document.getElementById('form-duration').value.trim();
-    const thumb     = document.getElementById('form-thumb').value.trim() || 'assets/images/programs/Warta-Ruai.png';
+    const thumbVal  = document.getElementById('form-thumb').value.trim();
+    const thumb     = thumbVal.length > 0 ? thumbVal : null;
     const promoVideo= document.getElementById('form-promo-video').value.trim();
     const desc      = document.getElementById('form-desc').value.trim();
 

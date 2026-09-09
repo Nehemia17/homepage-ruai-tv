@@ -17,8 +17,10 @@
   <!-- ─── Sidebar ─── -->
   <aside class="admin-sidebar">
     <div class="sidebar-header">
-      <img src="../assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
-      <span class="sidebar-brand">RUAI TV ADMIN</span>
+      <a href="index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
+        <img src="../assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
+        <span class="sidebar-admin-badge">ADMIN</span>
+      </a>
     </div>
     
     <nav class="sidebar-menu">
@@ -63,12 +65,13 @@
           <span>+</span>
           <span>Tambah Program Baru</span>
         </button>
-        <div class="admin-profile" style="cursor:pointer;" title="Klik untuk keluar">
+        <div class="admin-profile" style="cursor:pointer;" title="Klik untuk keluar (Logout)">
           <div class="avatar">A</div>
           <div>
             <div class="admin-name" id="admin-user-fullname">Admin Redaksi</div>
-            <div class="admin-role">Ruai TV Kalbar (Logout 🚪)</div>
+            <div class="admin-role">Ruai TV Kalbar</div>
           </div>
+          <span style="font-size:12px; opacity:0.6;" title="Logout">🚪</span>
         </div>
       </div>
     </header>
@@ -182,10 +185,15 @@
             </div>
 
             <div class="form-group">
-              <label for="form-thumb">Path / Upload File Banner <span style="color:red">*</span></label>
-              <input type="text" id="form-thumb" placeholder="assets/images/programs/Warta-Ruai.png" required />
+              <label for="form-thumb">Path / Upload File Banner <span style="color:#64748B; font-size:12px; font-weight:normal;">(Opsional)</span></label>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="form-thumb" placeholder="assets/images/programs/Warta-Ruai.png" style="flex:1;" />
+                <button type="button" id="btn-remove-thumb" style="padding: 8px 12px; font-size:12px; background:#FEF2F2; color:#DC2626; border:1px solid #FCA5A5; border-radius:6px; cursor:pointer; font-weight:600; white-space:nowrap;" title="Hapus Gambar Banner">
+                  🗑️ Hapus
+                </button>
+              </div>
               <input type="file" id="form-file-upload" accept="image/*" style="margin-top:6px; font-size:12px;" />
-              <small style="font-size:11px; color:#64748B;">Ketik path gambar atau pilih file dari komputer untuk upload otomatis.</small>
+              <small style="font-size:11px; color:#64748B;">Pilih file dari komputer, isi path, atau klik Hapus jika program tidak ada banner.</small>
             </div>
 
             <div class="form-group">
@@ -201,7 +209,7 @@
               <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
                 <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
                   <input type="checkbox" id="sched-pagi-active" />
-                  <span>🌅 Slot Pagi</span>
+                  <span>Slot Pagi</span>
                 </label>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
                   <input type="text" id="sched-pagi-time" placeholder="Jam (Contoh: 07.00 – 08.00 WIB)" />
@@ -213,7 +221,7 @@
               <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
                 <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
                   <input type="checkbox" id="sched-siang-active" />
-                  <span>☀️ Slot Siang / Sore</span>
+                  <span>Slot Siang / Sore</span>
                 </label>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
                   <input type="text" id="sched-siang-time" placeholder="Jam (Contoh: 13.00 – 14.00 WIB)" />
@@ -225,7 +233,7 @@
               <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
                 <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
                   <input type="checkbox" id="sched-malam-active" />
-                  <span>🌙 Slot Malam</span>
+                  <span>Slot Malam</span>
                 </label>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
                   <input type="text" id="sched-malam-time" placeholder="Jam (Contoh: 19.00 – 20.00 WIB)" />
