@@ -379,6 +379,22 @@
       showToast('Gambar banner dikosongkan.', 'info');
     });
 
+    // Auto-check schedule slot when typing in time or days input
+    ['pagi', 'siang', 'malam'].forEach(slot => {
+      const timeInput = document.getElementById(`sched-${slot}-time`);
+      const daysInput = document.getElementById(`sched-${slot}-days`);
+      const chkBox    = document.getElementById(`sched-${slot}-active`);
+
+      const autoCheck = () => {
+        if (chkBox && (timeInput?.value.trim().length > 0 || daysInput?.value.trim().length > 0)) {
+          chkBox.checked = true;
+        }
+      };
+
+      timeInput?.addEventListener('input', autoCheck);
+      daysInput?.addEventListener('input', autoCheck);
+    });
+
     btnAdd?.addEventListener('click', () => openAddModal());
     closeBtn?.addEventListener('click', closeModal);
     cancelBtn?.addEventListener('click', closeModal);
@@ -427,24 +443,24 @@
     document.getElementById('form-title').value = p.title || '';
     document.getElementById('form-slug').value = p.slug || p.id;
     document.getElementById('form-category').value = p.category || 'berita';
-    document.getElementById('form-format').value = p.format || '—';
+    document.getElementById('form-format').value = (p.format && p.format !== '—') ? p.format : '';
     document.getElementById('form-status').value = p.status || 'aktif';
-    document.getElementById('form-duration').value = p.duration || '—';
+    document.getElementById('form-duration').value = (p.duration && p.duration !== '—') ? p.duration : '';
     document.getElementById('form-thumb').value = p.thumbnail_url || '';
     document.getElementById('form-promo-video').value = p.promo_video_url || '';
     document.getElementById('form-desc').value = p.description || '';
 
     // Populate Schedule inputs
     const sched = p.schedule || {};
-    document.getElementById('sched-pagi-active').checked = !!(sched.pagi?.active);
+    document.getElementById('sched-pagi-active').checked = !!(sched.pagi?.active || sched.pagi?.time || sched.pagi?.days);
     document.getElementById('sched-pagi-time').value = sched.pagi?.time || '';
     document.getElementById('sched-pagi-days').value = sched.pagi?.days || '';
 
-    document.getElementById('sched-siang-active').checked = !!(sched.siang?.active);
+    document.getElementById('sched-siang-active').checked = !!(sched.siang?.active || sched.siang?.time || sched.siang?.days);
     document.getElementById('sched-siang-time').value = sched.siang?.time || '';
     document.getElementById('sched-siang-days').value = sched.siang?.days || '';
 
-    document.getElementById('sched-malam-active').checked = !!(sched.malam?.active);
+    document.getElementById('sched-malam-active').checked = !!(sched.malam?.active || sched.malam?.time || sched.malam?.days);
     document.getElementById('sched-malam-time').value = sched.malam?.time || '';
     document.getElementById('sched-malam-days').value = sched.malam?.days || '';
 
@@ -464,30 +480,43 @@
     const cat       = document.getElementById('form-category').value;
     const format    = document.getElementById('form-format').value.trim();
     const status    = document.getElementById('form-status').value;
-    const duration  = document.getElementById('form-duration').value.trim();
+    const durationInput = document.getElementById('form-duration').value.trim();
+    const duration  = (durationInput && durationInput !== '—') ? durationInput : '—';
     const thumbVal  = document.getElementById('form-thumb').value.trim();
     const thumb     = thumbVal.length > 0 ? thumbVal : null;
     const promoVideo= document.getElementById('form-promo-video').value.trim();
     const desc      = document.getElementById('form-desc').value.trim();
 
+    const pagiTime  = document.getElementById('sched-pagi-time').value.trim();
+    const pagiDays  = document.getElementById('sched-pagi-days').value.trim();
+    const pagiActive= document.getElementById('sched-pagi-active').checked || (pagiTime.length > 0 || pagiDays.length > 0);
+
+    const siangTime  = document.getElementById('sched-siang-time').value.trim();
+    const siangDays  = document.getElementById('sched-siang-days').value.trim();
+    const siangActive= document.getElementById('sched-siang-active').checked || (siangTime.length > 0 || siangDays.length > 0);
+
+    const malamTime  = document.getElementById('sched-malam-time').value.trim();
+    const malamDays  = document.getElementById('sched-malam-days').value.trim();
+    const malamActive= document.getElementById('sched-malam-active').checked || (malamTime.length > 0 || malamDays.length > 0);
+
     const scheduleObj = {
       pagi: {
-        active: document.getElementById('sched-pagi-active').checked,
+        active: pagiActive,
         label: 'PAGI',
-        time: document.getElementById('sched-pagi-time').value.trim() || null,
-        days: document.getElementById('sched-pagi-days').value.trim() || null
+        time: pagiTime || null,
+        days: pagiDays || null
       },
       siang: {
-        active: document.getElementById('sched-siang-active').checked,
+        active: siangActive,
         label: 'SIANG',
-        time: document.getElementById('sched-siang-time').value.trim() || null,
-        days: document.getElementById('sched-siang-days').value.trim() || null
+        time: siangTime || null,
+        days: siangDays || null
       },
       malam: {
-        active: document.getElementById('sched-malam-active').checked,
+        active: malamActive,
         label: 'MALAM',
-        time: document.getElementById('sched-malam-time').value.trim() || null,
-        days: document.getElementById('sched-malam-days').value.trim() || null
+        time: malamTime || null,
+        days: malamDays || null
       }
     };
 
