@@ -188,10 +188,14 @@
     grid.appendChild(card);
   });
 
-  // ─── Filter logic ─────────────────────────────────────────
+  // ─── Filter & Search logic ────────────────────────────────
   const filterBtns = document.querySelectorAll('.filter-tab');
+  let currentCategoryFilter = 'semua';
+  let currentSearchQuery    = '';
 
-  const applyFilter = (filter) => {
+  const applyCombinedFilter = () => {
+    const query = currentSearchQuery.toLowerCase().trim();
+
     // Re-sort DOM cards setiap kali filter berubah
     const allCards = [...document.querySelectorAll('.program-card')];
     allCards.sort((a, b) => {
@@ -209,15 +213,30 @@
 
     let delay = 0;
     document.querySelectorAll('.program-card').forEach(card => {
-      let show = false;
-      if (filter === 'semua') show = true;
-      else if (filter === 'aktif') show = card.dataset.status === 'aktif';
-      else if (filter === 'arsip') show = card.dataset.status === 'arsip';
-      else show = card.dataset.category === filter;
+      const progId = card.dataset.id;
+      const prog   = programs.find(p => p && p.id === progId);
+
+      let matchCat = false;
+      if (currentCategoryFilter === 'semua') matchCat = true;
+      else if (currentCategoryFilter === 'aktif') matchCat = card.dataset.status === 'aktif';
+      else if (currentCategoryFilter === 'arsip') matchCat = card.dataset.status === 'arsip';
+      else matchCat = card.dataset.category === currentCategoryFilter;
+
+      let matchSearch = true;
+      if (query.length > 0 && prog) {
+        const titleMatch  = (prog.title || '').toLowerCase().includes(query);
+        const descMatch   = (prog.description || '').toLowerCase().includes(query);
+        const catMatch    = (prog.category || '').toLowerCase().includes(query);
+        const catLblMatch = (prog.category_label || '').toLowerCase().includes(query);
+        const formatMatch = (prog.format || '').toLowerCase().includes(query);
+        matchSearch = titleMatch || descMatch || catMatch || catLblMatch || formatMatch;
+      }
+
+      const show = matchCat && matchSearch;
 
       if (show) {
         card.classList.remove('hidden');
-        card.style.animationDelay = `${delay * 30}ms`;
+        card.style.animationDelay = `${delay * 25}ms`;
         card.style.animation = 'none';
         void card.offsetHeight;
         card.style.animation = '';
@@ -229,7 +248,17 @@
 
     const visible = document.querySelectorAll('.program-card:not(.hidden)').length;
     const emptyEl = document.getElementById('catalog-empty');
-    if (emptyEl) emptyEl.style.display = visible === 0 ? 'block' : 'none';
+    if (emptyEl) {
+      emptyEl.style.display = visible === 0 ? 'block' : 'none';
+      const textP = emptyEl.querySelector('p');
+      if (textP) {
+        if (visible === 0 && query.length > 0) {
+          textP.textContent = `Tidak ada program yang cocok dengan pencarian "${currentSearchQuery}".`;
+        } else {
+          textP.textContent = 'Tidak ada program untuk filter ini.';
+        }
+      }
+    }
   };
 
   filterBtns.forEach(btn => {
@@ -237,8 +266,52 @@
       filterBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
       btn.classList.add('active');
       btn.setAttribute('aria-selected','true');
-      applyFilter(btn.dataset.filter);
+      currentCategoryFilter = btn.dataset.filter;
+      applyCombinedFilter();
     });
+  });
+
+  // Handle Navbar Search input via event delegation
+  document.addEventListener('input', (e) => {
+    if (e.target && (e.target.id === 'search-input' || e.target.id === 'mobile-search-input')) {
+      currentSearchQuery = e.target.value;
+
+      // Sync desktop & mobile search inputs
+      const deskInput = document.getElementById('search-input');
+      const mobInput  = document.getElementById('mobile-search-input');
+      if (deskInput && deskInput !== e.target) deskInput.value = e.target.value;
+      if (mobInput && mobInput !== e.target) mobInput.value = e.target.value;
+
+      applyCombinedFilter();
+
+      // Scroll to #program section smoothly if user starts typing
+      if (currentSearchQuery.trim().length > 0) {
+        const progSection = document.getElementById('program');
+        if (progSection) {
+          const navEl = document.getElementById('navbar');
+          const navHeight = navEl ? navEl.offsetHeight : 0;
+          const rect = progSection.getBoundingClientRect();
+          if (rect.top > window.innerHeight * 0.7 || rect.bottom < 0) {
+            const top = rect.top + window.scrollY - navHeight;
+            window.scrollTo({ top, behavior: 'smooth' });
+          }
+        }
+      }
+    }
+  });
+
+  // Handle Enter key on search input
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target && (e.target.id === 'search-input' || e.target.id === 'mobile-search-input')) {
+      e.preventDefault();
+      const progSection = document.getElementById('program');
+      if (progSection) {
+        const navEl = document.getElementById('navbar');
+        const navHeight = navEl ? navEl.offsetHeight : 0;
+        const top = progSection.getBoundingClientRect().top + window.scrollY - navHeight;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }
   });
 
   // ─── Modal ────────────────────────────────────────────────
