@@ -1,0 +1,6 @@
+# 1. Jalankan Python server dulu
+python -m http.server 3000 --bind 0.0.0.0
+
+# 2. Baru buka tunnel (terminal baru / bisa dari sini juga)
+$env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+cloudflared tunnel --url http://localhost:3000
