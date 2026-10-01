@@ -1468,6 +1468,28 @@ h1.hero-title em {
 
 .social-link-item:hover { color: #DC2626; }
 
+/* Social icon text badges (IG / YT / FB / TT / web) */
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 20px;
+  padding: 0 5px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.1);
+  color: #CBD5E1;
+}
+.social-ig  { background: rgba(225,48,108,0.25); color: #FBCFE8; }
+.social-yt  { background: rgba(220,38,38,0.25);  color: #FCA5A5; }
+.social-fb  { background: rgba(59,130,246,0.25); color: #BFDBFE; }
+.social-tt  { background: rgba(20,184,166,0.2);  color: #99F6E4; }
+.social-web { background: rgba(100,116,139,0.2); color: #94A3B8; font-size: 14px; }
+
+
 .footer-heading {
   font-family: monospace;
   font-size: 11px;

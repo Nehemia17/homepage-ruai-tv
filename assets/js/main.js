@@ -6,7 +6,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  const LIVE_URL = 'https://www.youtube.com/@ruaitv/live';
+  const LIVE_URL = 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
 
   // ─── 1. Dynamic Component Loader ─────────────────────────
   const loadComponent = async (containerId, filePath) => {
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isLive) {
       liveBtn.classList.add('is-live');
       liveBtn.classList.remove('is-offline');
-      liveBtn.setAttribute('title', '🔴 Warta Ruai sedang tayang LIVE sekarang!');
+      liveBtn.setAttribute('title', 'Warta Ruai sedang tayang LIVE sekarang!');
     } else {
       liveBtn.classList.add('is-offline');
       liveBtn.classList.remove('is-live');

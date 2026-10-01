@@ -268,13 +268,13 @@
         <td>
           <div class="table-actions">
             <button class="btn-icon toggle" title="Ubah Status (Aktif/Arsip)" onclick="window.toggleStatus('${p.id}')">
-              ${isAktif ? '⏸' : '▶'}
+              ${isAktif ? '&#9646;&#9646;' : '&#9654;'}
             </button>
             <button class="btn-icon edit" title="Edit Program" onclick="window.openEditModal('${p.id}')">
-              ✏️
+              &#9998;
             </button>
             <button class="btn-icon delete" title="Hapus Program" onclick="window.confirmDelete('${p.id}')">
-              🗑️
+              &#10005;
             </button>
           </div>
         </td>
@@ -481,7 +481,7 @@
     const format    = document.getElementById('form-format').value.trim();
     const status    = document.getElementById('form-status').value;
     const durationInput = document.getElementById('form-duration').value.trim();
-    const duration  = (durationInput && durationInput !== '—') ? durationInput : '—';
+    const duration  = durationInput.length > 0 ? durationInput : null;
     const thumbVal  = document.getElementById('form-thumb').value.trim();
     const thumb     = thumbVal.length > 0 ? thumbVal : null;
     const promoVideo= document.getElementById('form-promo-video').value.trim();
@@ -536,7 +536,7 @@
         targetProg.slug = slug;
         targetProg.category = cat;
         targetProg.category_label = cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama');
-        targetProg.format = format;
+        targetProg.format = format || null;
         targetProg.status = status;
         targetProg.duration = duration;
         targetProg.thumbnail_url = thumb;
@@ -553,12 +553,12 @@
         category: cat,
         category_label: cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama'),
         status: status,
-        format: format || '—',
-        duration: duration || '—',
+        format: format || null,
+        duration: duration,
         description: desc,
         thumbnail_url: thumb,
         promo_video_url: promoVideo,
-        youtube_live_url: 'https://www.youtube.com/@ruaitv/live',
+        youtube_live_url: 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams',
         schedule: scheduleObj,
         featured: false
       };
@@ -668,7 +668,7 @@
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-      <span>${type === 'success' ? '✅' : '⚠️'}</span>
+      <span class="toast-icon">${type === 'success' ? '&#10003;' : '&#9888;'}</span>
       <span>${message}</span>
     `;
 

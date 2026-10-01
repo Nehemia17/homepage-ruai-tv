@@ -55,12 +55,12 @@ switch ($method) {
         $category = !empty($data['category']) ? $data['category'] : 'berita';
         $category_label = !empty($data['category_label']) ? $data['category_label'] : ($category === 'berita' ? 'Program Berita' : ($category === 'non-news' ? 'Non-News' : 'Kerja Sama'));
         $status = !empty($data['status']) ? $data['status'] : 'aktif';
-        $format = !empty($data['format']) ? $data['format'] : '—';
-        $duration = !empty($data['duration']) ? $data['duration'] : '—';
+        $format = !empty($data['format']) ? $data['format'] : null;
+        $duration = !empty($data['duration']) ? $data['duration'] : null;
         $description = !empty($data['description']) ? $data['description'] : '';
         $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : null;
         $promo_video_url = !empty($data['promo_video_url']) ? $data['promo_video_url'] : null;
-        $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@ruaitv/live';
+        $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
         $schedule_json = isset($data['schedule']) ? json_encode($data['schedule'], JSON_UNESCAPED_UNICODE) : null;
         $featured = isset($data['featured']) && $data['featured'] ? 1 : 0;
 
@@ -94,12 +94,12 @@ switch ($method) {
         $category = !empty($data['category']) ? $data['category'] : 'berita';
         $category_label = !empty($data['category_label']) ? $data['category_label'] : ($category === 'berita' ? 'Program Berita' : ($category === 'non-news' ? 'Non-News' : 'Kerja Sama'));
         $status = !empty($data['status']) ? $data['status'] : 'aktif';
-        $format = !empty($data['format']) ? $data['format'] : '—';
-        $duration = !empty($data['duration']) ? $data['duration'] : '—';
+        $format = !empty($data['format']) ? $data['format'] : null;
+        $duration = !empty($data['duration']) ? $data['duration'] : null;
         $description = !empty($data['description']) ? $data['description'] : '';
         $thumbnail_url = !empty($data['thumbnail_url']) ? $data['thumbnail_url'] : null;
         $promo_video_url = isset($data['promo_video_url']) ? $data['promo_video_url'] : null;
-        $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@ruaitv/live';
+        $youtube_live_url = !empty($data['youtube_live_url']) ? $data['youtube_live_url'] : 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
         $schedule_json = isset($data['schedule']) ? json_encode($data['schedule'], JSON_UNESCAPED_UNICODE) : null;
         $featured = isset($data['featured']) && $data['featured'] ? 1 : 0;
 
@@ -139,7 +139,7 @@ switch ($method) {
         break;
 
     default:
-        http_response_code(45);
+        http_response_code(405);
         echo json_encode(["status" => "error", "message" => "Method tidak diizinkan."]);
         break;
 }

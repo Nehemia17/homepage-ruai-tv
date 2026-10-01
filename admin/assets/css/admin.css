@@ -152,10 +152,23 @@ body {
 }
 
 .nav-icon {
-  font-size: 18px;
-  width: 20px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  color: #CBD5E1;
+  flex-shrink: 0;
 }
+
+.nav-icon-db  { background: rgba(99,102,241,0.25); color: #A5B4FC; }
+.nav-icon-tv  { background: rgba(220,38,38,0.25);  color: #FCA5A5; }
+.nav-icon-cfg { background: rgba(100,116,139,0.2); color: #94A3B8; font-size: 14px; }
 
 .sidebar-footer {
   padding: 16px;

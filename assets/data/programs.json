@@ -11,7 +11,7 @@
     "description": "Paket buletin berita hasil liputan harian pada peristiwa dan isu aktual yang terjadi di Pontianak dan sekitarnya, serta Kalimantan Barat pada umumnya. Tayang tiga kali sehari — pagi, siang, dan malam — untuk memastikan pemirsa selalu mendapatkan informasi terkini.",
     "thumbnail_url": "assets/images/programs/Warta-Ruai.png",
     "promo_video_url": "https://www.youtube.com/embed/live_stream?channel=UCruaitv",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": true,
@@ -45,7 +45,7 @@
     "duration": "30 Menit",
     "description": "Rangkuman berita terhangat atau berita-berita utama selama sepekan dari Warta Ruai. Disajikan secara interaktif di mana publik memiliki ruang untuk mengomentari, mempertanyakan, dan memberikan opini terhadap materi berita atau permasalahan yang menjadi isi berita.",
     "thumbnail_url": "assets/images/programs/Ruai-Sepekan.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -79,7 +79,7 @@
     "duration": "30 Menit",
     "description": "Acara yang digagas untuk memberi ruang dan menghargai WargaNet di Media Arustama. Memberikan apresiasi atas karya spontanitas maupun terencana terhadap segala kekayaan adat budaya, lingkungan, alam dan bahkan kesenjangan sosial yang tertangkap mata kamera Warganet.",
     "thumbnail_url": "assets/images/programs/WargaNet.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -113,7 +113,7 @@
     "duration": "60 Menit",
     "description": "Program bincang-bincang/podcast inspiratif yang mengangkat kisah hidup, dedikasi, perjuangan, serta kiprah para tokoh publik, pemuka agama, pelaku seni, maupun individu inspiratif di Kalimantan Barat dalam melayani dan memberikan dampak positif bagi komunitas serta masyarakat luas.",
     "thumbnail_url": "assets/images/programs/Rumah-Kita.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -147,7 +147,7 @@
     "duration": "60 Menit",
     "description": "Forum Ruai Adalah ruang diskusi kritis yang sehat untuk memaparkan suatu masalah yang sedang terjadi maupun yang mungkin akan terjadi, membedah dari berbagai sudut pandang intelektualitas dengan kritis dan professional dan selalu memberi rekomendasi diakhir acara.",
     "thumbnail_url": "assets/images/programs/Forum-Ruai.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -181,7 +181,7 @@
     "duration": "60 Menit",
     "description": "Program dialog mendalam yang membahas isu-isu strategis politik, ekonomi, sosial, dan budaya bersama narasumber terpilih dari kalangan pejabat, pakar, dan tokoh masyarakat Kalimantan Barat.",
     "thumbnail_url": "assets/images/programs/Spesial-Dialog.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": true,
@@ -215,7 +215,7 @@
     "duration": "—",
     "description": "Kilas ruai adalah ruang aktual penyajian berita dari berbagai jenis peristiwa yang terjadi disetiap redaksi mendapat informasi yang langsung direspon dengan cepat, cekat dan profesional tanpa mengurangi nilai kebenaran peristiwa. Selalu mengacu kepada 5W+1H",
     "thumbnail_url": "assets/images/programs/Kilas-Ruai.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": true,
@@ -351,7 +351,7 @@
     "duration": "—",
     "description": "Program hiburan yang menayangkan video klip musik pilihan, menemani pemirsa Ruai TV dengan sajian musik terbaik dari berbagai genre.",
     "thumbnail_url": "assets/images/programs/Slada.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -623,7 +623,7 @@
     "duration": "30 Menit",
     "description": "Program hasil kerja sama Ruai TV dengan Voice of America (VOA) yang menghadirkan tayangan dokumenter perjalanan dan budaya Amerika untuk pemirsa Kalimantan Barat.",
     "thumbnail_url": "assets/images/programs/VOA-Jalan-Jalan-Amerika.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -657,7 +657,7 @@
     "duration": "—",
     "description": "Program kerja sama dengan VOA yang menghadirkan konten feature khas kearifan lokal dan budaya Nusantara dalam sudut pandang internasional VOA.",
     "thumbnail_url": "assets/images/programs/VOA-Warung-Kita.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -691,7 +691,7 @@
     "duration": "—",
     "description": "Program dokumenter hasil kerja sama yang mengeksplorasi kekayaan alam, ekosistem gambut, dan kehidupan di pulau Borneo/Kalimantan.",
     "thumbnail_url": "assets/images/programs/Borneo-Rawa-Island.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -759,7 +759,7 @@
     "duration": "—",
     "description": "Program dialog kerja sama dengan CBN yang membahas berbagai topik kehidupan dan iman dari sudut pandang yang mencerahkan.",
     "thumbnail_url": null,
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,
@@ -793,7 +793,7 @@
     "duration": "—",
     "description": "Program anak muda hasil kerja sama CBN dan Ruai TV yang menghadirkan konten inspiratif, edukatif, dan menghibur untuk generasi muda Kalimantan Barat.",
     "thumbnail_url": "assets/images/programs/CBN-Super-Youth.png",
-    "youtube_live_url": "https://www.youtube.com/@ruaitv/live",
+    "youtube_live_url": "https://www.youtube.com/@livestreamingruaitelevisi5647/streams",
     "schedule": {
       "pagi": {
         "active": false,

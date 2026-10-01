@@ -4,7 +4,7 @@
 
 (async () => {
 
-  const LIVE_URL = 'https://www.youtube.com/@ruaitv/live';
+  const LIVE_URL = 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
   let   programs = [];
 
   // ─── Load data ────────────────────────────────────────────
@@ -45,7 +45,7 @@
       const grid = document.getElementById('programs-grid');
       if (grid) grid.innerHTML = `
         <div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#9CA3AF;">
-          <p style="font-size:14px;font-weight:600;margin-bottom:6px;">⚠️ Data gagal dimuat</p>
+          <p style="font-size:14px;font-weight:600;margin-bottom:6px;">Data gagal dimuat</p>
           <p style="font-size:12px;">Pastikan akses via <code>http://localhost:3000</code></p>
         </div>`;
       return;
@@ -101,9 +101,8 @@
   // ─── Sort programs ────────────────────────────────────────
   // Priority: aktif+bergambar(0) > aktif+tanpa gambar(1) > arsip+bergambar(2) > arsip+tanpa gambar(3)
   const sortScore = (p) => {
-    if (!p) return 99;
-    const isAktif = p.status === 'aktif';
-    const hasImg  = !!(p.thumbnail_url);
+    const isAktif = p?.status === 'aktif';
+    const hasImg  = !!(p?.thumbnail_url);
     if  (isAktif &&  hasImg) return 0;
     if  (isAktif && !hasImg) return 1;
     if (!isAktif &&  hasImg) return 2;
@@ -169,7 +168,7 @@
       <div class="card-body">
         <div class="card-title">${p.title}</div>
         <div class="card-schedule">
-          <span class="card-schedule-icon">⏱</span>
+          <span class="card-schedule-icon">&#9650;</span>
           <span>${schedText}</span>
         </div>
         <p class="card-desc">${p.description}</p>
@@ -199,15 +198,11 @@
     // Re-sort DOM cards setiap kali filter berubah
     const allCards = [...document.querySelectorAll('.program-card')];
     allCards.sort((a, b) => {
-      const score = (card) => {
-        const isAktif = card.dataset.status === 'aktif';
-        const hasImg  = card.dataset.hasImg === 'true';
-        if  (isAktif &&  hasImg) return 0;
-        if  (isAktif && !hasImg) return 1;
-        if (!isAktif &&  hasImg) return 2;
-        return 3;
+      const cardScore = (card) => {
+        const p = programs.find(x => x && x.id === card.dataset.id);
+        return sortScore(p);
       };
-      return score(a) - score(b);
+      return cardScore(a) - cardScore(b);
     });
     allCards.forEach(c => grid.appendChild(c));
 
@@ -360,12 +355,14 @@
       let embedUrl = p.promo_video_url;
       if (embedUrl.includes('youtube.com/watch?v=')) {
         const vId = embedUrl.split('v=')[1]?.split('&')[0];
-        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0&autoplay=1`;
       } else if (embedUrl.includes('youtu.be/')) {
         const vId = embedUrl.split('youtu.be/')[1]?.split('?')[0];
-        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0`;
+        embedUrl = `https://www.youtube.com/embed/${vId}?rel=0&autoplay=1`;
       } else if (!embedUrl.includes('/embed/')) {
-        embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0`;
+        embedUrl = `https://www.youtube.com/embed/${embedUrl}?rel=0&autoplay=1`;
+      } else if (embedUrl.includes('/embed/') && !embedUrl.includes('autoplay')) {
+        embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
       }
       videoIframe.src = embedUrl;
       videoWrap.style.display = 'block';
@@ -392,7 +389,6 @@
 
     // Slots
     const slotKeys  = ['pagi', 'siang', 'malam'];
-    const slotIcons = { pagi:'', siang: '', malam: '' };
     const slotNames = { pagi: 'PAGI', siang: 'SIANG', malam: 'MALAM' };
 
     slotKeys.forEach(key => {
@@ -403,7 +399,6 @@
       if (slotData?.active) {
         el.className = 'jadwal-slot aktif-slot';
         el.innerHTML = `
-          <div class="slot-icon">${slotIcons[key]}</div>
           <div class="slot-nama">${slotData.label || slotNames[key]}</div>
           <div class="slot-waktu">${slotData.time || '—'}</div>
           <div class="slot-hari">${slotData.days || ''}</div>
@@ -411,7 +406,6 @@
       } else {
         el.className = 'jadwal-slot kosong-slot';
         el.innerHTML = `
-          <div class="slot-icon">${slotIcons[key]}</div>
           <div class="slot-nama">${slotNames[key]}</div>
           <div class="slot-waktu">—</div>
           <div class="slot-hari">Tidak tayang</div>
