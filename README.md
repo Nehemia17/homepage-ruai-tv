@@ -1,12 +1,12 @@
-# 📺 Homepage Ruai TV — Kalimantan Barat
+# Homepage Ruai TV — Kalimantan Barat
 
-Website homepage untuk **Ruai TV**, stasiun televisi lokal terpercaya Kalimantan Barat yang menghadirkan berita, budaya, dan informasi untuk masyarakat Bumi Khatulistiwa.
+Website homepage untuk **Ruai TV**, stasiun televisi lokal Kalimantan Barat yang menyiarkan berita, budaya, dan informasi untuk masyarakat Bumi Khatulistiwa.
 
 > *"Jendela Inspirasi Anda"* — Ruai TV, berdiri sejak 07 Juli 2007 di Pontianak.
 
 ---
 
-## 🌐 Cara Menjalankan
+## Cara Menjalankan
 
 ### Mode Statis (Tanpa Backend)
 
@@ -26,42 +26,46 @@ Buka browser: **http://localhost:3000**
 
 ---
 
-## ✨ Fitur Website Publik
+## Fitur Website Publik
 
 | Fitur | Keterangan |
 |---|---|
-| 🏠 **Hero Section** | Banner utama dengan Prime Time card dan animasi lingkaran |
-| 📋 **Katalog Program** | Grid card program aktif & arsip dengan filter kategori |
-| 🔍 **Filter & Pencarian** | Filter berdasarkan Semua / Aktif / Berita / Non-News / Kerja Sama / Arsip |
-| 📅 **Jadwal Siaran** | Tabel jadwal mingguan (Senin–Minggu) per blok waktu |
-| 🏛️ **Profil Lembaga** | Visi, Misi, Latar Belakang, Filosofi Logo, Jaringan |
-| 📡 **Info Siaran** | Detail kanal terrestrial UHF & Satelit Telkom 4 |
-| 🔴 **Indikator Live** | Tombol LIVE STREAMING aktif otomatis sesuai jam tayang Warta Ruai |
-| 🎬 **Video Promo** | Pemutaran video bumper YouTube di modal detail program |
-| 📱 **Responsive** | Tampilan menyesuaikan desktop, tablet, dan ponsel |
+| **Hero Section** | Banner utama dengan Prime Time card dan animasi lingkaran |
+| **Katalog Program** | Grid card program aktif & arsip dengan filter kategori dan pencarian real-time |
+| **Filter & Pencarian** | Filter Semua / Aktif / Berita / Non-News / Kerja Sama / Arsip, sinkron dengan search bar navbar |
+| **Jadwal Siaran** | Tabel jadwal mingguan (Senin–Minggu) per blok waktu, diisi otomatis dari data program |
+| **Profil Lembaga** | Visi, Misi, Latar Belakang, Filosofi Logo, Tim, Jaringan |
+| **Info Siaran** | Detail kanal terrestrial UHF & Satelit Telkom 4 |
+| **Indikator Live** | Tombol Live Streaming aktif otomatis sesuai jam tayang Warta Ruai (WIB) |
+| **Modal Detail Program** | Popup detail lengkap: sinopsis, jadwal slot, video bumper autoplay, tombol tonton live |
+| **Video Promo Autoplay** | Video bumper YouTube diputar otomatis saat modal program dibuka |
+| **Responsive** | Tampilan menyesuaikan desktop, tablet, dan ponsel |
 
 ---
 
-## 🔐 Admin Panel
+## Admin Panel
 
-Akses pengelola tersedia di `/admin/login.html` atau **http://localhost:3000/admin/login.html**
+Akses pengelola tersedia di `/admin/login.html`
+
+Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
+Jika menggunakan XAMPP: **http://localhost/Homepage%20Statis%20Ruai-TV/admin/login.html**
 
 ### Fitur Admin Panel
 
 | Fitur | Keterangan |
 |---|---|
-| 🔒 **Login Page** | Halaman login dengan glassmorphism dark theme & SweetAlert2 |
-| 📊 **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel terbaru |
-| 📋 **Kelola Program** | CRUD program lengkap: tambah, edit, hapus, toggle aktif/arsip |
-| 🖼️ **Upload Banner** | Upload gambar banner via PHP API (XAMPP) atau preview lokal (statis) |
-| 🎬 **Video Promo** | Input link YouTube bumper promo per program |
-| 🕒 **Jadwal Tayang** | Input jam & hari untuk slot Pagi, Siang/Sore, dan Malam |
-| 🗄️ **MySQL Sync** | Sync otomatis ke MySQL API, fallback ke localStorage → programs.json |
-| 🔔 **SweetAlert2** | Semua notifikasi, konfirmasi hapus, dan logout via SweetAlert2 |
+| **Login Page** | Halaman login dengan session guard, toggle show/hide password, SweetAlert2 |
+| **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel 5 program terbaru |
+| **Kelola Program** | CRUD lengkap: tambah, edit, hapus, toggle aktif/arsip |
+| **Upload Banner** | Upload gambar banner via PHP API (XAMPP) atau base64 fallback (mode statis) |
+| **Video Promo** | Input link YouTube bumper promosi per program |
+| **Jadwal Tayang** | Input jam & hari tayang untuk slot Pagi, Siang/Sore, dan Malam |
+| **MySQL Sync** | Sync otomatis ke MySQL API, fallback ke localStorage, fallback ke programs.json |
+| **Notifikasi** | Konfirmasi hapus, logout, dan toast notifikasi via SweetAlert2 |
 
 ---
 
-## 🗂️ Struktur Folder
+## Struktur Folder
 
 ```
 Homepage Statis Ruai-TV/
@@ -77,33 +81,35 @@ Homepage Statis Ruai-TV/
 │   └── assets/
 │       ├── css/admin.css       # Design system admin panel
 │       └── js/
-│           ├── admin.js        # Logika CRUD + auth guard + SweetAlert2
+│           ├── admin.js        # Logika CRUD, auth guard, SweetAlert2
 │           └── login.js        # Logika autentikasi & session
 │
 ├── api/                        # REST API Backend (PHP)
 │   ├── db.php                  # Koneksi PDO MySQL
-│   ├── programs.php            # CRUD API: GET/POST/PUT/DELETE
+│   ├── programs.php            # CRUD API: GET / POST / PUT / DELETE
 │   ├── upload.php              # Upload gambar banner
 │   └── login.php               # Autentikasi admin
 │
 ├── database/
-│   └── ruai_tv.sql             # Schema MySQL + 35 data program + tabel users
+│   └── ruai_tv.sql             # Schema MySQL + data program + tabel users
 │
-├── includes/                   # Komponen modular (dimuat via JS)
-│   ├── navbar.html             # Header / navigasi
+├── includes/                   # Komponen modular (dimuat via JS fetch)
+│   ├── navbar.html             # Header / navigasi + search bar
 │   └── footer.html             # Footer
+│
+├── scratch/                    # Script utilitas sementara (tidak untuk produksi)
 │
 └── assets/
     ├── css/
     │   └── style.css           # Seluruh styling frontend (CSS murni)
     │
     ├── js/
-    │   ├── main.js             # Loader komponen, navbar scroll, live checker
-    │   ├── catalog.js          # Render grid program & modal detail
-    │   └── schedule.js         # Render tabel jadwal siaran
+    │   ├── main.js             # Loader komponen, navbar scroll, live status checker
+    │   ├── catalog.js          # Render grid program, filter, pencarian, modal detail
+    │   └── schedule.js         # Render tabel jadwal siaran mingguan dinamis
     │
     ├── data/
-    │   └── programs.json       # Data program fallback (flat file)
+    │   └── programs.json       # Data program fallback (flat file, offline mode)
     │
     └── images/
         ├── logo ruai.png       # Logo resmi Ruai TV
@@ -112,12 +118,12 @@ Homepage Statis Ruai-TV/
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Teknologi |
 |---|---|
 | **Frontend** | HTML5, CSS3 (Vanilla), JavaScript ES6+ |
-| **Backend** | PHP 8+ (REST API) |
+| **Backend** | PHP 8+ (REST API, PDO) |
 | **Database** | MySQL 8 via XAMPP |
 | **Font** | Google Fonts — Inter |
 | **Notifikasi** | SweetAlert2 |
@@ -125,62 +131,79 @@ Homepage Statis Ruai-TV/
 
 ---
 
-## 📺 Info Siaran
+## Arsitektur Data
+
+Website menggunakan sistem fallback 3 lapis agar tetap berfungsi dalam kondisi apapun:
+
+```
+1. MySQL REST API (api/programs.php)   → data terkini dari database
+        |
+        v (jika API tidak tersedia)
+2. localStorage                        → cache dari sesi sebelumnya
+        |
+        v (jika localStorage kosong)
+3. assets/data/programs.json           → data statis bawaan
+```
+
+---
+
+## Info Siaran
 
 | Media | Detail |
 |---|---|
-| **Terrestrial** | Kanal 43 UHF — 647,25 MHz — Pontianak |
-| **Satelit** | Satelit Merah Putih (Telkom 4) — Frekuensi 4020 MHz — Symbol Rate 32.727 — Polaritas Vertikal — DVBS2 Mpeg 4 SD |
-| **YouTube** | [youtube.com/@ruaitv](https://www.youtube.com/@ruaitv) |
+| **Terrestrial** | Kanal 43 UHF, 647,25 MHz, Pontianak |
+| **Satelit** | Satelit Merah Putih (Telkom 4), Frekuensi 4020 MHz, Symbol Rate 32.727, Polaritas Vertikal, DVBS2 Mpeg 4 SD |
+| **YouTube Live** | [youtube.com/@livestreamingruaitelevisi5647/streams](https://www.youtube.com/@livestreamingruaitelevisi5647/streams) |
 | **Website** | [www.ruai.tv](https://www.ruai.tv) |
 
 ---
 
-## 📋 Jadwal Warta Ruai (Program Unggulan)
+## Jadwal Warta Ruai (Program Unggulan)
 
 | Sesi | Jam | Hari |
 |---|---|---|
-| 🌅 Pagi | 07.00 – 08.00 WIB | Senin – Sabtu |
-| ☀️ Siang | 13.00 – 14.00 WIB | Senin – Sabtu |
-| 🌙 Malam | 19.00 – 20.00 WIB | Senin – Sabtu |
+| Pagi | 07.00 – 08.00 WIB | Senin – Sabtu |
+| Siang | 13.00 – 14.00 WIB | Senin – Sabtu |
+| Malam | 19.00 – 20.00 WIB | Senin – Sabtu |
 
-> Indikator **LIVE STREAMING** di navbar akan aktif secara otomatis selama jam-jam di atas berlangsung.
+> Indikator **Live Streaming** di navbar aktif otomatis selama jam-jam di atas berlangsung.
 
 ---
 
-## 🏢 Studio
+## Studio
 
 ```
 JL. 28 OKTOBER NO.25-26
 KEL. SIANTAN HULU, KEC. PONTIANAK UTARA
 KOTA PONTIANAK, KALIMANTAN BARAT 78241
 
-📧 ruaitvkalbar@gmail.com
-📞 (+62 561) 884524
+Email : ruaitvkalbar@gmail.com
+Telp  : (+62 561) 884524
 ```
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [x] Homepage statis (HTML/CSS/JS)
-- [x] Katalog program dengan filter & modal detail
-- [x] Jadwal siaran mingguan
+- [x] Katalog program dengan filter, pencarian real-time, dan modal detail
+- [x] Jadwal siaran mingguan dinamis (multi-program per slot)
 - [x] Profil lembaga & jaringan
 - [x] Komponen navbar & footer modular
-- [x] Indikator live otomatis berdasarkan jam
+- [x] Indikator live otomatis berdasarkan jam WIB
+- [x] Search bar navbar sinkron dengan filter katalog
 - [x] Backend PHP + MySQL via XAMPP
-- [x] Admin Panel CRUD program (tambah, edit, hapus, toggle)
-- [x] Upload gambar banner via PHP API
-- [x] Video promo YouTube di modal program
-- [x] Jadwal tayang per slot (Pagi / Siang / Malam)
-- [x] Login page admin dengan session guard
-- [x] Notifikasi SweetAlert2 di seluruh admin panel
-- [ ] Migrasi ke Supabase (produksi)
+- [x] Admin Panel CRUD program (tambah, edit, hapus, toggle status)
+- [x] Upload gambar banner via PHP API dengan fallback base64
+- [x] Video promo YouTube autoplay di modal detail program
+- [x] Jadwal tayang per slot (Pagi / Siang / Malam) dengan auto-check
+- [x] Login page admin dengan session guard & SweetAlert2
+- [x] Link live streaming diperbarui ke channel resmi Ruai TV
+- [ ] Migrasi ke Supabase (produksi cloud)
 - [ ] Halaman detail program per URL slug
 
 ---
 
-## 📄 Lisensi
+## Lisensi
 
-© 2026 **Ruai TV Kalimantan Barat**. Seluruh hak cipta dilindungi.
+2026 **Ruai TV Kalimantan Barat**. Seluruh hak cipta dilindungi.
