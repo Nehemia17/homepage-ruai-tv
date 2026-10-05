@@ -4,32 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Admin — Ruai TV</title>
-  <link rel="icon" href="../assets/images/logo ruai.png" type="image/png" />
+  <link rel="icon" href="/assets/images/logo ruai.png" type="image/png" />
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <!-- Admin Stylesheet -->
-  <link rel="stylesheet" href="assets/css/admin.css" />
+  <link rel="stylesheet" href="/admin/assets/css/admin.css" />
 </head>
 <body>
 
   <!-- ─── Sidebar ─── -->
   <aside class="admin-sidebar">
     <div class="sidebar-header">
-      <a href="index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
-        <img src="../assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
+      <a href="/admin/index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
+        <img src="/assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
         <span class="sidebar-admin-badge">ADMIN</span>
       </a>
     </div>
     
     <nav class="sidebar-menu">
       <div class="menu-label">Navigasi Utama</div>
-      <a href="index.html" class="nav-item active">
+      <a href="/admin/index.html" class="nav-item active">
         <span class="nav-icon nav-icon-db">DB</span>
         <span>Dashboard</span>
       </a>
-      <a href="programs.html" class="nav-item">
+      <a href="/admin/programs.html" class="nav-item">
         <span class="nav-icon nav-icon-tv">TV</span>
         <span>Kelola Program</span>
       </a>
@@ -42,7 +42,7 @@
     </nav>
 
     <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:8px;">
-      <a href="../index.html" target="_blank" class="btn-public-site">
+      <a href="/" target="_blank" class="btn-public-site">
         <span>&#8599;</span>
         <span>Lihat Website Publik</span>
       </a>
@@ -145,9 +145,9 @@
   <!-- SweetAlert2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Supabase Integration -->
-  <script src="../assets/js/supabase-config.js"></script>
-  <script src="../assets/js/supabase-client.js"></script>
+  <script src="/assets/js/supabase-config.js"></script>
+  <script src="/assets/js/supabase-client.js"></script>
   <!-- Admin Script -->
-  <script src="assets/js/admin.js"></script>
+  <script src="/admin/assets/js/admin.js"></script>
 </body>
 </html>
