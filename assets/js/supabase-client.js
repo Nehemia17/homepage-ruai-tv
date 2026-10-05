@@ -6,7 +6,8 @@
 window.RuaiSupabase = {
   getConfig() {
     const config = window.RUAI_SUPABASE_CONFIG || {};
-    const url = (config.url || localStorage.getItem('RUAI_SUPABASE_URL') || '').trim().replace(/\/$/, '');
+    let url = (config.url || localStorage.getItem('RUAI_SUPABASE_URL') || '').trim();
+    url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
     const key = (config.anonKey || localStorage.getItem('RUAI_SUPABASE_ANON_KEY') || '').trim();
     const bucket = config.storageBucket || 'banners';
     return { url, key, bucket, isConfigured: Boolean(url && key) };
