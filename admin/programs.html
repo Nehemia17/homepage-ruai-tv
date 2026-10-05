@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Cropper.js Stylesheet (Local) -->
+  <link rel="stylesheet" href="assets/css/cropper.min.css" />
   <!-- Admin Stylesheet -->
   <link rel="stylesheet" href="assets/css/admin.css" />
 </head>
@@ -184,16 +186,57 @@
               <input type="text" id="form-duration" placeholder="Contoh: 60 Menit / 30 Menit" />
             </div>
 
-            <div class="form-group">
-              <label for="form-thumb">Path / Upload File Banner <span style="color:#64748B; font-size:12px; font-weight:normal;">(Opsional)</span></label>
-              <div style="display:flex; gap:8px; align-items:center;">
-                <input type="text" id="form-thumb" placeholder="assets/images/programs/Warta-Ruai.png" style="flex:1;" />
-                <button type="button" id="btn-remove-thumb" style="padding: 8px 12px; font-size:12px; background:#FEF2F2; color:#DC2626; border:1px solid #FCA5A5; border-radius:6px; cursor:pointer; font-weight:600; white-space:nowrap;" title="Hapus Gambar Banner">
-                  &#10005; Hapus
-                </button>
+            <div class="form-group full banner-upload-section">
+              <label>Foto Banner / Thumbnail Program <span style="color:#64748B; font-size:12px; font-weight:normal;">(Rasio 16:9 &bull; WebP &le; 100 KB)</span></label>
+              
+              <!-- Container Preview Banner (Aktif jika ada gambar) -->
+              <div id="banner-preview-box" class="banner-preview-box" style="display:none;">
+                <div class="banner-preview-card">
+                  <img id="banner-preview-img" src="" alt="Preview Banner" class="banner-preview-thumb" />
+                  <div class="banner-preview-badges">
+                    <span class="preview-badge badge-ratio">16:9</span>
+                    <span class="preview-badge badge-format" id="preview-badge-format">WEBP</span>
+                    <span class="preview-badge badge-size" id="preview-badge-size">&le; 100 KB</span>
+                  </div>
+                </div>
+                <div class="banner-preview-actions">
+                  <button type="button" class="btn-banner-action btn-banner-recrop" id="btn-crop-existing" title="Sesuaikan / Crop Ulang Posisi Gambar">
+                    <span>&#9998;</span> Atur / Crop Ulang
+                  </button>
+                  <button type="button" class="btn-banner-action btn-banner-change" id="btn-trigger-upload" title="Ganti dengan File Gambar Baru">
+                    <span>&#8644;</span> Ganti Foto
+                  </button>
+                  <button type="button" class="btn-banner-action btn-banner-delete" id="btn-remove-thumb" title="Hapus Foto Banner">
+                    <span>&#10005;</span> Hapus
+                  </button>
+                </div>
               </div>
-              <input type="file" id="form-file-upload" accept="image/*" style="margin-top:6px; font-size:12px;" />
-              <small style="font-size:11px; color:#64748B;">Pilih file dari komputer, isi path, atau klik Hapus jika program tidak ada banner.</small>
+
+              <!-- Dropzone / Empty State Picker (Tampil jika belum ada gambar) -->
+              <div id="banner-empty-dropzone" class="banner-dropzone" role="button" tabindex="0">
+                <div class="dropzone-inner">
+                  <div class="dropzone-icon">&#9635;</div>
+                  <div class="dropzone-text">
+                    <strong>Pilih atau Tarik File Foto Banner</strong>
+                    <span>Format: PNG, JPG, JPEG, atau WEBP. Rasio 16:9 interaktif &bull; Maks 100 KB</span>
+                  </div>
+                  <button type="button" class="btn-dropzone-select">Pilih File Foto</button>
+                </div>
+              </div>
+
+              <!-- Hidden input file & path input -->
+              <input type="file" id="form-file-upload" accept="image/png,image/jpeg,image/webp,image/jpg" style="display:none;" />
+              <input type="hidden" id="form-thumb" />
+
+              <div class="banner-manual-path" style="margin-top: 6px;">
+                <details style="font-size: 11px; color: #64748B;">
+                  <summary style="cursor: pointer; user-select: none;">Input Path Manual / URL Langsung</summary>
+                  <div style="display:flex; gap:6px; margin-top: 6px;">
+                    <input type="text" id="form-thumb-manual" placeholder="assets/images/programs/Warta-Ruai.png" style="flex:1; font-size:12px; padding:6px 10px;" />
+                    <button type="button" id="btn-apply-manual-path" style="padding:6px 12px; font-size:12px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:6px; cursor:pointer; font-weight:600;">Terapkan</button>
+                  </div>
+                </details>
+              </div>
             </div>
 
             <div class="form-group">
@@ -257,6 +300,79 @@
     </div>
   </div>
 
+  <!-- ─── Modal Crop & Compress Banner (16:9 Interaktif & WebP <= 100KB) ─── -->
+  <div class="modal-overlay" id="crop-modal" style="z-index: 1200;">
+    <div class="modal-box crop-modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Sesuaikan &amp; Crop Foto Banner</h3>
+          <p class="crop-modal-sub">Rasio 16:9 standar program &bull; Otomatis konversi WebP &bull; Maksimal 100 KB</p>
+        </div>
+        <button type="button" class="modal-close" id="crop-modal-close-btn">&times;</button>
+      </div>
+
+      <div class="modal-body crop-modal-body">
+        <!-- Area Stage Cropper -->
+        <div class="crop-stage-container">
+          <div class="cropper-canvas-wrap">
+            <img id="crop-stage-image" src="" alt="Area Potong Banner" />
+          </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="crop-toolbar">
+          <div class="crop-toolbar-group">
+            <button type="button" class="crop-tool-btn" id="crop-btn-zoom-in" title="Perbesar (Zoom In)">
+              <span>&#43;</span> Perbesar
+            </button>
+            <button type="button" class="crop-tool-btn" id="crop-btn-zoom-out" title="Perkecil (Zoom Out)">
+              <span>&minus;</span> Perkecil
+            </button>
+          </div>
+          <div class="crop-toolbar-group">
+            <button type="button" class="crop-tool-btn" id="crop-btn-rotate-left" title="Putar 90 Derajat Kiri">
+              <span>&#8634;</span> Putar Kiri
+            </button>
+            <button type="button" class="crop-tool-btn" id="crop-btn-rotate-right" title="Putar 90 Derajat Kanan">
+              <span>&#8635;</span> Putar Kanan
+            </button>
+            <button type="button" class="crop-tool-btn" id="crop-btn-reset" title="Kembalikan Posisi Semula">
+              <span>&#8635;</span> Reset
+            </button>
+          </div>
+          <div class="crop-toolbar-group">
+            <span class="crop-ratio-badge">Rasio 16:9 Terkunci</span>
+          </div>
+        </div>
+
+        <!-- Info / Target Compression Banner -->
+        <div class="crop-info-box">
+          <div class="crop-info-item">
+            <span class="crop-info-label">Rasio Aspek:</span>
+            <span class="crop-info-val">16:9 (Sesuai Card Ruai TV)</span>
+          </div>
+          <div class="crop-info-item">
+            <span class="crop-info-label">Format Output:</span>
+            <span class="crop-info-val">WebP Modern</span>
+          </div>
+          <div class="crop-info-item">
+            <span class="crop-info-label">Target Ukuran File:</span>
+            <span class="crop-info-val text-success">&le; 100 KB (Auto-Compress)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer crop-modal-footer">
+        <button type="button" class="btn-secondary" id="crop-cancel-btn">Batal</button>
+        <button type="button" class="btn-primary" id="crop-apply-btn">
+          <span id="crop-btn-label">Terapkan &amp; Kompres WebP</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cropper.js (Local) -->
+  <script src="assets/js/cropper.min.js"></script>
   <!-- SweetAlert2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Admin Script -->

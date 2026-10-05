@@ -308,58 +308,317 @@
     showToast(`Status "${p.title}" diubah menjadi ${p.status.toUpperCase()}`, 'success');
   };
 
-  // ─── File Upload Handler ───
-  function initFileUpload() {
-    const fileInput = document.getElementById('form-file-upload');
-    fileInput?.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+  // ─── Image Compression Helper (Target: WebP & <= 100KB) ───
+  async function compressToWebPUnder100KB(canvas) {
+    const MAX_BYTES = 100 * 1024; // 100 KB limit
+    let quality = 0.85;
+    let format = 'image/webp';
+    let ext = 'webp';
 
-      const formData = new FormData();
-      formData.append('banner_file', file);
+    // Test WebP canvas support
+    const testCanvas = document.createElement('canvas');
+    testCanvas.width = 1;
+    testCanvas.height = 1;
+    const isWebPSupported = testCanvas.toDataURL('image/webp').startsWith('data:image/webp');
+    if (!isWebPSupported) {
+      format = 'image/jpeg';
+      ext = 'jpg';
+    }
 
-      showToast('Mengunggah file banner...', 'success');
+    let blob = await new Promise(resolve => canvas.toBlob(resolve, format, quality));
 
-      // Endpoints to try (Relative path first, then XAMPP Apache fallbacks)
-      const uploadEndpoints = [
-        UPLOAD_URL,
-        'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
-        'http://localhost/api/upload.php'
-      ];
+    // Iteratively reduce quality if file > 100KB
+    while (blob && blob.size > MAX_BYTES && quality > 0.35) {
+      quality -= 0.1;
+      blob = await new Promise(resolve => canvas.toBlob(resolve, format, quality));
+    }
 
-      let uploadSuccess = false;
-
-      for (const endpoint of uploadEndpoints) {
-        try {
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            body: formData
-          });
-          const contentType = res.headers.get('content-type') || '';
-          if (res.ok && contentType.includes('application/json')) {
-            const result = await res.json();
-            if (result.status === 'success') {
-              document.getElementById('form-thumb').value = result.url;
-              showToast('Gambar banner berhasil diunggah ke server PHP/XAMPP!', 'success');
-              uploadSuccess = true;
-              break;
-            }
-          }
-        } catch (err) {
-          // Ignore and try next endpoint
-        }
+    // If still > 100KB, downscale canvas slightly while preserving 16:9 ratio
+    let currentCanvas = canvas;
+    while (blob && blob.size > MAX_BYTES && currentCanvas.width > 640) {
+      const newWidth = Math.round(currentCanvas.width * 0.85);
+      const newHeight = Math.round(currentCanvas.height * 0.85);
+      const scaled = document.createElement('canvas');
+      scaled.width = newWidth;
+      scaled.height = newHeight;
+      const ctx = scaled.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+      currentCanvas = scaled;
+      quality = 0.80;
+      blob = await new Promise(resolve => currentCanvas.toBlob(resolve, format, quality));
+      while (blob && blob.size > MAX_BYTES && quality > 0.35) {
+        quality -= 0.1;
+        blob = await new Promise(resolve => currentCanvas.toBlob(resolve, format, quality));
       }
+    }
 
-      // If PHP server is not active on any endpoint, fallback to FileReader (Base64 Data URL)
-      if (!uploadSuccess) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          document.getElementById('form-thumb').value = evt.target.result;
-          showToast('Gambar banner berhasil dimuat!', 'success');
-        };
-        reader.readAsDataURL(file);
+    return {
+      blob,
+      ext,
+      format: ext.toUpperCase(),
+      sizeBytes: blob ? blob.size : 0,
+      sizeKB: blob ? (blob.size / 1024).toFixed(1) : '0'
+    };
+  }
+
+  // ─── Banner Preview UI Synchronizer ───
+  function updateBannerPreview(url, meta = null) {
+    const previewBox    = document.getElementById('banner-preview-box');
+    const emptyDropzone = document.getElementById('banner-empty-dropzone');
+    const previewImg    = document.getElementById('banner-preview-img');
+    const thumbInput    = document.getElementById('form-thumb');
+    const manualInput   = document.getElementById('form-thumb-manual');
+    const badgeFormat   = document.getElementById('preview-badge-format');
+    const badgeSize     = document.getElementById('preview-badge-size');
+
+    if (!previewBox || !emptyDropzone) return;
+
+    if (url && url.trim().length > 0) {
+      const cleanUrl = url.trim();
+      if (previewImg) previewImg.src = cleanUrl;
+      if (thumbInput) thumbInput.value = cleanUrl;
+      if (manualInput) manualInput.value = cleanUrl;
+
+      previewBox.style.display = 'flex';
+      emptyDropzone.style.display = 'none';
+
+      if (meta) {
+        if (badgeFormat) badgeFormat.textContent = meta.format || 'WEBP';
+        if (badgeSize) badgeSize.textContent = meta.sizeKB ? `${meta.sizeKB} KB` : '≤ 100 KB';
+      } else {
+        const isWebp = cleanUrl.toLowerCase().includes('.webp') || cleanUrl.startsWith('data:image/webp');
+        if (badgeFormat) badgeFormat.textContent = isWebp ? 'WEBP' : 'BANNER';
+        if (badgeSize) badgeSize.textContent = '16:9';
+      }
+    } else {
+      if (previewImg) previewImg.src = '';
+      if (thumbInput) thumbInput.value = '';
+      if (manualInput) manualInput.value = '';
+
+      previewBox.style.display = 'none';
+      emptyDropzone.style.display = 'flex';
+    }
+  }
+
+  // ─── Interactive 16:9 Cropper Modal ───
+  let cropperInstance = null;
+
+  function openCropModal(imageSrc) {
+    const cropModal = document.getElementById('crop-modal');
+    const cropImg   = document.getElementById('crop-stage-image');
+    if (!cropModal || !cropImg) return;
+
+    if (cropperInstance) {
+      cropperInstance.destroy();
+      cropperInstance = null;
+    }
+
+    cropImg.src = imageSrc;
+    cropModal.classList.add('active');
+
+    const initInstance = () => {
+      if (cropperInstance) cropperInstance.destroy();
+      if (typeof Cropper !== 'undefined') {
+        cropperInstance = new Cropper(cropImg, {
+          aspectRatio: 16 / 9,
+          viewMode: 1,
+          dragMode: 'move',
+          autoCropArea: 0.95,
+          restore: false,
+          guides: true,
+          center: true,
+          highlight: false,
+          cropBoxMovable: true,
+          cropBoxResizable: true,
+          toggleDragModeOnDblclick: false,
+          responsive: true
+        });
+      }
+    };
+
+    cropImg.onload = initInstance;
+    if (cropImg.complete) {
+      initInstance();
+    }
+  }
+
+  function closeCropModal() {
+    const cropModal = document.getElementById('crop-modal');
+    if (cropModal) cropModal.classList.remove('active');
+    if (cropperInstance) {
+      cropperInstance.destroy();
+      cropperInstance = null;
+    }
+    const fileInput = document.getElementById('form-file-upload');
+    if (fileInput) fileInput.value = '';
+  }
+
+  function initCropModalControls() {
+    const closeBtn   = document.getElementById('crop-modal-close-btn');
+    const cancelBtn  = document.getElementById('crop-cancel-btn');
+    const applyBtn   = document.getElementById('crop-apply-btn');
+    const zoomInBtn  = document.getElementById('crop-btn-zoom-in');
+    const zoomOutBtn = document.getElementById('crop-btn-zoom-out');
+    const rotLeftBtn = document.getElementById('crop-btn-rotate-left');
+    const rotRightBtn= document.getElementById('crop-btn-rotate-right');
+    const resetBtn   = document.getElementById('crop-btn-reset');
+
+    closeBtn?.addEventListener('click', closeCropModal);
+    cancelBtn?.addEventListener('click', closeCropModal);
+
+    zoomInBtn?.addEventListener('click', () => cropperInstance?.zoom(0.1));
+    zoomOutBtn?.addEventListener('click', () => cropperInstance?.zoom(-0.1));
+    rotLeftBtn?.addEventListener('click', () => cropperInstance?.rotate(-90));
+    rotRightBtn?.addEventListener('click', () => cropperInstance?.rotate(90));
+    resetBtn?.addEventListener('click', () => cropperInstance?.reset());
+
+    applyBtn?.addEventListener('click', async () => {
+      if (!cropperInstance) return;
+
+      const btnLabel = document.getElementById('crop-btn-label');
+      if (btnLabel) btnLabel.textContent = 'Mengompres & Menyimpan...';
+      applyBtn.disabled = true;
+
+      try {
+        // Output canvas in 16:9 aspect ratio standard (960 x 540)
+        const canvas = cropperInstance.getCroppedCanvas({
+          width: 960,
+          height: 540,
+          imageSmoothingQuality: 'high'
+        });
+
+        const { blob, ext, format, sizeKB } = await compressToWebPUnder100KB(canvas);
+
+        const baseSlug = (document.getElementById('form-slug')?.value.trim() ||
+                          document.getElementById('form-title')?.value.trim() ||
+                          'program-banner').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const cleanFileName = `${baseSlug}-${Date.now()}.${ext}`;
+
+        const formData = new FormData();
+        formData.append('banner_file', blob, cleanFileName);
+
+        showToast(`Mengunggah banner (${sizeKB} KB, ${format})...`, 'info');
+
+        const uploadEndpoints = [
+          UPLOAD_URL,
+          'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
+          'http://localhost/api/upload.php'
+        ];
+
+        let uploadSuccess = false;
+        for (const endpoint of uploadEndpoints) {
+          try {
+            const res = await fetch(endpoint, {
+              method: 'POST',
+              body: formData
+            });
+            const contentType = res.headers.get('content-type') || '';
+            if (res.ok && contentType.includes('application/json')) {
+              const result = await res.json();
+              if (result.status === 'success') {
+                updateBannerPreview(result.url, { format, sizeKB });
+                showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
+                uploadSuccess = true;
+                break;
+              }
+            }
+          } catch (err) {}
+        }
+
+        // Static mode fallback: convert Blob to Data URL
+        if (!uploadSuccess) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            updateBannerPreview(evt.target.result, { format, sizeKB });
+            showToast(`Banner siap (${sizeKB} KB, ${format} - Mode Statis)!`, 'success');
+          };
+          reader.readAsDataURL(blob);
+        }
+
+        closeCropModal();
+      } catch (err) {
+        showToast('Terjadi kesalahan saat memproses gambar banner.', 'error');
+      } finally {
+        if (btnLabel) btnLabel.textContent = 'Terapkan & Kompres WebP';
+        applyBtn.disabled = false;
       }
     });
+  }
+
+  // ─── File Upload Handler ───
+  function initFileUpload() {
+    const fileInput   = document.getElementById('form-file-upload');
+    const dropzone    = document.getElementById('banner-empty-dropzone');
+    const btnTrigger  = document.getElementById('btn-trigger-upload');
+    const btnRecrop   = document.getElementById('btn-crop-existing');
+    const btnRemove   = document.getElementById('btn-remove-thumb');
+    const btnManual   = document.getElementById('btn-apply-manual-path');
+    const inputManual = document.getElementById('form-thumb-manual');
+
+    const triggerFileSelect = () => fileInput?.click();
+
+    dropzone?.addEventListener('click', triggerFileSelect);
+    btnTrigger?.addEventListener('click', triggerFileSelect);
+
+    // Drag & Drop
+    dropzone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('drag-over');
+    });
+    dropzone?.addEventListener('dragleave', () => {
+      dropzone.classList.remove('drag-over');
+    });
+    dropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('drag-over');
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        handleSelectedFile(files[0]);
+      }
+    });
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleSelectedFile(file);
+    });
+
+    function handleSelectedFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('Harap pilih file gambar (PNG, JPG, JPEG, WEBP).', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        openCropModal(evt.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    btnRecrop?.addEventListener('click', () => {
+      const currentThumb = document.getElementById('form-thumb')?.value;
+      if (currentThumb) {
+        openCropModal(currentThumb);
+      } else {
+        triggerFileSelect();
+      }
+    });
+
+    btnRemove?.addEventListener('click', () => {
+      updateBannerPreview('');
+      showToast('Gambar banner dihapus.', 'info');
+    });
+
+    btnManual?.addEventListener('click', () => {
+      const path = inputManual?.value.trim() || '';
+      if (path) {
+        updateBannerPreview(path);
+        showToast('Path banner diterapkan.', 'success');
+      }
+    });
+
+    initCropModalControls();
   }
 
   // ─── Modal Handlers ───
@@ -369,15 +628,6 @@
     const cancelBtn   = document.getElementById('modal-cancel-btn');
     const programForm = document.getElementById('program-form');
     const btnAdd      = document.getElementById('btn-add-program');
-
-    const btnRemoveThumb = document.getElementById('btn-remove-thumb');
-    btnRemoveThumb?.addEventListener('click', () => {
-      const thumbInput = document.getElementById('form-thumb');
-      const fileInput  = document.getElementById('form-file-upload');
-      if (thumbInput) thumbInput.value = '';
-      if (fileInput) fileInput.value = '';
-      showToast('Gambar banner dikosongkan.', 'info');
-    });
 
     // Auto-check schedule slot when typing in time or days input
     ['pagi', 'siang', 'malam'].forEach(slot => {
@@ -430,6 +680,9 @@
     document.getElementById('sched-malam-time').value = '';
     document.getElementById('sched-malam-days').value = '';
 
+    // Reset Banner Preview
+    updateBannerPreview('');
+
     const modal = document.getElementById('program-modal');
     modal?.classList.add('active');
   }
@@ -446,9 +699,11 @@
     document.getElementById('form-format').value = (p.format && p.format !== '—') ? p.format : '';
     document.getElementById('form-status').value = p.status || 'aktif';
     document.getElementById('form-duration').value = (p.duration && p.duration !== '—') ? p.duration : '';
-    document.getElementById('form-thumb').value = p.thumbnail_url || '';
     document.getElementById('form-promo-video').value = p.promo_video_url || '';
     document.getElementById('form-desc').value = p.description || '';
+
+    // Populate Banner Preview
+    updateBannerPreview(p.thumbnail_url || '');
 
     // Populate Schedule inputs
     const sched = p.schedule || {};
