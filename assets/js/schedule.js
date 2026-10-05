@@ -11,16 +11,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let programsData = [];
 
-  // ─── 1. Load Programs Data (MySQL API -> localStorage -> programs.json) ───
-  try {
-    const res = await fetch(API_URL);
-    if (res.ok) {
-      const apiData = await res.json();
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        programsData = apiData;
+  // ─── 1. Load Programs Data (Supabase -> MySQL API -> localStorage -> programs.json) ───
+  if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
+    try {
+      const sbData = await window.RuaiSupabase.getPrograms();
+      if (Array.isArray(sbData) && sbData.length > 0) {
+        programsData = sbData.map(p => ({
+          ...p,
+          schedule: p.schedule_json || p.schedule
+        }));
       }
+    } catch (e) {
+      console.warn('Supabase fetch failed in schedule.js:', e);
     }
-  } catch (e) {}
+  }
+
+  if (!programsData || programsData.length === 0) {
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        const apiData = await res.json();
+        if (Array.isArray(apiData) && apiData.length > 0) {
+          programsData = apiData;
+        }
+      }
+    } catch (e) {}
+  }
 
   if (!programsData || programsData.length === 0) {
     const localData = localStorage.getItem(STORAGE_KEY);

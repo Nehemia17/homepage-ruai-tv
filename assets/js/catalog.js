@@ -9,18 +9,34 @@
 
   // ─── Load data ────────────────────────────────────────────
   const STORAGE_KEY = 'ruai_tv_programs_data';
-  const API_URL = 'api/programs.php';
-
-  // 1. Try MySQL REST API
-  try {
-    const res = await fetch(API_URL);
-    if (res.ok) {
-      const apiData = await res.json();
-      if (Array.isArray(apiData) && apiData.length > 0) {
-        programs = apiData;
+  // 1. Try Supabase Database
+  if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
+    try {
+      const sbData = await window.RuaiSupabase.getPrograms();
+      if (Array.isArray(sbData) && sbData.length > 0) {
+        programs = sbData.map(p => ({
+          ...p,
+          schedule: p.schedule_json || p.schedule
+        }));
       }
+    } catch (e) {
+      console.warn('Supabase fetch failed in catalog.js:', e);
     }
-  } catch (e) {}
+  }
+
+  // 2. Try MySQL REST API (Localhost / XAMPP)
+  const API_URL = 'api/programs.php';
+  if (!programs || programs.length === 0) {
+    try {
+      const res = await fetch(API_URL);
+      if (res.ok) {
+        const apiData = await res.json();
+        if (Array.isArray(apiData) && apiData.length > 0) {
+          programs = apiData;
+        }
+      }
+    } catch (e) {}
+  }
 
   // 2. Fallback to localStorage
   if (!programs || programs.length === 0) {

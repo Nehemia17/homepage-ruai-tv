@@ -82,6 +82,24 @@
 
   // ─── Load Programs Data ───
   async function loadPrograms() {
+    // 0. Try Supabase Database first
+    if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
+      try {
+        const sbData = await window.RuaiSupabase.getPrograms();
+        if (Array.isArray(sbData) && sbData.length > 0) {
+          programsData = sbData.map(p => ({
+            ...p,
+            schedule: p.schedule_json || p.schedule
+          }));
+          saveToStorage();
+          console.log('Loaded programs from Supabase:', programsData.length);
+          return;
+        }
+      } catch (e) {
+        console.warn('Supabase fetch failed in admin.js:', e);
+      }
+    }
+
     // 1. Try MySQL REST API (Relative & XAMPP Apache Endpoints)
     const apiEndpoints = [
       API_URL,
@@ -501,30 +519,48 @@
 
         showToast(`Mengunggah banner (${sizeKB} KB, ${format})...`, 'info');
 
-        const uploadEndpoints = [
-          UPLOAD_URL,
-          'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
-          'http://localhost/api/upload.php'
-        ];
-
         let uploadSuccess = false;
-        for (const endpoint of uploadEndpoints) {
+
+        // 1. Try Supabase Storage Bucket first
+        if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
           try {
-            const res = await fetch(endpoint, {
-              method: 'POST',
-              body: formData
-            });
-            const contentType = res.headers.get('content-type') || '';
-            if (res.ok && contentType.includes('application/json')) {
-              const result = await res.json();
-              if (result.status === 'success') {
-                updateBannerPreview(result.url, { format, sizeKB });
-                showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
-                uploadSuccess = true;
-                break;
-              }
+            const publicUrl = await window.RuaiSupabase.uploadBanner(blob, cleanFileName);
+            if (publicUrl) {
+              updateBannerPreview(publicUrl, { format, sizeKB });
+              showToast(`Banner berhasil diunggah ke Supabase Storage (${sizeKB} KB, ${format})!`, 'success');
+              uploadSuccess = true;
             }
-          } catch (err) {}
+          } catch (sbErr) {
+            console.warn('Supabase storage upload failed:', sbErr);
+          }
+        }
+
+        // 2. Try PHP Upload API if Supabase not configured or failed
+        if (!uploadSuccess) {
+          const uploadEndpoints = [
+            UPLOAD_URL,
+            'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
+            'http://localhost/api/upload.php'
+          ];
+
+          for (const endpoint of uploadEndpoints) {
+            try {
+              const res = await fetch(endpoint, {
+                method: 'POST',
+                body: formData
+              });
+              const contentType = res.headers.get('content-type') || '';
+              if (res.ok && contentType.includes('application/json')) {
+                const result = await res.json();
+                if (result.status === 'success') {
+                  updateBannerPreview(result.url, { format, sizeKB });
+                  showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
+                  uploadSuccess = true;
+                  break;
+                }
+              }
+            } catch (err) {}
+          }
         }
 
         // Static mode fallback: convert Blob to Data URL
@@ -825,7 +861,35 @@
     renderProgramsTable();
     initDashboardStats();
 
-    // Sync to MySQL API
+    // 1. Sync to Supabase Database
+    if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
+      try {
+        const supabasePayload = {
+          id: targetProg.id,
+          title: targetProg.title,
+          slug: targetProg.slug,
+          category: targetProg.category,
+          category_label: targetProg.category_label,
+          status: targetProg.status,
+          format: targetProg.format,
+          duration: targetProg.duration,
+          description: targetProg.description,
+          thumbnail_url: targetProg.thumbnail_url,
+          promo_video_url: targetProg.promo_video_url,
+          youtube_live_url: targetProg.youtube_live_url,
+          schedule_json: targetProg.schedule,
+          featured: Boolean(targetProg.featured),
+          updated_at: new Date().toISOString()
+        };
+        await window.RuaiSupabase.upsertProgram(supabasePayload);
+        showToast(`Program "${title}" berhasil disimpan di Supabase Database!`, 'success');
+        return;
+      } catch (sbErr) {
+        console.warn('Supabase upsert failed, trying local MySQL:', sbErr);
+      }
+    }
+
+    // 2. Sync to MySQL API
     try {
       const res = await fetch(API_URL, {
         method: isEdit ? 'PUT' : 'POST',
@@ -854,6 +918,17 @@
       saveToStorage();
       renderProgramsTable();
       initDashboardStats();
+
+      // Sync to Supabase Database
+      if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
+        try {
+          await window.RuaiSupabase.deleteProgram(id);
+          showToast(`Program "${p.title}" telah dihapus dari Supabase!`, 'success');
+          return;
+        } catch (sbErr) {
+          console.warn('Supabase delete failed:', sbErr);
+        }
+      }
 
       // Sync to MySQL API
       try {
