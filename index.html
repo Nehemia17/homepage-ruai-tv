@@ -8,7 +8,34 @@
   <meta name="keywords" content="Ruai TV, TV Kalimantan Barat, Berita Pontianak, Warta Ruai, Live Streaming Kalbar" />
   <meta property="og:title" content="Ruai TV — Kabar Kalbar dari Mata Ruai" />
   <meta property="og:description" content="Stasiun televisi lokal terpercaya Kalimantan Barat." />
-  <meta property="og:image" content="assets/images/programs/Warta-Ruai.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Ruai TV" />
+  <meta property="og:locale" content="id_ID" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Ruai TV — Kabar Kalbar dari Mata Ruai" />
+  <meta name="twitter:description" content="Stasiun televisi lokal terpercaya Kalimantan Barat." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TelevisionStation",
+    "name": "Ruai TV",
+    "alternateName": "Ruai Televisi",
+    "description": "Stasiun televisi lokal Kalimantan Barat: berita, budaya, dan siaran langsung.",
+    "slogan": "Jendela Inspirasi Anda",
+    "foundingDate": "2007-07-07",
+    "telephone": "+62561884524",
+    "email": "ruaitvkalbar@gmail.com",
+    "areaServed": "Kalimantan Barat",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Jl. 28 Oktober No. 25-26, Kel. Siantan Hulu, Kec. Pontianak Utara",
+      "addressLocality": "Pontianak",
+      "addressRegion": "Kalimantan Barat",
+      "postalCode": "78241",
+      "addressCountry": "ID"
+    }
+  }
+  </script>
   <link rel="icon" href="assets/images/logo ruai.png" type="image/png" />
 
   <!-- Fonts (dimuat paralel dengan CSS, bukan lewat @import) -->
@@ -143,23 +170,29 @@
         </p>
       </div>
       <div class="count-pills" aria-label="Jumlah program">
-        <div class="count-pill" id="pill-aktif"><span id="total-aktif">15</span> Aktif</div>
-        <div class="count-pill" id="pill-arsip"><span id="total-arsip">20</span> Arsip</div>
+        <div class="count-pill" id="pill-aktif"><span id="total-aktif">–</span> Aktif</div>
+        <div class="count-pill" id="pill-arsip"><span id="total-arsip">–</span> Arsip</div>
       </div>
     </div>
 
     <!-- Filter tabs -->
-    <div class="filter-row" role="tablist" aria-label="Filter kategori program">
-      <button class="filter-tab active" data-filter="semua"      id="tab-semua"      role="tab" aria-selected="true">Semua <span data-count="semua">34</span></button>
-      <button class="filter-tab"        data-filter="aktif"      id="tab-aktif"      role="tab">Aktif <span data-count="aktif">15</span></button>
-      <button class="filter-tab"        data-filter="berita"     id="tab-berita"     role="tab">Program Berita <span data-count="berita">12</span></button>
-      <button class="filter-tab"        data-filter="non-news"   id="tab-non-news"   role="tab">Non-News <span data-count="non-news">11</span></button>
-      <button class="filter-tab"        data-filter="kerja-sama" id="tab-kerja-sama" role="tab">Kerja Sama <span data-count="kerja-sama">11</span></button>
-      <button class="filter-tab"        data-filter="arsip"      id="tab-arsip"      role="tab">Arsip <span data-count="arsip">20</span></button>
+    <div class="filter-row" role="group" aria-label="Filter kategori program">
+      <button type="button" class="filter-tab active" data-filter="semua"      id="tab-semua"      aria-pressed="true">Semua <span data-count="semua">–</span></button>
+      <button type="button" class="filter-tab"        data-filter="berita"     id="tab-berita"     aria-pressed="false">Program Berita <span data-count="berita">–</span></button>
+      <button type="button" class="filter-tab"        data-filter="non-news"   id="tab-non-news"   aria-pressed="false">Non-News <span data-count="non-news">–</span></button>
+      <button type="button" class="filter-tab"        data-filter="kerja-sama" id="tab-kerja-sama" aria-pressed="false">Kerja Sama <span data-count="kerja-sama">–</span></button>
     </div>
 
     <!-- Grid (rendered by catalog.js) -->
-    <div id="programs-grid" role="list" aria-label="Daftar program Ruai TV"></div>
+    <div id="programs-grid"></div>
+
+    <!-- Arsip disembunyikan secara default -->
+    <div class="archive-toggle-wrap" id="archive-toggle-wrap" hidden>
+      <button type="button" class="btn-archive-toggle" id="archive-toggle" aria-expanded="false" aria-controls="programs-grid">
+        <span class="archive-toggle-label">Tampilkan Arsip</span>
+        <span class="archive-toggle-count">0</span>
+      </button>
+    </div>
 
     <!-- Empty state -->
     <div id="catalog-empty" style="display:none;text-align:center;padding:48px;color:#9CA3AF;">
@@ -414,6 +447,7 @@
 <!-- Scripts -->
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/supabase-client.js"></script>
+<script src="assets/js/schedule-utils.js"></script>
 <script src="assets/js/main.js"></script>
 <script src="assets/js/catalog.js"></script>
 <script src="assets/js/schedule.js"></script>

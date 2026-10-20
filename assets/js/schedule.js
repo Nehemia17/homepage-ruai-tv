@@ -1,11 +1,15 @@
 // ============================================================
-// RUAI TV — schedule.js (Dynamic Multi-Program Grid Support)
-// Dynamic Weekly Schedule Table Generator with Stacked Cell Support
+// RUAI TV — schedule.js
+// Tabel Jadwal Siaran Sepekan, dibangun sepenuhnya dari data program
+// (dashboard admin). Program berstatus Arsip tidak tampil. Baris jam
+// dibentuk dari jam tayang yang ada, jadi tidak ada jadwal bawaan.
+// Aturan parsing jam/hari: assets/js/schedule-utils.js
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  const daysList = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
+  const Schedule = window.RuaiSchedule;
+  const daysList = Schedule.DAYS;
 
   let programsData = [];
 
@@ -33,97 +37,83 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {}
   }
 
-  // ─── 2. Base 9 Time Slots Structure ───
-  const baseSlots = [
-    { group: 'PAGI', timeKey: '07.00', timeLabel: '07.00 WIB', defaultProgs: ['Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', null] },
-    { group: 'PAGI', timeKey: '10.00', timeLabel: '10.00 WIB', defaultProgs: ['Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', null] },
-    { group: 'SIANG', timeKey: '13.00', timeLabel: '13.00 WIB', defaultProgs: ['Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', null] },
-    { group: 'SORE', timeKey: '15.00', timeLabel: '15.00 WIB', defaultProgs: ['Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', null] },
-    { group: 'SORE', timeKey: '17.00', timeLabel: '17.00 WIB', defaultProgs: ['Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', 'Kilas Ruai', null] },
-    { group: 'SORE', timeKey: '18.30', timeLabel: '18.30 WIB', defaultProgs: [null, 'Warta Warganet', null, null, 'Warta Warganet', null, null] },
-    { group: 'MALAM', timeKey: '19.00', timeLabel: '19.00 WIB', defaultProgs: ['Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', 'Warta Ruai', null] },
-    { group: 'MALAM', timeKey: '19.30', timeLabel: '19.30 WIB', defaultProgs: [null, 'Gong Ruai', null, null, 'Gong Ruai', null, 'Ruai Sepekan'] },
-    { group: 'MALAM', timeKey: '20.05', timeLabel: '20.05 WIB', defaultProgs: ['Rumah Kita', null, null, 'Forum Ruai', null, null, null] }
-  ];
+  // ─── 2. Kumpulkan jadwal dari program aktif ───
+  // rows: Map<menitMulai, { label, cells: Array(7) of [{title, airings}] }>
+  const rows = new Map();
 
-  // Helper to parse day string into array of day names
-  const parseDays = (daysStr) => {
-    if (!daysStr) return [];
-    const str = daysStr.toUpperCase().trim();
-    if (str.includes('SENIN - SABTU') || str.includes('SENIN – SABTU')) {
-      return ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
-    }
-    if (str.includes('SENIN - MINGGU') || str.includes('SENIN – MINGGU') || str.includes('SETIAP HARI')) {
-      return ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
-    }
-    return daysList.filter(d => str.includes(d));
-  };
+  (Array.isArray(programsData) ? programsData : []).forEach(prog => {
+    if (!prog || prog.status !== 'aktif') return;
+    const airings = Schedule.countWeeklyAirings(prog);
 
-  // ─── 3. Build Dynamic Grid Matrix with Multi-Program Array ───
-  const gridMatrix = baseSlots.map(slot => ({
-    group: slot.group,
-    timeLabel: slot.timeLabel,
-    programs: slot.defaultProgs.map(p => p ? [p] : [])
-  }));
-
-  // Populate matrix if active program data exists
-  if (Array.isArray(programsData) && programsData.length > 0) {
-    programsData.forEach(prog => {
-      if (!prog || prog.status !== 'aktif' || !prog.schedule) return;
-
-      const scheduleKeys = ['pagi', 'siang', 'malam'];
-      scheduleKeys.forEach(sKey => {
-        const slotData = prog.schedule[sKey];
-        if (slotData && slotData.active && slotData.time) {
-          const daysMatched = parseDays(slotData.days);
-          
-          // Match against baseSlots by timeKey
-          baseSlots.forEach((slot, slotIdx) => {
-            if (slotData.time.includes(slot.timeKey)) {
-              daysMatched.forEach(dayName => {
-                const dayIdx = daysList.indexOf(dayName);
-                if (dayIdx !== -1) {
-                  const cellArr = gridMatrix[slotIdx].programs[dayIdx];
-                  if (!cellArr.includes(prog.title)) {
-                    cellArr.push(prog.title);
-                  }
-                }
-              });
-            }
-          });
+    Schedule.getEntries(prog).forEach(entry => {
+      const key = entry.start.minutes;
+      if (!rows.has(key)) {
+        rows.set(key, {
+          group: Schedule.blockOf(key),
+          timeLabel: `${entry.start.label} WIB`,
+          cells: daysList.map(() => [])
+        });
+      }
+      const row = rows.get(key);
+      entry.days.forEach(dayIdx => {
+        const cell = row.cells[dayIdx];
+        if (!cell.some(item => item.title === prog.title)) {
+          cell.push({ title: prog.title, airings });
         }
       });
     });
-  }
+  });
 
-  // ─── 4. Render Table DOM ───
+  // Program yang paling sering tayang tampil lebih dulu dalam satu sel
+  const sortedRows = [...rows.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, row]) => {
+      row.cells.forEach(cell => cell.sort((a, b) => b.airings - a.airings || a.title.localeCompare(b.title, 'id')));
+      return row;
+    });
+
+  // ─── 3. Render Table DOM ───
   const tbody = document.getElementById('schedule-body');
   if (!tbody) return;
 
   tbody.innerHTML = '';
 
-  gridMatrix.forEach((slot) => {
+  if (sortedRows.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = daysList.length + 1;
+    td.className = 'sched-empty-state';
+    td.textContent = 'Belum ada jadwal tayang yang terdaftar.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  sortedRows.forEach((slot) => {
     const row = document.createElement('tr');
 
     // BLOK + TIME column
     const timeCell = document.createElement('td');
     timeCell.className = 'sched-time-cell';
-    timeCell.innerHTML = `
-      <div class="sched-blok-tag">${slot.group}</div>
-      <div class="sched-time-val">${slot.timeLabel}</div>
-    `;
+    const blok = document.createElement('div');
+    blok.className = 'sched-blok-tag';
+    blok.textContent = slot.group;
+    const time = document.createElement('div');
+    time.className = 'sched-time-val';
+    time.textContent = slot.timeLabel;
+    timeCell.append(blok, time);
     row.appendChild(timeCell);
 
     // Day columns (SENIN - MINGGU)
-    slot.programs.forEach((progArr, i) => {
+    slot.cells.forEach((items, i) => {
       const td = document.createElement('td');
       td.className = 'sched-prog-cell';
-      if (progArr && progArr.length > 0) {
-        progArr.forEach(pTitle => {
+      if (items.length > 0) {
+        items.forEach(({ title }) => {
           const pill = document.createElement('div');
           pill.className = 'sched-pill';
-          pill.textContent = pTitle;
-          pill.title = `${daysList[i]}, ${slot.timeLabel} — ${pTitle}`;
+          pill.textContent = title;
+          pill.title = `${daysList[i]}, ${slot.timeLabel} — ${title}`;
           td.appendChild(pill);
         });
       } else {

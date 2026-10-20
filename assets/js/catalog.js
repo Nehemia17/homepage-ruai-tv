@@ -68,37 +68,28 @@
     return '—';
   };
 
-  // ─── Update counters ──────────────────────────────────────
+  // ─── Counters (pil di header) ─────────────────────────────
+  const isAktif = (p) => !!p && p.status === 'aktif';
   const counts = {
-    semua:        programs.length,
-    aktif:        programs.filter(p => p && p.status === 'aktif').length,
-    arsip:        programs.filter(p => p && p.status === 'arsip').length,
-    berita:       programs.filter(p => p && p.category === 'berita').length,
-    'non-news':   programs.filter(p => p && p.category === 'non-news').length,
-    'kerja-sama': programs.filter(p => p && p.category === 'kerja-sama').length,
+    aktif: programs.filter(isAktif).length,
+    arsip: programs.filter(p => p && p.status === 'arsip').length,
   };
-
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const key = el.dataset.count;
-    if (counts[key] !== undefined) el.textContent = counts[key];
-  });
 
   const totalAktif = document.getElementById('total-aktif');
   const totalArsip = document.getElementById('total-arsip');
   if (totalAktif) totalAktif.textContent = counts.aktif;
   if (totalArsip) totalArsip.textContent = counts.arsip;
 
-  // ─── Sort programs ────────────────────────────────────────
-  // Priority: aktif+bergambar(0) > aktif+tanpa gambar(1) > arsip+bergambar(2) > arsip+tanpa gambar(3)
-  const sortScore = (p) => {
-    const isAktif = p?.status === 'aktif';
-    const hasImg  = !!(p?.thumbnail_url);
-    if  (isAktif &&  hasImg) return 0;
-    if  (isAktif && !hasImg) return 1;
-    if (!isAktif &&  hasImg) return 2;
-    return 3;
-  };
-  programs.sort((a, b) => sortScore(a) - sortScore(b));
+  // ─── Urutan program ───────────────────────────────────────
+  // 1) Program aktif dulu, 2) paling sering tayang sepekan (dari jadwal admin),
+  // 3) yang punya gambar. Sisanya mengikuti urutan data (sort bersifat stabil).
+  const weeklyAirings = new Map(programs.filter(Boolean).map(p => [p.id, window.RuaiSchedule.countWeeklyAirings(p)]));
+  programs.sort((a, b) => {
+    if (isAktif(a) !== isAktif(b)) return isAktif(a) ? -1 : 1;
+    const byAirings = (weeklyAirings.get(b?.id) || 0) - (weeklyAirings.get(a?.id) || 0);
+    if (byAirings) return byAirings;
+    return Number(!!b?.thumbnail_url) - Number(!!a?.thumbnail_url);
+  });
 
   // ─── Render cards ─────────────────────────────────────────
   const grid = document.getElementById('programs-grid');
@@ -107,20 +98,17 @@
   programs.forEach((p, idx) => {
     if (!p) return;
     const catLabel  = catMap[p.category] || (p.category ? p.category.toUpperCase() : 'PROGRAM');
-    const isAktif   = p.status === 'aktif';
+    const active    = isAktif(p);
     const schedText = getScheduleText(p.schedule);
 
     // Card
     const card = document.createElement('article');
-    card.className = `program-card${!isAktif ? ' arsip-card' : ''}`;
+    card.className = `program-card${!active ? ' arsip-card hidden' : ''}`; // arsip tersembunyi sampai dibuka
     card.dataset.status   = p.status;
     card.dataset.category = p.category;
     card.dataset.id       = p.id;
     card.dataset.hasImg   = p.thumbnail_url ? 'true' : 'false';
     card.style.animationDelay = `${idx * 28}ms`;
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', `Lihat detail: ${p.title}`);
 
     // Duration pill — show if not "—"
     const durationHtml = p.duration && p.duration !== '—'
@@ -131,11 +119,11 @@
     const badges = `
         ${durationHtml}
         <div class="card-cat-badge">${esc(catLabel)}</div>
-        <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>`;
+        <div class="card-status-badge ${active ? 'aktif' : 'arsip'}">${active ? 'Aktif' : 'ARSIP'}</div>`;
 
     const imgArea = p.thumbnail_url ? `
       <div class="card-img-area">
-        <img class="card-thumb" src="${esc(p.thumbnail_url)}" alt="${esc(p.title)}" loading="lazy" />
+        <img class="card-thumb" src="${esc(p.thumbnail_url)}" alt="${esc(p.title)}" width="320" height="150" loading="lazy" decoding="async" />
         ${badges}
       </div>
     ` : `
@@ -158,7 +146,7 @@
         </div>
         <p class="card-desc">${esc(p.description)}</p>
         <div class="card-footer">
-          <button class="btn-detail-card" aria-label="Detail program ${esc(p.title)}">Detail Program</button>
+          <button type="button" class="btn-detail-card" aria-label="Detail program ${esc(p.title)}">Detail Program</button>
           ${formatLabel ? `<span class="card-format-pill">${esc(formatLabel.toUpperCase())}</span>` : ''}
         </div>
       </div>
@@ -172,46 +160,65 @@
       }, { once: true });
     }
 
+    // Seluruh kartu bisa diklik (mouse/sentuh); untuk keyboard, tombol "Detail Program" di dalamnya
     card.addEventListener('click', () => openModal(p.id));
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(p.id); }
-    });
 
     grid.appendChild(card);
   });
 
-  // ─── Filter & Search logic ────────────────────────────────
-  const filterBtns = document.querySelectorAll('.filter-tab');
+  // ─── Filter, Arsip & Search logic ─────────────────────────
+  const filterBtns    = document.querySelectorAll('.filter-tab');
+  const archiveWrap   = document.getElementById('archive-toggle-wrap');
+  const archiveToggle = document.getElementById('archive-toggle');
   let currentCategoryFilter = 'semua';
   let currentSearchQuery    = '';
+  let showArchive           = false;
+
+  // Pemisah "Arsip Program" tepat sebelum kartu arsip pertama
+  let archiveDivider = null;
+  const firstArchiveCard = grid.querySelector('.program-card[data-status="arsip"]');
+  if (firstArchiveCard) {
+    archiveDivider = document.createElement('div');
+    archiveDivider.className = 'archive-divider hidden';
+    archiveDivider.textContent = 'Arsip Program';
+    grid.insertBefore(archiveDivider, firstArchiveCard);
+  }
+
+  // Angka di tab = jumlah program yang memang bisa terlihat (aktif, + arsip bila dibuka)
+  const refreshTabCounts = () => {
+    const eligible = programs.filter(p => p && (showArchive || isAktif(p)));
+    const byCat = (cat) => eligible.filter(p => p.category === cat).length;
+    const tabCounts = { semua: eligible.length, berita: byCat('berita'), 'non-news': byCat('non-news'), 'kerja-sama': byCat('kerja-sama') };
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const key = el.dataset.count;
+      if (tabCounts[key] !== undefined) el.textContent = tabCounts[key];
+    });
+  };
+
+  const refreshArchiveToggle = () => {
+    if (!archiveToggle) return;
+    archiveToggle.setAttribute('aria-expanded', String(showArchive));
+    archiveToggle.querySelector('.archive-toggle-label').textContent = showArchive ? 'Sembunyikan Arsip' : 'Tampilkan Arsip';
+    archiveToggle.querySelector('.archive-toggle-count').textContent = counts.arsip;
+    if (archiveWrap) archiveWrap.hidden = counts.arsip === 0;
+  };
 
   const applyCombinedFilter = () => {
     const query = currentSearchQuery.toLowerCase().trim();
-
-    // Re-sort DOM cards setiap kali filter berubah
-    const allCards = [...document.querySelectorAll('.program-card')];
-    allCards.sort((a, b) => {
-      const cardScore = (card) => {
-        const p = programs.find(x => x && x.id === card.dataset.id);
-        return sortScore(p);
-      };
-      return cardScore(a) - cardScore(b);
-    });
-    allCards.forEach(c => grid.appendChild(c));
+    const searching = query.length > 0;
 
     let delay = 0;
     document.querySelectorAll('.program-card').forEach(card => {
       const progId = card.dataset.id;
       const prog   = programs.find(p => p && p.id === progId);
 
-      let matchCat = false;
-      if (currentCategoryFilter === 'semua') matchCat = true;
-      else if (currentCategoryFilter === 'aktif') matchCat = card.dataset.status === 'aktif';
-      else if (currentCategoryFilter === 'arsip') matchCat = card.dataset.status === 'arsip';
-      else matchCat = card.dataset.category === currentCategoryFilter;
+      const matchCat = currentCategoryFilter === 'semua' || card.dataset.category === currentCategoryFilter;
+
+      // Arsip hanya tampil bila dibuka, atau saat mencari (supaya program arsip tetap bisa ditemukan)
+      const matchStatus = card.dataset.status === 'aktif' || showArchive || searching;
 
       let matchSearch = true;
-      if (query.length > 0 && prog) {
+      if (searching && prog) {
         const titleMatch  = (prog.title || '').toLowerCase().includes(query);
         const descMatch   = (prog.description || '').toLowerCase().includes(query);
         const catMatch    = (prog.category || '').toLowerCase().includes(query);
@@ -220,19 +227,24 @@
         matchSearch = titleMatch || descMatch || catMatch || catLblMatch || formatMatch;
       }
 
-      const show = matchCat && matchSearch;
+      const show = matchCat && matchStatus && matchSearch;
 
       if (show) {
+        const wasHidden = card.classList.contains('hidden');
         card.classList.remove('hidden');
-        card.style.animationDelay = `${delay * 25}ms`;
-        card.style.animation = 'none';
-        void card.offsetHeight;
-        card.style.animation = '';
+        if (wasHidden) {
+          card.style.animationDelay = `${delay * 25}ms`;
+          card.style.animation = 'none';
+          void card.offsetHeight;
+          card.style.animation = '';
+        }
         delay++;
       } else {
         card.classList.add('hidden');
       }
     });
+
+    archiveDivider?.classList.toggle('hidden', !document.querySelector('.program-card[data-status="arsip"]:not(.hidden)'));
 
     const visible = document.querySelectorAll('.program-card:not(.hidden)').length;
     const emptyEl = document.getElementById('catalog-empty');
@@ -240,8 +252,10 @@
       emptyEl.style.display = visible === 0 ? 'block' : 'none';
       const textP = emptyEl.querySelector('p');
       if (textP) {
-        if (visible === 0 && query.length > 0) {
+        if (visible === 0 && searching) {
           textP.textContent = `Tidak ada program yang cocok dengan pencarian "${currentSearchQuery}".`;
+        } else if (visible === 0 && !showArchive && counts.arsip > 0) {
+          textP.textContent = 'Belum ada program aktif untuk filter ini. Coba tampilkan arsip.';
         } else {
           textP.textContent = 'Tidak ada program untuk filter ini.';
         }
@@ -251,13 +265,25 @@
 
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      filterBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      filterBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
       btn.classList.add('active');
-      btn.setAttribute('aria-selected','true');
+      btn.setAttribute('aria-pressed', 'true');
       currentCategoryFilter = btn.dataset.filter;
       applyCombinedFilter();
     });
   });
+
+  archiveToggle?.addEventListener('click', () => {
+    showArchive = !showArchive;
+    refreshArchiveToggle();
+    refreshTabCounts();
+    applyCombinedFilter();
+  });
+
+  // Keadaan awal: hanya program aktif
+  refreshArchiveToggle();
+  refreshTabCounts();
+  applyCombinedFilter();
 
   // Handle Navbar Search input via event delegation
   document.addEventListener('input', (e) => {
@@ -307,16 +333,18 @@
   const modalBox = document.getElementById('modal-box');
   const closeBtn = document.getElementById('modal-close-btn');
 
+  let lastFocusedBeforeModal = null;
+
   const openModal = (id) => {
     const p = programs.find(x => x.id === id);
     if (!p) return;
 
     const catLabel = catMap[p.category] || p.category.toUpperCase();
-    const isAktif  = p.status === 'aktif';
+    const active   = isAktif(p);
 
     // Header style
     const head = document.getElementById('modal-head');
-    if (head) head.className = `modal-head ${isAktif ? 'aktif' : 'arsip'}`;
+    if (head) head.className = `modal-head ${active ? 'aktif' : 'arsip'}`;
 
     // Cat label
     const catEl = document.getElementById('modal-cat-label');
@@ -325,8 +353,8 @@
     // Status badge
     const statusEl = document.getElementById('modal-status-badge');
     if (statusEl) {
-      statusEl.className = `modal-status-badge ${isAktif ? 'aktif' : 'arsip'}`;
-      statusEl.textContent = isAktif ? 'AKTIF' : 'ARSIP';
+      statusEl.className = `modal-status-badge ${active ? 'aktif' : 'arsip'}`;
+      statusEl.textContent = active ? 'AKTIF' : 'ARSIP';
     }
 
     // Title & meta
@@ -424,7 +452,7 @@
     // CTA button
     const ctaBtn = document.getElementById('modal-cta');
     if (ctaBtn) {
-      if (isAktif) {
+      if (active) {
         ctaBtn.style.display = 'flex';
         ctaBtn.onclick = () => window.open(p.youtube_live_url || LIVE_URL, '_blank', 'noopener,noreferrer');
       } else {
@@ -433,10 +461,12 @@
     }
 
     // Open
+    lastFocusedBeforeModal = document.activeElement;
     overlay?.classList.add('open');
     document.body.style.overflow = 'hidden';
     if (modalBox) modalBox.scrollTop = 0;
-    closeBtn?.focus();
+    // Overlay masih visibility:hidden di frame pertama transisi, jadi fokus ditunda dua frame
+    requestAnimationFrame(() => requestAnimationFrame(() => closeBtn?.focus()));
   };
 
   const closeModal = () => {
@@ -444,6 +474,8 @@
     document.body.style.overflow = '';
     const videoIframe = document.getElementById('modal-video-iframe');
     if (videoIframe) videoIframe.src = '';
+    lastFocusedBeforeModal?.focus?.();
+    lastFocusedBeforeModal = null;
   };
 
   // Expose to main.js (hero detail button)
@@ -453,7 +485,19 @@
   closeBtn?.addEventListener('click', closeModal);
   overlay?.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && overlay?.classList.contains('open')) closeModal();
+    if (!overlay?.classList.contains('open')) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+
+    // Fokus keyboard tidak boleh keluar dari pop-up selama terbuka
+    if (e.key === 'Tab') {
+      const focusables = [...overlay.querySelectorAll('button, a[href], input, select, textarea, iframe, [tabindex]:not([tabindex="-1"])')]
+        .filter(el => !el.disabled && el.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last  = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
   });
 
 })();

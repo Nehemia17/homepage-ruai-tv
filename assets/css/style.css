@@ -58,6 +58,7 @@ img, svg, video, canvas, audio, iframe, embed, object { display: block; vertical
 img, video { max-width: 100%; height: auto; }
 input::placeholder, textarea::placeholder { opacity: 1; color: #9CA3AF; }
 textarea { resize: vertical; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
 body {
   font-family: 'Inter', -apple-system, sans-serif;
@@ -119,6 +120,7 @@ body {
   color: #ffffff;
   text-decoration: none;
   border-radius: 6px;
+  white-space: nowrap;
   transition: var(--ease);
 }
 
@@ -276,11 +278,12 @@ body {
   flex-direction: column;
 }
 
-/* Background image / video placeholder */
+/* Gambar latar hero: opsional. Kosong secara default; diatur lewat
+   --hero-image (mis. document.documentElement.style.setProperty('--hero-image', 'url(...)')). */
 .hero-bg-img {
   position: absolute;
   inset: 0;
-  background: url('../images/programs/warta-ruai.jpg') center/cover no-repeat;
+  background: var(--hero-image, none) center/cover no-repeat;
   opacity: 0.22;
   z-index: 0;
 }
@@ -372,7 +375,7 @@ h1.hero-title em {
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.55);
   margin-bottom: 5px;
 }
 
@@ -551,6 +554,15 @@ h1.hero-title em {
 }
 
 .section-title-dark {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 900;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+/* Judul di atas latar terang (mis. #tentang) */
+.section-title-light {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: clamp(2rem, 4vw, 2.8rem);
   font-weight: 900;
@@ -832,7 +844,7 @@ h1.hero-title em {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--gray-muted);
   margin-bottom: 7px;
 }
@@ -840,7 +852,7 @@ h1.hero-title em {
 .card-schedule-icon { font-size: 10px; opacity: 0.6; }
 
 .card-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: #555;
   line-height: 1.6;
   margin-bottom: 14px;
@@ -866,7 +878,8 @@ h1.hero-title em {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 10px 0;
+  min-height: 40px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1600,14 +1613,100 @@ h1.hero-title em {
   .hero-primetime-card { display: none; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 980px) {
   .nav-links, .nav-search-wrap { display: none; }
-  .menu-toggle { display: flex; }
+  .menu-toggle { display: flex; margin-left: 0; }
+
+  /* Hero tidak perlu setinggi layar saat kartu Prime Time disembunyikan */
+  #beranda { min-height: auto; }
+  .hero-inner { padding: 120px 24px 150px; }
+}
+
+@media (max-width: 768px) {
   .jadwal-header-row { flex-direction: column; align-items: flex-start; }
 }
 
+/* Label LIVE: lengkap di layar lebar, ringkas di layar sempit */
+.live-label-short { display: none; }
+@media (max-width: 480px) {
+  .nav-inner { gap: 12px; padding: 0 16px; }
+  .live-label-full { display: none; }
+  .live-label-short { display: inline; }
+  .btn-live-nav { padding: 8px 14px; }
+}
+
 @media (max-width: 560px) {
-  .hero-inner { padding: 88px 20px 100px; }
+  .hero-inner { padding: 96px 20px 120px; }
   h1.hero-title { font-size: 2.2rem; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   KATALOG: tombol Arsip & pemisah
+════════════════════════════════════════════════════════════ */
+.archive-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.btn-archive-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 22px;
+  border-radius: 24px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dark);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+  transition: var(--ease);
+}
+
+.btn-archive-toggle:hover {
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.archive-toggle-count {
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-align: center;
+  color: #FFFFFF;
+  background: var(--dark-card);
+}
+
+/* Pemisah sebelum kartu arsip: garis + label */
+.archive-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0 2px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(26, 26, 26, 0.72);
+}
+
+.archive-divider::before,
+.archive-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(26, 26, 26, 0.25);
+}
+
+.archive-divider.hidden { display: none; }
+
+/* Jadwal sepekan: keadaan kosong */
+.sched-empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #9CA3AF;
+}

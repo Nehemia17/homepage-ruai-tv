@@ -66,12 +66,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     menuToggle.setAttribute('aria-expanded', !isOpen);
   });
 
+  const closeMobileMenu = () => {
+    mobileMenu?.classList.remove('open');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+  };
+
   // Close mobile menu on nav link click
   document.querySelectorAll('.mobile-nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileMenu?.classList.remove('open');
-      menuToggle?.setAttribute('aria-expanded', 'false');
-    });
+    link.addEventListener('click', closeMobileMenu);
+  });
+
+  // ...dan dengan Esc (fokus kembali ke tombol menu)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mobileMenu?.classList.contains('open')) {
+      closeMobileMenu();
+      menuToggle?.focus();
+    }
   });
 
   // ─── 5. Hero detail button → buka modal Warta Ruai ───────
