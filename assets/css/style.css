@@ -13,6 +13,7 @@
   --dark-hero:  #0C0809;
   --dark-card:  #4B4535;   /* arsip card bg */
   --cream:      #FFF4E6;
+  --on-orange:  #2A1500;   /* teks di atas latar oranye (navbar, header katalog) */
   --white:      #FFFFFF;
   --gray-muted: #6B7280;
   --gray-light: #F3F4F6;
@@ -117,14 +118,14 @@ body {
   padding: 6px 14px;
   font-size: 13.5px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--on-orange);
   text-decoration: none;
   border-radius: 6px;
   white-space: nowrap;
   transition: var(--ease);
 }
 
-.nav-links a:hover { background: rgba(0,0,0,0.07); }
+.nav-links a:hover { background: rgba(255,255,255,0.35); }
 
 /* Search bar */
 .nav-search-wrap {
@@ -132,7 +133,7 @@ body {
   align-items: center;
   gap: 8px;
   background: rgba(255, 255, 255, 0.18);
-  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border: 1.5px solid rgba(42, 21, 0, 0.35);
   border-radius: 8px;
   padding: 6px 14px;
   flex-shrink: 0;
@@ -141,28 +142,28 @@ body {
 }
 
 .nav-search-wrap:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(42, 21, 0, 0.6);
 }
 
 .nav-search-wrap:focus-within {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.45);
+  border-color: var(--on-orange);
+  box-shadow: 0 0 0 3px rgba(42, 21, 0, 0.18);
 }
 
-.nav-search-wrap svg { color: #ffffff; flex-shrink: 0; }
+.nav-search-wrap svg { color: var(--on-orange); flex-shrink: 0; }
 
 .nav-search-wrap input {
   border: none;
   background: transparent;
   font-size: 12.5px;
-  color: #ffffff;
+  color: var(--on-orange);
   width: 100%;
   outline: none;
 }
 
-.nav-search-wrap input::placeholder { color: rgba(255, 255, 255, 0.85); }
+.nav-search-wrap input::placeholder { color: rgba(42, 21, 0, 0.9); }
 
 /* Live button */
 .btn-live-nav {
@@ -201,9 +202,9 @@ body {
 
 /* Live Indicator Offline State */
 .btn-live-nav.is-offline {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgba(255, 255, 255, 0.75);
+  background: rgba(42, 21, 0, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
   box-shadow: none;
 }
 
@@ -243,11 +244,11 @@ body {
   cursor: pointer;
   margin-left: auto;
 }
-.menu-toggle span { display: block; width: 20px; height: 2px; background: #FFFFFF; border-radius: 2px; }
+.menu-toggle span { display: block; width: 20px; height: 2px; background: var(--on-orange); border-radius: 2px; }
 
 #mobile-menu {
   background: linear-gradient(90deg, #FFB03F 0%, #FF5722 100%);
-  border-top: 1px solid rgba(255,255,255,0.15);
+  border-top: 1px solid rgba(42,21,0,0.12);
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
@@ -259,11 +260,11 @@ body {
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--on-orange);
   text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(42,21,0,0.12);
 }
-#mobile-menu a:hover { background: rgba(255,255,255,0.1); }
+#mobile-menu a:hover { background: rgba(255,255,255,0.3); }
 
 
 /* ════════════════════════════════════════════════════════════
@@ -598,19 +599,19 @@ h1.hero-title em {
 
 /* ─── 1. KATALOG SIARAN SECTION (#program) — Serba Putih ─── */
 #program .section-eyebrow-line {
-  color: #FFFFFF !important;
+  color: var(--on-orange) !important;
 }
 
 #program .section-eyebrow-line::before {
-  background: #FFFFFF !important;
+  background: var(--on-orange) !important;
 }
 
 #program .section-title-dark {
-  color: #FFFFFF !important;
+  color: var(--on-orange) !important;
 }
 
 #program .section-sub-dark {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(42, 21, 0, 0.85) !important;
 }
 
 /* ─── 2. JADWAL SIARAN SECTION (#jadwal) — Rundown Merah, Title Hitam ─── */
@@ -650,9 +651,9 @@ h1.hero-title em {
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
-  border: 1.5px solid rgb(255, 255, 255);
+  border: 1.5px solid var(--on-orange);
   background: transparent;
-  color: rgb(255, 255, 255);
+  color: var(--on-orange);
   cursor: default;
 }
 
