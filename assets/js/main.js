@@ -1,31 +1,12 @@
 // ============================================================
 // RUAI TV — main.js
-// Handles: Dynamic component loading (Navbar & Footer),
-//          Navbar scroll, mobile menu, scroll-to-top, smooth scroll
+// Handles: Navbar scroll, mobile menu, scroll-to-top, smooth scroll,
+//          live indicator
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
 
   const LIVE_URL = 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
-
-  // ─── 1. Dynamic Component Loader ─────────────────────────
-  const loadComponent = async (containerId, filePath) => {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    try {
-      const res = await fetch(filePath);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      container.innerHTML = await res.text();
-    } catch (err) {
-      console.error(`Gagal memuat komponen ${filePath}:`, err);
-    }
-  };
-
-  // Load Navbar & Footer simultaneously
-  await Promise.all([
-    loadComponent('navbar-container', 'includes/navbar.html'),
-    loadComponent('footer-container', 'includes/footer.html')
-  ]);
 
   // ─── 2. Navbar Scroll Effect ─────────────────────────────
   const navbar = document.getElementById('navbar');

@@ -92,10 +92,6 @@ Homepage Statis Ruai-TV/
 │           ├── admin.js        # Logika CRUD, auth guard, SweetAlert2
 │           └── login.js        # Logika autentikasi & session
 │
-├── includes/                   # Komponen modular (dimuat via JS fetch)
-│   ├── navbar.html             # Header / navigasi + search bar
-│   └── footer.html             # Footer
-│
 └── assets/
     ├── css/
     │   └── style.css           # Seluruh styling frontend (CSS murni)

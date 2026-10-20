@@ -50,9 +50,66 @@
 <body>
 
 <!-- ═══════════════════════════════════════
-     NAVBAR (Loaded dynamically from includes/navbar.html)
+     NAVBAR
 ═══════════════════════════════════════ -->
-<div id="navbar-container"></div>
+<header id="navbar">
+  <div class="nav-inner">
+    <!-- Logo -->
+    <a href="#beranda" class="nav-logo" aria-label="Ruai TV - Beranda">
+      <img src="assets/images/logo ruai.png" alt="Logo Ruai TV Kalimantan Barat" width="150" height="38" />
+    </a>
+
+    <!-- Desktop nav links -->
+    <nav aria-label="Navigasi utama">
+      <ul class="nav-links">
+        <li><a href="#beranda">Beranda</a></li>
+        <li><a href="#program">Program</a></li>
+        <li><a href="#jadwal">Jadwal</a></li>
+        <li><a href="#tentang">Tentang Kami</a></li>
+        <li><a href="#kontak">Kontak</a></li>
+      </ul>
+    </nav>
+
+    <!-- Search + CTA -->
+    <div style="display:flex;align-items:center;gap:12px;margin-left:auto;">
+      <div class="nav-search-wrap" role="search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="search" placeholder="Cari program..." aria-label="Cari program Ruai TV" id="search-input" />
+      </div>
+
+      <a href="https://www.youtube.com/@livestreamingruaitelevisi5647/streams" target="_blank" rel="noopener noreferrer"
+         class="btn-live-nav" id="nav-live-btn" aria-label="Tonton siaran langsung Ruai TV di YouTube">
+        <span class="live-dot"></span>
+        <span class="live-label-full">LIVE STREAMING</span>
+        <span class="live-label-short">LIVE</span>
+      </a>
+
+      <!-- Mobile toggle -->
+      <button class="menu-toggle" id="menu-toggle" aria-label="Buka menu navigasi" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" role="navigation" aria-label="Menu navigasi mobile">
+    <div style="padding: 12px 16px 6px;">
+      <div class="nav-search-wrap" role="search" style="width:100%;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input type="search" placeholder="Cari program..." aria-label="Cari program Ruai TV" id="mobile-search-input" style="width:100%;" />
+      </div>
+    </div>
+    <a href="#beranda"  class="mobile-nav-link">Beranda</a>
+    <a href="#program"  class="mobile-nav-link">Program</a>
+    <a href="#jadwal"   class="mobile-nav-link">Jadwal Siaran</a>
+    <a href="#tentang"  class="mobile-nav-link">Tentang Kami</a>
+    <a href="#kontak"   class="mobile-nav-link">Kontak</a>
+  </div>
+</header>
 
 
 
@@ -393,9 +450,74 @@
 
 
 <!-- ═══════════════════════════════════════
-     FOOTER (Loaded dynamically from includes/footer.html)
+     FOOTER
 ═══════════════════════════════════════ -->
-<div id="footer-container"></div>
+<footer id="kontak" aria-label="Footer Ruai TV — Kontak dan Informasi">
+  <div class="footer-top-border"></div>
+  <div class="footer-inner">
+    <div class="footer-grid">
+
+      <!-- Left Column: Brand & Socials -->
+      <div class="footer-brand-col">
+        <div class="footer-logo">
+          <img src="assets/images/logo ruai.png" alt="Ruai TV Logo" width="150" height="38" />
+        </div>
+        <p class="footer-desc">
+          Televisi lokal Kalimantan Barat — menyiarkan kabar, budaya, dan suara masyarakat Bumi Khatulistiwa sejak layar pertama menyala.
+        </p>
+        <div class="footer-social-links">
+          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="social-link-item">
+            <span class="social-icon social-ig">IG</span> @ruaitv
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" class="social-link-item">
+            <span class="social-icon social-yt">YT</span> Newsroom RuaiTV
+          </a>
+          <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" class="social-link-item">
+            <span class="social-icon social-fb">FB</span> Ruaitv Pontianak
+          </a>
+          <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" class="social-link-item">
+            <span class="social-icon social-tt">TT</span> Ruai Televisi
+          </a>
+          <a href="https://www.ruai.tv" target="_blank" rel="noopener noreferrer" class="social-link-item">
+            <span class="social-icon social-web">&#127758;</span> www.ruai.tv
+          </a>
+        </div>
+      </div>
+
+      <!-- Center Column: NAVIGASI -->
+      <div class="footer-nav-col">
+        <div class="footer-heading">NAVIGASI</div>
+        <ul class="footer-links-list">
+          <li><a href="#beranda">Beranda</a></li>
+          <li><a href="#program">Program Acara</a></li>
+          <li><a href="#jadwal">Jadwal Tayang</a></li>
+          <li><a href="#tentang">Tentang Kami</a></li>
+        </ul>
+      </div>
+
+      <!-- Right Column: STUDIO -->
+      <div class="footer-studio-col">
+        <div class="footer-heading">STUDIO</div>
+        <address class="footer-address">
+          JL. 28 OKTOBER NO.25–26<br />
+          KEL. SIANTAN HULU,<br />
+          KEC. PONTIANAK UTARA,<br />
+          KOTA PONTIANAK,<br />
+          KALIMANTAN BARAT 78241
+        </address>
+        <div class="footer-contact-info">
+          <p><a href="mailto:ruaitvkalbar@gmail.com">ruaitvkalbar@gmail.com</a></p>
+          <p><a href="tel:+62561884524">(+62 561) 884524</a></p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom-bar">
+      <span>© 2026 Ruai TV. Seluruh hak cipta dilindungi.</span>
+    </div>
+  </div>
+</footer>
 
 
 
