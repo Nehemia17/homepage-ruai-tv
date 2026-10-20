@@ -2,8 +2,6 @@
    RUAI TV — style.css (Rebuilt v3, Pixel-Perfect to Figma)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&display=swap');
-
 /* ─── CSS Variables ──────────────────────────────────────── */
 :root {
   --red:        #DC2626;
@@ -36,6 +34,30 @@
 
 /* ─── Reset ──────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Reset dasar yang sebelumnya disuntikkan Tailwind CDN (preflight).
+   Dipertahankan agar tampilan tidak berubah setelah Tailwind dihapus. */
+*, *::before, *::after { border-width: 0; border-style: solid; border-color: #E5E7EB; }
+html { line-height: 1.5; -webkit-text-size-adjust: 100%; tab-size: 4; }
+body { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+a { color: inherit; text-decoration: inherit; }
+b, strong { font-weight: bolder; }
+table { text-indent: 0; border-color: inherit; border-collapse: collapse; }
+button, input, optgroup, select, textarea {
+  font-family: inherit; font-feature-settings: inherit; font-size: 100%;
+  font-weight: inherit; line-height: inherit; color: inherit;
+}
+button, select { text-transform: none; }
+button, [type="button"], [type="reset"], [type="submit"] {
+  -webkit-appearance: button; background-color: transparent; background-image: none;
+}
+button, [role="button"] { cursor: pointer; }
+ol, ul, menu { list-style: none; }
+img, svg, video, canvas, audio, iframe, embed, object { display: block; vertical-align: middle; }
+img, video { max-width: 100%; height: auto; }
+input::placeholder, textarea::placeholder { opacity: 1; color: #9CA3AF; }
+textarea { resize: vertical; }
 html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
 body {
   font-family: 'Inter', -apple-system, sans-serif;
@@ -1307,6 +1329,8 @@ h1.hero-title em {
   background: #FEF2F2;
   border-color: #FECACA;
 }
+
+.red-siaran-card .siaran-label { color: #DC2626; }
 
 .siaran-card-icon { font-size: 24px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
 

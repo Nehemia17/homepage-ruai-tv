@@ -11,13 +11,10 @@
   <meta property="og:image" content="assets/images/programs/Warta-Ruai.png" />
   <link rel="icon" href="assets/images/logo ruai.png" type="image/png" />
 
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], display: ['Playfair Display','serif'] } } }
-    }
-  </script>
+  <!-- Fonts (dimuat paralel dengan CSS, bukan lewat @import) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800;1,900&display=swap" />
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="assets/css/style.css" />
@@ -293,7 +290,7 @@
           <div class="siaran-card red-siaran-card">
             <div class="siaran-card-icon">SAT</div>
             <div class="siaran-card-body">
-              <div class="siaran-label text-red-600">SATELIT MERAH PUTIH (TELKOM 4)</div>
+              <div class="siaran-label">SATELIT MERAH PUTIH (TELKOM 4)</div>
               <div class="siaran-main">Frekuensi 4020 MHz</div>
               <div class="siaran-sub">Symbol Rate 32.727 · Polaritas Vertikal · DVBS2 Mpeg 4 SD</div>
             </div>
@@ -415,7 +412,6 @@
 </button>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="assets/js/supabase-config.js"></script>
 <script src="assets/js/supabase-client.js"></script>
 <script src="assets/js/main.js"></script>
