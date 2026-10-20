@@ -1,18 +1,16 @@
 /* ============================================================
    RUAI TV — Admin Panel Logic (admin.js)
-   Backend & MySQL REST API Integrated
+   Backend: Supabase (Auth, Database, Storage)
    ============================================================ */
 
 (() => {
   let programsData = [];
-  const STORAGE_KEY = 'ruai_tv_programs_data';
-  const SESSION_KEY = 'ruai_admin_session';
-  const API_URL = '../api/programs.php';
-  const UPLOAD_URL = '../api/upload.php';
+  const esc = window.escapeHtml;
+  const LOGIN_URL = '/admin/login.html';
 
   // ─── Initializer ───
   document.addEventListener('DOMContentLoaded', async () => {
-    if (!checkAuthGuard()) return;
+    if (!(await checkAuthGuard())) return;
     initLogoutHandler();
     await loadPrograms();
     initDashboardStats();
@@ -22,32 +20,37 @@
   });
 
   // ─── Auth Guard & Session ───
-  function checkAuthGuard() {
-    const rawSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
-    if (!rawSession) {
-      window.location.href = 'login.html';
+  // Sesi diverifikasi ke server Supabase (bukan sekadar flag di browser).
+  async function checkAuthGuard() {
+    const user = window.RuaiSupabase ? await window.RuaiSupabase.verifySession() : null;
+    if (!user) {
+      window.location.href = LOGIN_URL;
       return false;
     }
-    try {
-      const parsed = JSON.parse(rawSession);
-      if (!parsed || !parsed.authenticated) {
-        window.location.href = 'login.html';
-        return false;
-      }
-      const userEl = document.getElementById('admin-user-fullname');
-      if (userEl && parsed.user && parsed.user.fullname) {
-        userEl.textContent = parsed.user.fullname;
-      }
-    } catch (e) {
-      window.location.href = 'login.html';
-      return false;
-    }
+    const userEl = document.getElementById('admin-user-fullname');
+    if (userEl) userEl.textContent = user.fullname || user.email;
     return true;
+  }
+
+  // Dipanggil saat request admin ditolak karena sesi habis / bukan admin
+  function handleAuthFailure(err) {
+    if (err && err.code === 'AUTH_REQUIRED') {
+      showToast('Sesi login berakhir. Mengarahkan ke halaman login...', 'error');
+      window.RuaiSupabase.clearSession();
+      setTimeout(() => { window.location.href = LOGIN_URL; }, 1200);
+      return true;
+    }
+    return false;
   }
 
   // ─── Logout Handler ───
   function initLogoutHandler() {
     const logoutBtns = document.querySelectorAll('.btn-admin-logout, #btn-logout, .admin-profile');
+    const doLogout = async () => {
+      await window.RuaiSupabase.signOut();
+      window.location.href = LOGIN_URL;
+    };
+
     logoutBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -63,94 +66,48 @@
             cancelButtonText: 'Batal',
             reverseButtons: true
           }).then((result) => {
-            if (result.isConfirmed) {
-              localStorage.removeItem(SESSION_KEY);
-              sessionStorage.removeItem(SESSION_KEY);
-              window.location.href = 'login.html';
-            }
+            if (result.isConfirmed) doLogout();
           });
-        } else {
-          if (confirm('Apakah Anda yakin ingin keluar dari Admin Panel?')) {
-            localStorage.removeItem(SESSION_KEY);
-            sessionStorage.removeItem(SESSION_KEY);
-            window.location.href = 'login.html';
-          }
+        } else if (confirm('Apakah Anda yakin ingin keluar dari Admin Panel?')) {
+          doLogout();
         }
       });
     });
   }
 
-  // ─── Load Programs Data ───
+  // ─── Load Programs Data (sumber tunggal: Supabase) ───
   async function loadPrograms() {
-    // 0. Try Supabase Database first
-    if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
-      try {
-        const sbData = await window.RuaiSupabase.getPrograms();
-        if (Array.isArray(sbData) && sbData.length > 0) {
-          programsData = sbData.map(p => ({
-            ...p,
-            schedule: p.schedule_json || p.schedule
-          }));
-          saveToStorage();
-          console.log('Loaded programs from Supabase:', programsData.length);
-          return;
-        }
-      } catch (e) {
-        console.warn('Supabase fetch failed in admin.js:', e);
-      }
+    const sbData = await window.RuaiSupabase.getPrograms();
+    if (!Array.isArray(sbData)) {
+      showToast('Gagal memuat data program dari Supabase. Muat ulang halaman.', 'error');
+      programsData = [];
+      return;
     }
-
-    // 1. Try MySQL REST API (Relative & XAMPP Apache Endpoints)
-    const apiEndpoints = [
-      API_URL,
-      'http://localhost/Homepage%20Statis%20Ruai-TV/api/programs.php',
-      'http://localhost/api/programs.php'
-    ];
-
-    for (const ep of apiEndpoints) {
-      try {
-        const res = await fetch(ep);
-        const contentType = res.headers.get('content-type') || '';
-        if (res.ok && contentType.includes('application/json')) {
-          const apiData = await res.json();
-          if (Array.isArray(apiData) && apiData.length > 0) {
-            programsData = apiData;
-            saveToStorage();
-            console.log('Loaded programs from MySQL API:', programsData.length);
-            return;
-          }
-        }
-      } catch (e) {}
-    }
-
-    // 2. Fallback to localStorage
-    const localData = localStorage.getItem(STORAGE_KEY);
-    if (localData) {
-      try {
-        programsData = JSON.parse(localData);
-        console.log('Loaded programs from localStorage:', programsData.length);
-        return;
-      } catch (e) {
-        console.warn('Failed to parse localStorage:', e);
-      }
-    }
-
-    // 3. Fallback to programs.json
-    try {
-      const res = await fetch('../assets/data/programs.json');
-      if (res.ok) {
-        programsData = await res.json();
-        saveToStorage();
-        console.log('Loaded programs from programs.json:', programsData.length);
-      }
-    } catch (err) {
-      console.error('Error loading programs.json:', err);
-      showToast('Gagal memuat data program.', 'error');
-    }
+    programsData = sbData.map(p => ({
+      ...p,
+      schedule: p.schedule_json || p.schedule
+    }));
   }
 
-  function saveToStorage() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(programsData));
+  // Payload kolom tabel programs (tanpa field turunan seperti `schedule`)
+  function toDbRow(p) {
+    return {
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      category: p.category,
+      category_label: p.category_label,
+      status: p.status,
+      format: p.format,
+      duration: p.duration,
+      description: p.description,
+      thumbnail_url: p.thumbnail_url,
+      promo_video_url: p.promo_video_url || null,
+      youtube_live_url: p.youtube_live_url,
+      schedule_json: p.schedule,
+      featured: Boolean(p.featured),
+      updated_at: new Date().toISOString()
+    };
   }
 
   // ─── Dashboard Stats ───
@@ -187,15 +144,28 @@
   }
 
   function getProgramThumbHtml(p) {
+    const title = esc(p.title);
     if (p.thumbnail_url && p.thumbnail_url !== 'assets/images/programs/' && p.thumbnail_url !== 'null' && p.thumbnail_url !== '-') {
       let imgSrc = p.thumbnail_url.trim();
       if (!imgSrc.startsWith('data:') && !imgSrc.startsWith('http://') && !imgSrc.startsWith('https://') && !imgSrc.startsWith('/')) {
-        imgSrc = `../${imgSrc}`;
+        imgSrc = `/${imgSrc}`;
       }
-      return `<img src="${imgSrc}" alt="${p.title}" class="table-thumb" onerror="this.onerror=null;this.outerHTML='<div class=\\'table-no-thumb\\' title=\\'${p.title.replace(/'/g, "\\'")}\\'><div class=\\'thumb-circle\\'></div><span class=\\'thumb-initials\\'>${getInitials(p.title)}</span></div>';" />`;
+      return `<img src="${esc(imgSrc)}" alt="${title}" class="table-thumb" data-initials="${esc(getInitials(p.title))}" />`;
     }
-    const initials = getInitials(p.title);
-    return `<div class="table-no-thumb" title="${p.title}"><div class="thumb-circle"></div><span class="thumb-initials">${initials}</span></div>`;
+    return `<div class="table-no-thumb" title="${title}"><div class="thumb-circle"></div><span class="thumb-initials">${esc(getInitials(p.title))}</span></div>`;
+  }
+
+  // Ganti gambar yang gagal dimuat dengan placeholder inisial (tanpa inline handler)
+  function bindThumbFallbacks(root) {
+    root.querySelectorAll('img.table-thumb').forEach(img => {
+      img.addEventListener('error', () => {
+        const box = document.createElement('div');
+        box.className = 'table-no-thumb';
+        box.title = img.alt;
+        box.innerHTML = `<div class="thumb-circle"></div><span class="thumb-initials">${esc(img.dataset.initials)}</span>`;
+        img.replaceWith(box);
+      }, { once: true });
+    });
   }
 
   function renderRecentTable() {
@@ -212,16 +182,17 @@
         <td>${getProgramThumbHtml(p)}</td>
         <td>
           <div class="program-title-cell">
-            <span>${p.title}</span>
-            <span class="program-slug-sub">ID: ${p.id}</span>
+            <span>${esc(p.title)}</span>
+            <span class="program-slug-sub">ID: ${esc(p.id)}</span>
           </div>
         </td>
-        <td><span class="cat-pill">${(p.category || 'berita').toUpperCase()}</span></td>
+        <td><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
         <td><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
-        <td>${p.format || '—'}</td>
+        <td>${esc(p.format || '—')}</td>
       `;
       tbody.appendChild(tr);
     });
+    bindThumbFallbacks(tbody);
   }
 
   // ─── Programs Table Management ───
@@ -238,6 +209,16 @@
     searchInput?.addEventListener('input', renderProgramsTable);
     filterStatus?.addEventListener('change', renderProgramsTable);
     filterCat?.addEventListener('change', renderProgramsTable);
+
+    // Event delegation: id program dibaca dari data-id, bukan disisipkan ke string JS
+    tbody.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'toggle') window.toggleStatus(id);
+      else if (btn.dataset.action === 'edit') window.openEditModal(id);
+      else if (btn.dataset.action === 'delete') window.confirmDelete(id);
+    });
   }
 
   function renderProgramsTable() {
@@ -270,28 +251,29 @@
 
     filtered.forEach(p => {
       const isAktif = p.status === 'aktif';
+      const id = esc(p.id);
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${getProgramThumbHtml(p)}</td>
         <td>
           <div class="program-title-cell">
-            <span>${p.title}</span>
-            <span class="program-slug-sub">Slug: ${p.slug || p.id}</span>
+            <span>${esc(p.title)}</span>
+            <span class="program-slug-sub">Slug: ${esc(p.slug || p.id)}</span>
           </div>
         </td>
-        <td><span class="cat-pill">${(p.category || 'berita').toUpperCase()}</span></td>
-        <td>${p.format || '—'}</td>
+        <td><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
+        <td>${esc(p.format || '—')}</td>
         <td><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
-        <td>${p.duration || '—'}</td>
+        <td>${esc(p.duration || '—')}</td>
         <td>
           <div class="table-actions">
-            <button class="btn-icon toggle" title="Ubah Status (Aktif/Arsip)" onclick="window.toggleStatus('${p.id}')">
+            <button class="btn-icon toggle" title="Ubah Status (Aktif/Arsip)" data-action="toggle" data-id="${id}">
               ${isAktif ? '&#9646;&#9646;' : '&#9654;'}
             </button>
-            <button class="btn-icon edit" title="Edit Program" onclick="window.openEditModal('${p.id}')">
+            <button class="btn-icon edit" title="Edit Program" data-action="edit" data-id="${id}">
               &#9998;
             </button>
-            <button class="btn-icon delete" title="Hapus Program" onclick="window.confirmDelete('${p.id}')">
+            <button class="btn-icon delete" title="Hapus Program" data-action="delete" data-id="${id}">
               &#10005;
             </button>
           </div>
@@ -299,6 +281,7 @@
       `;
       tbody.appendChild(tr);
     });
+    bindThumbFallbacks(tbody);
 
     const countBadge = document.getElementById('program-count-badge');
     if (countBadge) countBadge.textContent = `${filtered.length} Program`;
@@ -309,20 +292,18 @@
     const p = programsData.find(x => x.id === id);
     if (!p) return;
 
-    p.status = p.status === 'aktif' ? 'arsip' : 'aktif';
-    saveToStorage();
+    const nextStatus = p.status === 'aktif' ? 'arsip' : 'aktif';
+    try {
+      await window.RuaiSupabase.updateProgram(id, { status: nextStatus });
+    } catch (err) {
+      if (handleAuthFailure(err)) return;
+      showToast(`Gagal mengubah status: ${err.message}`, 'error');
+      return;
+    }
+
+    p.status = nextStatus;
     renderProgramsTable();
     initDashboardStats();
-
-    // Sync to MySQL API if online
-    try {
-      await fetch(API_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(p)
-      });
-    } catch (e) {}
-
     showToast(`Status "${p.title}" diubah menjadi ${p.status.toUpperCase()}`, 'success');
   };
 
@@ -514,68 +495,16 @@
                           'program-banner').toLowerCase().replace(/[^a-z0-9]+/g, '-');
         const cleanFileName = `${baseSlug}-${Date.now()}.${ext}`;
 
-        const formData = new FormData();
-        formData.append('banner_file', blob, cleanFileName);
-
         showToast(`Mengunggah banner (${sizeKB} KB, ${format})...`, 'info');
 
-        let uploadSuccess = false;
-
-        // 1. Try Supabase Storage Bucket first
-        if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
-          try {
-            const publicUrl = await window.RuaiSupabase.uploadBanner(blob, cleanFileName);
-            if (publicUrl) {
-              updateBannerPreview(publicUrl, { format, sizeKB });
-              showToast(`Banner berhasil diunggah ke Supabase Storage (${sizeKB} KB, ${format})!`, 'success');
-              uploadSuccess = true;
-            }
-          } catch (sbErr) {
-            console.warn('Supabase storage upload failed:', sbErr);
-          }
-        }
-
-        // 2. Try PHP Upload API if Supabase not configured or failed
-        if (!uploadSuccess) {
-          const uploadEndpoints = [
-            UPLOAD_URL,
-            'http://localhost/Homepage%20Statis%20Ruai-TV/api/upload.php',
-            'http://localhost/api/upload.php'
-          ];
-
-          for (const endpoint of uploadEndpoints) {
-            try {
-              const res = await fetch(endpoint, {
-                method: 'POST',
-                body: formData
-              });
-              const contentType = res.headers.get('content-type') || '';
-              if (res.ok && contentType.includes('application/json')) {
-                const result = await res.json();
-                if (result.status === 'success') {
-                  updateBannerPreview(result.url, { format, sizeKB });
-                  showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
-                  uploadSuccess = true;
-                  break;
-                }
-              }
-            } catch (err) {}
-          }
-        }
-
-        // Static mode fallback: convert Blob to Data URL
-        if (!uploadSuccess) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            updateBannerPreview(evt.target.result, { format, sizeKB });
-            showToast(`Banner siap (${sizeKB} KB, ${format} - Mode Statis)!`, 'success');
-          };
-          reader.readAsDataURL(blob);
-        }
+        const publicUrl = await window.RuaiSupabase.uploadBanner(blob, cleanFileName);
+        updateBannerPreview(publicUrl, { format, sizeKB });
+        showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
 
         closeCropModal();
       } catch (err) {
-        showToast('Terjadi kesalahan saat memproses gambar banner.', 'error');
+        if (handleAuthFailure(err)) return;
+        showToast(`Gagal mengunggah banner: ${err.message}`, 'error');
       } finally {
         if (btnLabel) btnLabel.textContent = 'Terapkan & Kompres WebP';
         applyBtn.disabled = false;
@@ -767,7 +696,8 @@
   async function saveProgramForm() {
     const idInput   = document.getElementById('form-id-input').value.trim();
     const title     = document.getElementById('form-title').value.trim();
-    const slug      = document.getElementById('form-slug').value.trim() || title.toLowerCase().replace(/\s+/g, '-');
+    const slugRaw   = document.getElementById('form-slug').value.trim() || title;
+    const slug      = slugRaw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || `prog-${Date.now()}`;
     const cat       = document.getElementById('form-category').value;
     const format    = document.getElementById('form-format').value.trim();
     const status    = document.getElementById('form-status').value;
@@ -816,36 +746,46 @@
       return;
     }
 
-    let isEdit = false;
-    let targetProg = null;
+    const categoryLabel = cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama');
+    const isEdit = Boolean(idInput);
+    let draft;
 
-    if (idInput) {
-      isEdit = true;
-      targetProg = programsData.find(x => x.id === idInput);
-      if (targetProg) {
-        targetProg.title = title;
-        targetProg.slug = slug;
-        targetProg.category = cat;
-        targetProg.category_label = cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama');
-        targetProg.format = format || null;
-        targetProg.status = status;
-        targetProg.duration = duration;
-        targetProg.thumbnail_url = thumb;
-        targetProg.promo_video_url = promoVideo;
-        targetProg.description = desc;
-        targetProg.schedule = scheduleObj;
+    if (isEdit) {
+      const existing = programsData.find(x => x.id === idInput);
+      if (!existing) {
+        showToast('Program tidak ditemukan. Muat ulang halaman.', 'error');
+        return;
       }
-    } else {
-      const newId = slug || `prog-${Date.now()}`;
-      targetProg = {
-        id: newId,
-        title: title,
-        slug: slug,
+      draft = {
+        ...existing,
+        title,
+        slug,
         category: cat,
-        category_label: cat === 'berita' ? 'Program Berita' : (cat === 'non-news' ? 'Non-News' : 'Kerja Sama'),
-        status: status,
+        category_label: categoryLabel,
         format: format || null,
-        duration: duration,
+        status,
+        duration,
+        thumbnail_url: thumb,
+        promo_video_url: promoVideo,
+        description: desc,
+        schedule: scheduleObj
+      };
+    } else {
+      // id berasal dari slug; wajib unik agar tidak menimpa program lain
+      const newId = slug;
+      if (programsData.some(x => x.id === newId)) {
+        showToast(`ID "${newId}" sudah dipakai program lain. Ubah slug terlebih dahulu.`, 'error');
+        return;
+      }
+      draft = {
+        id: newId,
+        title,
+        slug,
+        category: cat,
+        category_label: categoryLabel,
+        status,
+        format: format || null,
+        duration,
         description: desc,
         thumbnail_url: thumb,
         promo_video_url: promoVideo,
@@ -853,58 +793,25 @@
         schedule: scheduleObj,
         featured: false
       };
-      programsData.unshift(targetProg);
     }
 
-    saveToStorage();
+    try {
+      const saved = await window.RuaiSupabase.upsertProgram(toDbRow(draft));
+      const stored = { ...draft, ...saved, schedule: saved.schedule_json || draft.schedule };
+      if (isEdit) {
+        programsData = programsData.map(x => (x.id === stored.id ? stored : x));
+      } else {
+        programsData.unshift(stored);
+      }
+    } catch (err) {
+      if (handleAuthFailure(err)) return;
+      showToast(`Gagal menyimpan program: ${err.message}`, 'error');
+      return; // modal tetap terbuka agar input tidak hilang
+    }
+
     closeModal();
     renderProgramsTable();
     initDashboardStats();
-
-    // 1. Sync to Supabase Database
-    if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
-      try {
-        const supabasePayload = {
-          id: targetProg.id,
-          title: targetProg.title,
-          slug: targetProg.slug,
-          category: targetProg.category,
-          category_label: targetProg.category_label,
-          status: targetProg.status,
-          format: targetProg.format,
-          duration: targetProg.duration,
-          description: targetProg.description,
-          thumbnail_url: targetProg.thumbnail_url,
-          promo_video_url: targetProg.promo_video_url,
-          youtube_live_url: targetProg.youtube_live_url,
-          schedule_json: targetProg.schedule,
-          featured: Boolean(targetProg.featured),
-          updated_at: new Date().toISOString()
-        };
-        await window.RuaiSupabase.upsertProgram(supabasePayload);
-        showToast(`Program "${title}" berhasil disimpan di Supabase Database!`, 'success');
-        return;
-      } catch (sbErr) {
-        console.warn('Supabase upsert failed, trying local MySQL:', sbErr);
-      }
-    }
-
-    // 2. Sync to MySQL API
-    try {
-      const res = await fetch(API_URL, {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(targetProg)
-      });
-      const resData = await res.json();
-      if (resData.status === 'success') {
-        showToast(`Program "${title}" berhasil disimpan di MySQL Database!`, 'success');
-        return;
-      }
-    } catch (e) {
-      console.log('MySQL API offline, saved to local storage:', e.message);
-    }
-
     showToast(`Program "${title}" berhasil disimpan!`, 'success');
   }
 
@@ -914,36 +821,24 @@
     if (!p) return;
 
     const doDelete = async () => {
-      programsData = programsData.filter(x => x.id !== id);
-      saveToStorage();
-      renderProgramsTable();
-      initDashboardStats();
-
-      // Sync to Supabase Database
-      if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
-        try {
-          await window.RuaiSupabase.deleteProgram(id);
-          showToast(`Program "${p.title}" telah dihapus dari Supabase!`, 'success');
-          return;
-        } catch (sbErr) {
-          console.warn('Supabase delete failed:', sbErr);
-        }
+      try {
+        await window.RuaiSupabase.deleteProgram(id);
+      } catch (err) {
+        if (handleAuthFailure(err)) return;
+        showToast(`Gagal menghapus program: ${err.message}`, 'error');
+        return;
       }
 
-      // Sync to MySQL API
-      try {
-        await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, {
-          method: 'DELETE'
-        });
-      } catch (e) {}
-
+      programsData = programsData.filter(x => x.id !== id);
+      renderProgramsTable();
+      initDashboardStats();
       showToast(`Program "${p.title}" telah dihapus!`, 'success');
     };
 
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         title: 'Hapus Program?',
-        html: `Apakah Anda yakin ingin menghapus program <strong>"${p.title}"</strong>?<br><small style="color:#64748B;">Tindakan ini tidak dapat dibatalkan.</small>`,
+        html: `Apakah Anda yakin ingin menghapus program <strong>"${esc(p.title)}"</strong>?<br><small style="color:#64748B;">Tindakan ini tidak dapat dibatalkan.</small>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#DC2626',
@@ -999,7 +894,7 @@
     toast.className = `toast ${type}`;
     toast.innerHTML = `
       <span class="toast-icon">${type === 'success' ? '&#10003;' : '&#9888;'}</span>
-      <span>${message}</span>
+      <span>${esc(message)}</span>
     `;
 
     container.appendChild(toast);

@@ -7,9 +7,9 @@
   const LIVE_URL = 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
   let   programs = [];
 
-  // ─── Load data ────────────────────────────────────────────
-  const STORAGE_KEY = 'ruai_tv_programs_data';
-  // 1. Try Supabase Database
+  // ─── Load data (Supabase -> programs.json) ───────────────
+  const esc = window.escapeHtml;
+
   if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
     try {
       const sbData = await window.RuaiSupabase.getPrograms();
@@ -24,33 +24,7 @@
     }
   }
 
-  // 2. Try MySQL REST API (Localhost / XAMPP)
-  const API_URL = 'api/programs.php';
-  if (!programs || programs.length === 0) {
-    try {
-      const res = await fetch(API_URL);
-      if (res.ok) {
-        const apiData = await res.json();
-        if (Array.isArray(apiData) && apiData.length > 0) {
-          programs = apiData;
-        }
-      }
-    } catch (e) {}
-  }
-
-  // 2. Fallback to localStorage
-  if (!programs || programs.length === 0) {
-    const localData = localStorage.getItem(STORAGE_KEY);
-    if (localData) {
-      try {
-        programs = JSON.parse(localData);
-      } catch (e) {
-        console.warn('Failed to parse localStorage in catalog.js:', e);
-      }
-    }
-  }
-
-  // 3. Fallback to programs.json
+  // Fallback statis: programs.json
   if (!programs || programs.length === 0) {
     try {
       const res = await fetch('assets/data/programs.json');
@@ -150,29 +124,24 @@
 
     // Duration pill — show if not "—"
     const durationHtml = p.duration && p.duration !== '—'
-      ? `<div class="card-duration-pill">${p.duration}</div>`
+      ? `<div class="card-duration-pill">${esc(p.duration)}</div>`
       : '';
 
     // Image area — tampilkan gambar jika ada thumbnail, jika tidak tampilkan placeholder abu-abu
+    const badges = `
+        ${durationHtml}
+        <div class="card-cat-badge">${esc(catLabel)}</div>
+        <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>`;
+
     const imgArea = p.thumbnail_url ? `
       <div class="card-img-area">
-        <img
-          class="card-thumb"
-          src="${p.thumbnail_url}"
-          alt="${p.title}"
-          loading="lazy"
-          onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'card-no-thumb\\'><div class=\\'card-circle-deco\\'></div></div>${durationHtml.replace(/"/g,"'")}<div class=\\'card-cat-badge\\'>${catLabel}</div><div class=\\'card-status-badge ${isAktif ? 'aktif' : 'arsip'}\\'>${isAktif ? 'Aktif' : 'ARSIP'}</div>'"
-        />
-        ${durationHtml}
-        <div class="card-cat-badge">${catLabel}</div>
-        <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>
+        <img class="card-thumb" src="${esc(p.thumbnail_url)}" alt="${esc(p.title)}" loading="lazy" />
+        ${badges}
       </div>
     ` : `
       <div class="card-img-area">
         <div class="card-no-thumb"><div class="card-circle-deco"></div></div>
-        ${durationHtml}
-        <div class="card-cat-badge">${catLabel}</div>
-        <div class="card-status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'ARSIP'}</div>
+        ${badges}
       </div>
     `;
 
@@ -182,18 +151,26 @@
     card.innerHTML = `
       ${imgArea}
       <div class="card-body">
-        <div class="card-title">${p.title}</div>
+        <div class="card-title">${esc(p.title)}</div>
         <div class="card-schedule">
           <span class="card-schedule-icon">&#9650;</span>
-          <span>${schedText}</span>
+          <span>${esc(schedText)}</span>
         </div>
-        <p class="card-desc">${p.description}</p>
+        <p class="card-desc">${esc(p.description)}</p>
         <div class="card-footer">
-          <button class="btn-detail-card" aria-label="Detail program ${p.title}">Detail Program</button>
-          ${formatLabel ? `<span class="card-format-pill">${formatLabel.toUpperCase()}</span>` : ''}
+          <button class="btn-detail-card" aria-label="Detail program ${esc(p.title)}">Detail Program</button>
+          ${formatLabel ? `<span class="card-format-pill">${esc(formatLabel.toUpperCase())}</span>` : ''}
         </div>
       </div>
     `;
+
+    const cardImg = card.querySelector('img.card-thumb');
+    if (cardImg) {
+      cardImg.addEventListener('error', () => {
+        const area = cardImg.parentElement;
+        area.innerHTML = `<div class="card-no-thumb"><div class="card-circle-deco"></div></div>${badges}`;
+      }, { once: true });
+    }
 
     card.addEventListener('click', () => openModal(p.id));
     card.addEventListener('keydown', e => {
@@ -380,8 +357,19 @@
       } else if (embedUrl.includes('/embed/') && !embedUrl.includes('autoplay')) {
         embedUrl += (embedUrl.includes('?') ? '&' : '?') + 'autoplay=1';
       }
-      videoIframe.src = embedUrl;
-      videoWrap.style.display = 'block';
+      let isYoutubeEmbed = false;
+      try {
+        const host = new URL(embedUrl).hostname;
+        isYoutubeEmbed = host === 'www.youtube.com' || host === 'www.youtube-nocookie.com';
+      } catch (e) {}
+
+      if (!isYoutubeEmbed) {
+        videoIframe.src = '';
+        videoWrap.style.display = 'none';
+      } else {
+        videoIframe.src = embedUrl;
+        videoWrap.style.display = 'block';
+      }
 
       // Sembunyikan foto banner agar tidak menumpuk atas-bawah
       if (thumb) thumb.style.display = 'none';
@@ -408,16 +396,16 @@
     const slotNames = { pagi: 'PAGI', siang: 'SIANG', malam: 'MALAM' };
 
     slotKeys.forEach(key => {
-      const slotData = p.schedule[key];
+      const slotData = p.schedule?.[key];
       const el = document.getElementById(`slot-${key}`);
       if (!el) return;
 
       if (slotData?.active) {
         el.className = 'jadwal-slot aktif-slot';
         el.innerHTML = `
-          <div class="slot-nama">${slotData.label || slotNames[key]}</div>
-          <div class="slot-waktu">${slotData.time || '—'}</div>
-          <div class="slot-hari">${slotData.days || ''}</div>
+          <div class="slot-nama">${esc(slotData.label || slotNames[key])}</div>
+          <div class="slot-waktu">${esc(slotData.time || '—')}</div>
+          <div class="slot-hari">${esc(slotData.days || '')}</div>
         `;
       } else {
         el.className = 'jadwal-slot kosong-slot';

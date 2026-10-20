@@ -6,29 +6,30 @@
   <title>Login Admin — RUAI TV</title>
   
   <!-- Favicon & Styles -->
-  <link rel="icon" href="/assets/images/logo-ruai-tv.png" type="image/png" />
+  <link rel="icon" href="/assets/images/logo ruai.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="stylesheet" href="/admin/assets/css/admin.css" />
 </head>
 <body class="login-page-body">
 
   <div class="login-card-wrapper">
     <div class="login-brand-header">
-      <img src="/assets/images/logo-ruai-tv.png" alt="Ruai TV Logo" onerror="this.style.display='none';" />
+      <img src="/assets/images/logo ruai.png" alt="Ruai TV Logo" onerror="this.style.display='none';" />
       <h1 class="login-brand-title">RUAI TV ADMIN</h1>
       <p class="login-brand-subtitle">Masuk untuk mengelola katalog & siaran program</p>
     </div>
 
     <!-- Alert Box for Login Errors -->
     <div class="login-alert-box" id="login-alert-box">
-      <span class="login-alert-icon">!</span> <span id="login-alert-text">Username atau password salah.</span>
+      <span class="login-alert-icon">!</span> <span id="login-alert-text">Email atau password salah.</span>
     </div>
 
     <form id="login-form">
       <div class="login-form-group">
-        <label for="login-username">Username Admin</label>
+        <label for="login-username">Email Admin</label>
         <div class="login-input-wrap">
-          <input type="text" id="login-username" placeholder="Masukkan username admin..." required autocomplete="username" autofocus />
+          <input type="email" id="login-username" placeholder="Masukkan email admin..." required autocomplete="username" autofocus />
         </div>
       </div>
 
@@ -64,6 +65,8 @@
 
   <!-- SweetAlert2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/assets/js/supabase-config.js"></script>
+  <script src="/assets/js/supabase-client.js"></script>
   <!-- Login Script -->
   <script src="/admin/assets/js/login.js"></script>
 </body>

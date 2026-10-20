@@ -1,22 +1,15 @@
 /* ============================================================
    RUAI TV — Admin Login Logic (login.js)
-   Handles auth requests with PHP API & Static Fallback
+   Autentikasi via Supabase Auth (email + password)
    ============================================================ */
 
 (() => {
-  const SESSION_KEY = 'ruai_admin_session';
-
-  // 1. Redirect if already authenticated
-  const existingSession = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
-  if (existingSession) {
-    try {
-      const parsed = JSON.parse(existingSession);
-      if (parsed && parsed.authenticated) {
-        window.location.href = 'index.html';
-        return;
-      }
-    } catch (e) {}
-  }
+  // 1. Redirect jika sudah punya sesi yang valid di server
+  (async () => {
+    if (!window.RuaiSupabase?.getSession()) return;
+    const user = await window.RuaiSupabase.verifySession();
+    if (user) window.location.href = '/admin/index.html';
+  })();
 
   document.addEventListener('DOMContentLoaded', () => {
     initPasswordToggle();
@@ -29,16 +22,17 @@
     const forgotBtn = document.getElementById('link-forgot-pass');
     forgotBtn?.addEventListener('click', (e) => {
       e.preventDefault();
+      const msg = 'Reset password dilakukan oleh pemilik project Supabase: Dashboard → Authentication → Users → pilih akun → Send password recovery / Reset password.';
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           title: 'Bantuan Lupa Password',
-          html: 'Silakan hubungi <strong>Administrator IT Redaksi Ruai TV</strong> atau periksa konfigurasi akun pada database MySQL `users`.',
+          html: 'Hubungi <strong>Administrator IT Redaksi Ruai TV</strong>. Reset password dilakukan dari dashboard Supabase (Authentication → Users).',
           icon: 'info',
           confirmButtonColor: '#DC2626',
           confirmButtonText: 'Saya Mengerti'
         });
       } else {
-        alert('Silakan hubungi administrator IT Redaksi Ruai TV jika Anda lupa password.');
+        alert(msg);
       }
     });
   }
@@ -66,6 +60,8 @@
     const alertBox  = document.getElementById('login-alert-box');
     const alertText = document.getElementById('login-alert-text');
 
+    const idleLabel = '<span>Masuk ke Admin Panel</span><span>➔</span>';
+
     const showAlert = (msg) => {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
@@ -89,100 +85,43 @@
       e.preventDefault();
       hideAlert();
 
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value.trim();
+      const email    = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
       const remember = document.getElementById('login-remember').checked;
 
-      if (!username || !password) {
-        showAlert('Username dan password wajib diisi.');
+      if (!email || !password) {
+        showAlert('Email dan password wajib diisi.');
         return;
       }
 
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = '<span>Memverifikasi...</span>';
 
-      const loginEndpoints = [
-        '../api/login.php',
-        'http://localhost/Homepage%20Statis%20Ruai-TV/api/login.php',
-        'http://localhost/api/login.php'
-      ];
-
-      let authSuccess = false;
-      let userData = null;
-
-      for (const endpoint of loginEndpoints) {
-        try {
-          const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          });
-
-          const contentType = res.headers.get('content-type') || '';
-          if (res.ok && contentType.includes('application/json')) {
-            const result = await res.json();
-            if (result.status === 'success') {
-              authSuccess = true;
-              userData = result.user || { username, fullname: 'Admin Redaksi Ruai TV', role: 'superadmin' };
-              break;
-            } else if (result.status === 'error') {
-              showAlert(result.message || 'Username atau password salah.');
-              btnSubmit.disabled = false;
-              btnSubmit.innerHTML = '<span>Masuk ke Admin Panel</span><span>➔</span>';
-              return;
-            }
-          }
-        } catch (err) {
-          // Continue to next endpoint or fallback
-        }
-      }
-
-      // Static fallback if API is unreachable
-      if (!authSuccess) {
-        if (username === 'admin' && (password === 'admin123' || password === 'ruaitv2026')) {
-          authSuccess = true;
-          userData = {
-            username: 'admin',
-            fullname: 'Admin Redaksi Ruai TV',
-            role: 'superadmin'
-          };
-        }
-      }
-
-      if (authSuccess) {
-        const sessionPayload = JSON.stringify({
-          authenticated: true,
-          user: userData,
-          loginTime: new Date().toISOString()
-        });
-
-        if (remember) {
-          localStorage.setItem(SESSION_KEY, sessionPayload);
-        } else {
-          sessionStorage.setItem(SESSION_KEY, sessionPayload);
-        }
+      try {
+        const session = await window.RuaiSupabase.signIn(email, password, remember);
+        const name = session.user.fullname || email;
 
         btnSubmit.innerHTML = '<span>Login Berhasil! ➔</span>';
-        
+
         if (typeof Swal !== 'undefined') {
           Swal.fire({
             icon: 'success',
             title: 'Login Berhasil!',
-            text: `Selamat datang kembali, ${userData.fullname || username}!`,
+            text: `Selamat datang kembali, ${name}!`,
             timer: 1500,
             showConfirmButton: false
           }).then(() => {
-            window.location.href = 'index.html';
+            window.location.href = '/admin/index.html';
           });
         } else {
           setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = '/admin/index.html';
           }, 500);
         }
-      } else {
+      } catch (err) {
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = '<span>Masuk ke Admin Panel</span><span>➔</span>';
-        showAlert('Username atau password yang Anda masukkan salah.');
+        btnSubmit.innerHTML = idleLabel;
+        showAlert(err.message || 'Login gagal. Coba lagi.');
       }
     });
   }

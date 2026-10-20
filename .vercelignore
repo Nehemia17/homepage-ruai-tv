@@ -1,0 +1,8 @@
+# File internal: tidak perlu (dan tidak boleh) bisa diakses publik
+database/
+scratch/
+api/
+README.md
+*.txt
+.vscode/
+.idea/

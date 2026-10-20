@@ -2,6 +2,8 @@
 -- RUAI TV — Supabase PostgreSQL Schema & Seeder
 -- Versi AMAN (Non-Destructive / Tidak Menghapus Data)
 -- Copy-paste semua script ini ke Supabase SQL Editor lalu klik "Run"
+-- PERINGATAN: seed di bawah menimpa data program dengan id yang sama.
+-- Untuk database yang sudah berjalan, JANGAN dijalankan ulang; cukup supabase_security.sql.
 -- ============================================================
 
 -- 1. Buat Tabel programs jika belum ada (TIDAK MENGHAPUS TABEL/DATA LAMA)
@@ -29,81 +31,17 @@ CREATE INDEX IF NOT EXISTS idx_programs_category ON programs(category);
 CREATE INDEX IF NOT EXISTS idx_programs_status ON programs(status);
 CREATE INDEX IF NOT EXISTS idx_programs_slug ON programs(slug);
 
--- 2. Buat Tabel users (Admin) jika belum ada
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  fullname VARCHAR(100) NOT NULL,
-  role VARCHAR(20) NOT NULL DEFAULT 'admin' CHECK (role IN ('superadmin', 'admin', 'editor')),
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Insert Akun Default Admin jika belum ada
-INSERT INTO users (username, password_hash, fullname, role)
-VALUES ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin Redaksi Ruai TV', 'superadmin')
-ON CONFLICT (username) DO NOTHING;
-
--- 3. Enable Row Level Security (RLS)
+-- 2. Aktifkan Row Level Security (default: semua akses ditolak)
+-- Policy baca publik & tulis khusus admin ada di database/supabase_security.sql.
+-- JALANKAN supabase_security.sql SETELAH file ini.
 ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Policy untuk programs (cek jika belum ada)
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'programs' AND policyname = 'Public Read Access on Programs'
-  ) THEN
-    CREATE POLICY "Public Read Access on Programs" ON programs FOR SELECT USING (true);
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'programs' AND policyname = 'Allow All Actions on Programs'
-  ) THEN
-    CREATE POLICY "Allow All Actions on Programs" ON programs FOR ALL USING (true) WITH CHECK (true);
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Public Read Access on Users'
-  ) THEN
-    CREATE POLICY "Public Read Access on Users" ON users FOR SELECT USING (true);
-  END IF;
-END $$;
-
--- 4. Setup Storage Bucket untuk Upload Banner Thumbnail
+-- 3. Storage bucket banners (policy upload khusus admin: supabase_security.sql)
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('banners', 'banners', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Storage Policy agar publik bisa melihat dan mengunggah gambar
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Public Access Banners Bucket'
-  ) THEN
-    CREATE POLICY "Public Access Banners Bucket" ON storage.objects FOR SELECT USING (bucket_id = 'banners');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow Upload to Banners Bucket'
-  ) THEN
-    CREATE POLICY "Allow Upload to Banners Bucket" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'banners');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow Update in Banners Bucket'
-  ) THEN
-    CREATE POLICY "Allow Update in Banners Bucket" ON storage.objects FOR UPDATE USING (bucket_id = 'banners');
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow Delete in Banners Bucket'
-  ) THEN
-    CREATE POLICY "Allow Delete in Banners Bucket" ON storage.objects FOR DELETE USING (bucket_id = 'banners');
-  END IF;
-END $$;
-
--- 5. Seed Seluruh Data Program Lengkap (35 Program Ruai TV dari data terbaru)
+-- 4. Seed Seluruh Data Program Lengkap (35 Program Ruai TV dari data terbaru)
 -- Jika id program sudah ada, data diperbarui (ON CONFLICT DO UPDATE). Data tidak akan hilang!
 INSERT INTO programs (id, title, slug, category, category_label, status, format, duration, description, thumbnail_url, promo_video_url, youtube_live_url, schedule_json, featured) VALUES
 ('cbn-solusi', 'CBN — Solusi', 'cbn-solusi', 'kerja-sama', 'Kerja Sama', 'aktif', 'Talkshow', '—', 'Program talkshow hasil kerja sama dengan CBN yang menghadirkan solusi praktis untuk berbagai permasalahan kehidupan sehari-hari.', 'assets/images/programs/CBN---Solusi-1789098886.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "Cek Jadwal Mingguan", "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),

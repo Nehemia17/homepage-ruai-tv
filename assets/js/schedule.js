@@ -6,12 +6,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
   const daysList = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
-  const STORAGE_KEY = 'ruai_tv_programs_data';
-  const API_URL = 'api/programs.php';
 
   let programsData = [];
 
-  // ─── 1. Load Programs Data (Supabase -> MySQL API -> localStorage -> programs.json) ───
+  // ─── 1. Load Programs Data (Supabase -> programs.json) ───
   if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
     try {
       const sbData = await window.RuaiSupabase.getPrograms();
@@ -23,27 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } catch (e) {
       console.warn('Supabase fetch failed in schedule.js:', e);
-    }
-  }
-
-  if (!programsData || programsData.length === 0) {
-    try {
-      const res = await fetch(API_URL);
-      if (res.ok) {
-        const apiData = await res.json();
-        if (Array.isArray(apiData) && apiData.length > 0) {
-          programsData = apiData;
-        }
-      }
-    } catch (e) {}
-  }
-
-  if (!programsData || programsData.length === 0) {
-    const localData = localStorage.getItem(STORAGE_KEY);
-    if (localData) {
-      try {
-        programsData = JSON.parse(localData);
-      } catch (e) {}
     }
   }
 

@@ -17,12 +17,19 @@ python -m http.server 3000
 
 Buka browser: **http://localhost:3000**
 
-### Mode Penuh dengan Backend PHP + MySQL (XAMPP)
+### Mode Produksi (Vercel + Supabase)
 
-1. Pastikan **XAMPP** sudah terinstall dan **Apache + MySQL** dalam status **Start**.
-2. Letakkan folder proyek ini di dalam `C:/xampp/htdocs/`.
-3. Import database: buka **phpMyAdmin** → buat database `ruai_tv` → import file [`database/ruai_tv.sql`](database/ruai_tv.sql).
-4. Buka browser: **http://localhost/Homepage%20Statis%20Ruai-TV/**
+Website di-deploy ke **Vercel**; data program, login admin, dan banner memakai **Supabase**.
+Kredensial publik (URL + anon key) ada di [`assets/js/supabase-config.js`](assets/js/supabase-config.js).
+
+Setup Supabase (sekali saja, di SQL Editor, berurutan):
+
+1. [`database/supabase_schema.sql`](database/supabase_schema.sql) — tabel `programs`, RLS, bucket `banners`, seed data. **Jangan dijalankan ulang** pada database yang sudah berjalan (seed menimpa data dengan id yang sama).
+2. [`database/supabase_security.sql`](database/supabase_security.sql) — policy RLS: publik hanya baca, hanya admin yang bisa tulis/upload. Aman dijalankan ulang.
+3. Buat akun admin: **Authentication → Users → Add user** (centang *Auto Confirm User*), lalu jalankan `UPDATE` di LANGKAH 5 file security dengan email tersebut agar akun diberi `app_metadata.role = 'admin'`.
+4. Nonaktifkan pendaftaran publik: **Authentication → Sign In / Providers → matikan "Allow new users to sign up"**. (Policy sudah menolak non-admin, ini lapisan tambahan.)
+
+---
 
 ---
 
@@ -48,19 +55,18 @@ Buka browser: **http://localhost:3000**
 Akses pengelola tersedia di `/admin/login.html`
 
 Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
-Jika menggunakan XAMPP: **http://localhost/Homepage%20Statis%20Ruai-TV/admin/login.html**
 
 ### Fitur Admin Panel
 
 | Fitur | Keterangan |
 |---|---|
-| **Login Page** | Halaman login dengan session guard, toggle show/hide password, SweetAlert2 |
+| **Login Page** | Login email + password via Supabase Auth, sesi diverifikasi ke server, hanya role `admin` |
 | **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel 5 program terbaru |
 | **Kelola Program** | CRUD lengkap: tambah, edit, hapus, toggle aktif/arsip |
-| **Upload Banner** | Upload gambar banner via PHP API (XAMPP) atau base64 fallback (mode statis) |
+| **Upload Banner** | Crop 16:9, kompres WebP ≤ 100 KB, upload ke Supabase Storage (khusus admin) |
 | **Video Promo** | Input link YouTube bumper promosi per program |
 | **Jadwal Tayang** | Input jam & hari tayang untuk slot Pagi, Siang/Sore, dan Malam |
-| **MySQL Sync** | Sync otomatis ke MySQL API, fallback ke localStorage, fallback ke programs.json |
+| **Sinkron Supabase** | Semua perubahan langsung ke database; gagal simpan ditampilkan sebagai error, bukan sukses palsu |
 | **Notifikasi** | Konfirmasi hapus, logout, dan toast notifikasi via SweetAlert2 |
 
 ---
@@ -72,6 +78,8 @@ Homepage Statis Ruai-TV/
 │
 ├── index.html                  # Halaman utama publik
 ├── .gitignore
+├── .vercelignore               # File yang tidak ikut ter-deploy
+├── vercel.json                 # Header keamanan & cache
 ├── README.md
 │
 ├── admin/                      # Admin Panel
@@ -84,20 +92,9 @@ Homepage Statis Ruai-TV/
 │           ├── admin.js        # Logika CRUD, auth guard, SweetAlert2
 │           └── login.js        # Logika autentikasi & session
 │
-├── api/                        # REST API Backend (PHP)
-│   ├── db.php                  # Koneksi PDO MySQL
-│   ├── programs.php            # CRUD API: GET / POST / PUT / DELETE
-│   ├── upload.php              # Upload gambar banner
-│   └── login.php               # Autentikasi admin
-│
-├── database/
-│   └── ruai_tv.sql             # Schema MySQL + data program + tabel users
-│
 ├── includes/                   # Komponen modular (dimuat via JS fetch)
 │   ├── navbar.html             # Header / navigasi + search bar
 │   └── footer.html             # Footer
-│
-├── scratch/                    # Script utilitas sementara (tidak untuk produksi)
 │
 └── assets/
     ├── css/
@@ -106,7 +103,9 @@ Homepage Statis Ruai-TV/
     ├── js/
     │   ├── main.js             # Loader komponen, navbar scroll, live status checker
     │   ├── catalog.js          # Render grid program, filter, pencarian, modal detail
-    │   └── schedule.js         # Render tabel jadwal siaran mingguan dinamis
+    │   ├── schedule.js         # Render tabel jadwal siaran mingguan dinamis
+    │   ├── supabase-config.js  # URL & anon key Supabase (publik)
+    │   └── supabase-client.js  # Client Supabase: auth, CRUD, storage
     │
     ├── data/
     │   └── programs.json       # Data program fallback (flat file, offline mode)
@@ -123,27 +122,27 @@ Homepage Statis Ruai-TV/
 | Layer | Teknologi |
 |---|---|
 | **Frontend** | HTML5, CSS3 (Vanilla), JavaScript ES6+ |
-| **Backend** | PHP 8+ (REST API, PDO) |
-| **Database** | MySQL 8 via XAMPP |
+| **Backend** | Supabase (Auth, PostgREST, Storage) |
+| **Database** | PostgreSQL (Supabase) dengan Row Level Security |
 | **Font** | Google Fonts — Inter |
 | **Notifikasi** | SweetAlert2 |
-| **Dev Server** | Python HTTP Server (mode statis) / Apache XAMPP (mode penuh) |
+| **Hosting** | Vercel (static) / Python HTTP Server (lokal) |
 
 ---
 
 ## Arsitektur Data
 
-Website menggunakan sistem fallback 3 lapis agar tetap berfungsi dalam kondisi apapun:
+Data program dibaca publik dari Supabase, dengan cadangan statis agar situs tetap tampil:
 
 ```
-1. MySQL REST API (api/programs.php)   → data terkini dari database
+1. Supabase (tabel programs)           → data terkini
         |
-        v (jika API tidak tersedia)
-2. localStorage                        → cache dari sesi sebelumnya
-        |
-        v (jika localStorage kosong)
-3. assets/data/programs.json           → data statis bawaan
+        v (jika gagal / kosong)
+2. assets/data/programs.json           → data statis bawaan
 ```
+
+Penulisan data hanya lewat Admin Panel dan hanya diterima Supabase jika
+JWT pengirim memiliki `app_metadata.role = 'admin'` (ditegakkan oleh RLS, bukan oleh JavaScript).
 
 ---
 
@@ -199,7 +198,7 @@ Telp  : (+62 561) 884524
 - [x] Jadwal tayang per slot (Pagi / Siang / Malam) dengan auto-check
 - [x] Login page admin dengan session guard & SweetAlert2
 - [x] Link live streaming diperbarui ke channel resmi Ruai TV
-- [ ] Migrasi ke Supabase (produksi cloud)
+- [x] Migrasi ke Supabase (produksi cloud) + login Supabase Auth & RLS
 - [ ] Halaman detail program per URL slug
 
 ---
