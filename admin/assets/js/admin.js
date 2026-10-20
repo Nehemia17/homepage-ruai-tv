@@ -371,6 +371,7 @@
     const manualInput   = document.getElementById('form-thumb-manual');
     const badgeFormat   = document.getElementById('preview-badge-format');
     const badgeSize     = document.getElementById('preview-badge-size');
+    const badgeRatio    = document.getElementById('preview-badge-ratio');
 
     if (!previewBox || !emptyDropzone) return;
 
@@ -384,6 +385,7 @@
       emptyDropzone.style.display = 'none';
 
       if (meta) {
+        if (badgeRatio) badgeRatio.textContent = meta.ratio || '16:9';
         if (badgeFormat) badgeFormat.textContent = meta.format || 'WEBP';
         if (badgeSize) badgeSize.textContent = meta.sizeKB ? `${meta.sizeKB} KB` : '≤ 100 KB';
       } else {
@@ -401,8 +403,27 @@
     }
   }
 
-  // ─── Interactive 16:9 Cropper Modal ───
+  // ─── Interactive Cropper Modal (16:9 terkunci atau bebas) ───
+  const CROP_RATIO_LOCKED = 16 / 9;
   let cropperInstance = null;
+  let cropRatioMode = '16:9'; // '16:9' | 'free'
+
+  function setCropRatio(mode) {
+    cropRatioMode = mode === 'free' ? 'free' : '16:9';
+    document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
+      const active = btn.dataset.ratio === cropRatioMode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+    const info = document.getElementById('crop-info-ratio');
+    if (info) {
+      info.textContent = cropRatioMode === 'free'
+        ? 'Bebas (sesuai potongan Anda)'
+        : '16:9 (Sesuai Card Ruai TV)';
+    }
+    // NaN = tanpa kunci rasio di Cropper.js
+    cropperInstance?.setAspectRatio(cropRatioMode === 'free' ? NaN : CROP_RATIO_LOCKED);
+  }
 
   function openCropModal(imageSrc) {
     const cropModal = document.getElementById('crop-modal');
@@ -414,6 +435,7 @@
       cropperInstance = null;
     }
 
+    setCropRatio('16:9');
     cropImg.src = imageSrc;
     cropModal.classList.add('active');
 
@@ -421,7 +443,7 @@
       if (cropperInstance) cropperInstance.destroy();
       if (typeof Cropper !== 'undefined') {
         cropperInstance = new Cropper(cropImg, {
-          aspectRatio: 16 / 9,
+          aspectRatio: cropRatioMode === 'free' ? NaN : CROP_RATIO_LOCKED,
           viewMode: 1,
           dragMode: 'move',
           autoCropArea: 0.95,
@@ -467,6 +489,10 @@
     closeBtn?.addEventListener('click', closeCropModal);
     cancelBtn?.addEventListener('click', closeCropModal);
 
+    document.querySelectorAll('.crop-ratio-btn').forEach(btn => {
+      btn.addEventListener('click', () => setCropRatio(btn.dataset.ratio));
+    });
+
     zoomInBtn?.addEventListener('click', () => cropperInstance?.zoom(0.1));
     zoomOutBtn?.addEventListener('click', () => cropperInstance?.zoom(-0.1));
     rotLeftBtn?.addEventListener('click', () => cropperInstance?.rotate(-90));
@@ -481,12 +507,12 @@
       applyBtn.disabled = true;
 
       try {
-        // Output canvas in 16:9 aspect ratio standard (960 x 540)
-        const canvas = cropperInstance.getCroppedCanvas({
-          width: 960,
-          height: 540,
-          imageSmoothingQuality: 'high'
-        });
+        // 16:9 -> output baku 960 x 540. Bebas -> ikuti bentuk potongan,
+        // sisi terpanjang dibatasi 1280 px (tidak pernah di-upscale).
+        const isFree = cropRatioMode === 'free';
+        const canvas = cropperInstance.getCroppedCanvas(isFree
+          ? { maxWidth: 1280, maxHeight: 1280, imageSmoothingQuality: 'high' }
+          : { width: 960, height: 540, imageSmoothingQuality: 'high' });
 
         const { blob, ext, format, sizeKB } = await compressToWebPUnder100KB(canvas);
 
@@ -498,7 +524,7 @@
         showToast(`Mengunggah banner (${sizeKB} KB, ${format})...`, 'info');
 
         const publicUrl = await window.RuaiSupabase.uploadBanner(blob, cleanFileName);
-        updateBannerPreview(publicUrl, { format, sizeKB });
+        updateBannerPreview(publicUrl, { format, sizeKB, ratio: cropRatioMode === 'free' ? 'BEBAS' : '16:9' });
         showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
 
         closeCropModal();

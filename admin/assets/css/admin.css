@@ -1233,13 +1233,33 @@ body.login-page-body {
   border-color: #CBD5E1;
 }
 
-.crop-ratio-badge {
+.crop-ratio-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: #E2E8F0;
+  border-radius: 20px;
+}
+
+.crop-ratio-btn {
+  padding: 4px 12px;
   font-size: 11px;
   font-weight: 700;
+  color: #475569;
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-ratio-btn:hover {
   color: #1E293B;
-  background: #E2E8F0;
-  padding: 4px 10px;
-  border-radius: 20px;
+}
+
+.crop-ratio-btn.active {
+  color: #FFFFFF;
+  background: var(--primary, #DC2626);
 }
 
 .crop-info-box {

@@ -187,14 +187,14 @@
             </div>
 
             <div class="form-group full banner-upload-section">
-              <label>Foto Banner / Thumbnail Program <span style="color:#64748B; font-size:12px; font-weight:normal;">(Rasio 16:9 &bull; WebP &le; 100 KB)</span></label>
+              <label>Foto Banner / Thumbnail Program <span style="color:#64748B; font-size:12px; font-weight:normal;">(Rasio 16:9 / bebas &bull; WebP &le; 100 KB)</span></label>
               
               <!-- Container Preview Banner (Aktif jika ada gambar) -->
               <div id="banner-preview-box" class="banner-preview-box" style="display:none;">
                 <div class="banner-preview-card">
                   <img id="banner-preview-img" src="" alt="Preview Banner" class="banner-preview-thumb" />
                   <div class="banner-preview-badges">
-                    <span class="preview-badge badge-ratio">16:9</span>
+                    <span class="preview-badge badge-ratio" id="preview-badge-ratio">16:9</span>
                     <span class="preview-badge badge-format" id="preview-badge-format">WEBP</span>
                     <span class="preview-badge badge-size" id="preview-badge-size">&le; 100 KB</span>
                   </div>
@@ -218,7 +218,7 @@
                   <div class="dropzone-icon">&#9635;</div>
                   <div class="dropzone-text">
                     <strong>Pilih atau Tarik File Foto Banner</strong>
-                    <span>Format: PNG, JPG, JPEG, atau WEBP. Rasio 16:9 interaktif &bull; Maks 100 KB</span>
+                    <span>Format: PNG, JPG, JPEG, atau WEBP. Rasio 16:9 atau bebas &bull; Maks 100 KB</span>
                   </div>
                   <button type="button" class="btn-dropzone-select">Pilih File Foto</button>
                 </div>
@@ -306,7 +306,7 @@
       <div class="modal-header">
         <div>
           <h3 class="modal-title">Sesuaikan &amp; Crop Foto Banner</h3>
-          <p class="crop-modal-sub">Rasio 16:9 standar program &bull; Otomatis konversi WebP &bull; Maksimal 100 KB</p>
+          <p class="crop-modal-sub">Rasio 16:9 atau bebas &bull; Otomatis konversi WebP &bull; Maksimal 100 KB</p>
         </div>
         <button type="button" class="modal-close" id="crop-modal-close-btn">&times;</button>
       </div>
@@ -341,7 +341,10 @@
             </button>
           </div>
           <div class="crop-toolbar-group">
-            <span class="crop-ratio-badge">Rasio 16:9 Terkunci</span>
+            <div class="crop-ratio-switch" role="group" aria-label="Rasio crop">
+              <button type="button" class="crop-ratio-btn active" id="crop-ratio-169" data-ratio="16:9" aria-pressed="true" title="Kunci rasio 16:9 (sesuai card program)">16:9</button>
+              <button type="button" class="crop-ratio-btn" id="crop-ratio-free" data-ratio="free" aria-pressed="false" title="Potong bebas tanpa kunci rasio">Bebas</button>
+            </div>
           </div>
         </div>
 
@@ -349,7 +352,7 @@
         <div class="crop-info-box">
           <div class="crop-info-item">
             <span class="crop-info-label">Rasio Aspek:</span>
-            <span class="crop-info-val">16:9 (Sesuai Card Ruai TV)</span>
+            <span class="crop-info-val" id="crop-info-ratio">16:9 (Sesuai Card Ruai TV)</span>
           </div>
           <div class="crop-info-item">
             <span class="crop-info-label">Format Output:</span>
