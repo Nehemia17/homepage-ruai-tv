@@ -15,7 +15,7 @@
 <body>
 
   <!-- ─── Sidebar ─── -->
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
     <div class="sidebar-header">
       <a href="/admin/index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
         <img src="/assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
@@ -26,28 +26,28 @@
     <nav class="sidebar-menu">
       <div class="menu-label">Navigasi Utama</div>
       <a href="/admin/index.html" class="nav-item active">
-        <span class="nav-icon nav-icon-db">DB</span>
+        <span class="nav-icon nav-icon-db"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#layout-dashboard"></use></svg></span>
         <span>Dashboard</span>
       </a>
       <a href="/admin/programs.html" class="nav-item">
-        <span class="nav-icon nav-icon-tv">TV</span>
+        <span class="nav-icon nav-icon-tv"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#tv"></use></svg></span>
         <span>Kelola Program</span>
       </a>
 
       <div class="menu-label">Pengaturan</div>
       <a href="#" class="nav-item" onclick="if(typeof Swal!=='undefined'){Swal.fire({title:'Sistem Backend',text:'Data program dan banner tersimpan di Supabase (Database & Storage). Akses tulis hanya untuk akun admin.',icon:'info',confirmButtonColor:'#DC2626'});}else{alert('Data program dan banner tersimpan di Supabase.');}return false;">
-        <span class="nav-icon nav-icon-cfg">&#9881;</span>
+        <span class="nav-icon nav-icon-cfg"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#database"></use></svg></span>
         <span>Sistem Backend</span>
       </a>
     </nav>
 
-    <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:8px;">
-      <a href="/" target="_blank" class="btn-public-site">
-        <span>&#8599;</span>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" rel="noopener" class="btn-public-site">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
         <span>Lihat Website Publik</span>
       </a>
-      <button class="btn-admin-logout" style="width:100%; padding:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#FCA5A5; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;">
-        <span>&#8594;</span>
+      <button type="button" class="btn-admin-logout">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#log-out"></use></svg>
         <span>Keluar (Logout)</span>
       </button>
     </div>
@@ -58,21 +58,25 @@
     
     <!-- Top Header -->
     <header class="admin-header">
-      <h1 class="header-title">Dashboard Pengelola</h1>
+      <div class="header-lead">
+        <button type="button" class="admin-menu-toggle" id="admin-menu-toggle" aria-label="Buka menu navigasi" aria-controls="admin-sidebar" aria-expanded="false">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#menu"></use></svg>
+        </button>
+        <h1 class="header-title">Dashboard Pengelola</h1>
+      </div>
       
       <div class="header-actions">
-        <a href="programs.html" class="btn-primary" style="text-decoration:none;">
-          <span>+</span>
-          <span>Kelola Program</span>
+        <a href="programs.html" class="btn-primary" aria-label="Kelola Program">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#plus"></use></svg>
+          <span class="btn-label">Kelola Program</span>
         </a>
-        <div class="admin-profile" style="cursor:pointer;" title="Klik untuk keluar (Logout)">
+        <div class="admin-profile" role="group" aria-label="Akun admin">
           <div class="avatar">A</div>
           <div>
             <div class="admin-name" id="admin-user-fullname">Admin Redaksi</div>
             <div class="admin-role">Ruai TV Kalbar</div>
           </div>
-          <span style="font-size:12px; opacity:0.6;" title="Logout">&#8594;</span>
-        </div>
+          </div>
       </div>
     </header>
 
@@ -86,7 +90,7 @@
             <div class="stat-label">Total Program</div>
             <div class="stat-value" id="stat-total">0</div>
           </div>
-          <div class="stat-icon total">&#9654;</div>
+          <div class="stat-icon total"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#layers"></use></svg></div>
         </div>
 
         <div class="stat-card">
@@ -94,7 +98,7 @@
             <div class="stat-label">Program Aktif Tayang</div>
             <div class="stat-value" id="stat-aktif">0</div>
           </div>
-          <div class="stat-icon aktif">&#9675;</div>
+          <div class="stat-icon aktif"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#radio"></use></svg></div>
         </div>
 
         <div class="stat-card">
@@ -102,7 +106,7 @@
             <div class="stat-label">Program Arsip</div>
             <div class="stat-value" id="stat-arsip">0</div>
           </div>
-          <div class="stat-icon arsip">&#9744;</div>
+          <div class="stat-icon arsip"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#archive"></use></svg></div>
         </div>
 
         <div class="stat-card">
@@ -110,7 +114,7 @@
             <div class="stat-label">Kategori Berita</div>
             <div class="stat-value" id="stat-berita">0</div>
           </div>
-          <div class="stat-icon news">&#9658;</div>
+          <div class="stat-icon news"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#newspaper"></use></svg></div>
         </div>
       </section>
 
@@ -118,14 +122,14 @@
       <section class="admin-card">
         <div class="card-header-bar">
           <div class="card-title-text">Program Terbaru yang Dikelola</div>
-          <a href="programs.html" class="btn-secondary" style="text-decoration:none;">Lihat Semua Program &rarr;</a>
+          <a href="programs.html" class="btn-secondary"><span>Lihat Semua Program</span><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#arrow-right"></use></svg></a>
         </div>
 
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
               <tr>
-                <th style="width: 70px;">Banner</th>
+                <th class="col-banner">Banner</th>
                 <th>Nama Program</th>
                 <th>Kategori</th>
                 <th>Status</th>
@@ -148,6 +152,7 @@
   <script src="/assets/js/supabase-config.js"></script>
   <script src="/assets/js/supabase-client.js"></script>
   <!-- Admin Script -->
+  <script src="/admin/assets/js/admin-ui.js"></script>
   <script src="/admin/assets/js/admin.js"></script>
 </body>
 </html>

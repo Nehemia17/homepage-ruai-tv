@@ -43,13 +43,10 @@
     const toggleBtn     = document.getElementById('btn-toggle-password');
 
     toggleBtn?.addEventListener('click', () => {
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleBtn.textContent = '🙈';
-      } else {
-        passwordInput.type = 'password';
-        toggleBtn.textContent = '👁️';
-      }
+      const reveal = passwordInput.type === 'password';
+      passwordInput.type = reveal ? 'text' : 'password';
+      toggleBtn.classList.toggle('is-visible', reveal);
+      toggleBtn.setAttribute('aria-label', reveal ? 'Sembunyikan password' : 'Tampilkan password');
     });
   }
 
@@ -60,7 +57,8 @@
     const alertBox  = document.getElementById('login-alert-box');
     const alertText = document.getElementById('login-alert-text');
 
-    const idleLabel = '<span>Masuk ke Admin Panel</span><span>➔</span>';
+    const arrowIcon = '<svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#arrow-right"></use></svg>';
+    const idleLabel = `<span>Masuk ke Admin Panel</span>${arrowIcon}`;
 
     const showAlert = (msg) => {
       if (typeof Swal !== 'undefined') {
@@ -101,7 +99,7 @@
         const session = await window.RuaiSupabase.signIn(email, password, remember);
         const name = session.user.fullname || email;
 
-        btnSubmit.innerHTML = '<span>Login Berhasil! ➔</span>';
+        btnSubmit.innerHTML = `<span>Login Berhasil!</span>${arrowIcon}`;
 
         if (typeof Swal !== 'undefined') {
           Swal.fire({

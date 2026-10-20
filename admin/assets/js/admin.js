@@ -6,6 +6,7 @@
 (() => {
   let programsData = [];
   const esc = window.escapeHtml;
+  const icon = (name) => window.AdminUI.icon(name);
   const LOGIN_URL = '/admin/login.html';
 
   // ─── Initializer ───
@@ -29,6 +30,10 @@
     }
     const userEl = document.getElementById('admin-user-fullname');
     if (userEl) userEl.textContent = user.fullname || user.email;
+    const profileEl = document.querySelector('.admin-profile');
+    if (profileEl && user.email) profileEl.title = user.email;
+    const avatarEl = document.querySelector('.admin-profile .avatar');
+    if (avatarEl) avatarEl.textContent = (user.fullname || user.email || 'A').trim().charAt(0).toUpperCase();
     return true;
   }
 
@@ -45,7 +50,7 @@
 
   // ─── Logout Handler ───
   function initLogoutHandler() {
-    const logoutBtns = document.querySelectorAll('.btn-admin-logout, #btn-logout, .admin-profile');
+    const logoutBtns = document.querySelectorAll('.btn-admin-logout, #btn-logout');
     const doLogout = async () => {
       await window.RuaiSupabase.signOut();
       window.location.href = LOGIN_URL;
@@ -186,9 +191,9 @@
             <span class="program-slug-sub">ID: ${esc(p.id)}</span>
           </div>
         </td>
-        <td><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
-        <td><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
-        <td>${esc(p.format || '—')}</td>
+        <td data-label="Kategori"><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
+        <td data-label="Status"><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
+        <td data-label="Format">${esc(p.format || '—')}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -261,20 +266,20 @@
             <span class="program-slug-sub">Slug: ${esc(p.slug || p.id)}</span>
           </div>
         </td>
-        <td><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
-        <td>${esc(p.format || '—')}</td>
-        <td><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
-        <td>${esc(p.duration || '—')}</td>
-        <td>
+        <td data-label="Kategori"><span class="cat-pill">${esc((p.category || 'berita').toUpperCase())}</span></td>
+        <td data-label="Format">${esc(p.format || '—')}</td>
+        <td data-label="Status"><span class="status-badge ${isAktif ? 'aktif' : 'arsip'}">${isAktif ? 'Aktif' : 'Arsip'}</span></td>
+        <td data-label="Durasi">${esc(p.duration || '—')}</td>
+        <td class="cell-actions">
           <div class="table-actions">
-            <button class="btn-icon toggle" title="Ubah Status (Aktif/Arsip)" data-action="toggle" data-id="${id}">
-              ${isAktif ? '&#9646;&#9646;' : '&#9654;'}
+            <button type="button" class="btn-icon toggle" title="${isAktif ? 'Arsipkan program' : 'Aktifkan program'}" aria-label="${isAktif ? 'Arsipkan program' : 'Aktifkan program'}" data-action="toggle" data-id="${id}">
+              ${icon(isAktif ? 'pause' : 'play')}
             </button>
-            <button class="btn-icon edit" title="Edit Program" data-action="edit" data-id="${id}">
-              &#9998;
+            <button type="button" class="btn-icon edit" title="Edit Program" aria-label="Edit program" data-action="edit" data-id="${id}">
+              ${icon('pencil')}
             </button>
-            <button class="btn-icon delete" title="Hapus Program" data-action="delete" data-id="${id}">
-              &#10005;
+            <button type="button" class="btn-icon delete" title="Hapus Program" aria-label="Hapus program" data-action="delete" data-id="${id}">
+              ${icon('trash')}
             </button>
           </div>
         </td>
@@ -387,11 +392,21 @@
       if (meta) {
         if (badgeRatio) badgeRatio.textContent = meta.ratio || '16:9';
         if (badgeFormat) badgeFormat.textContent = meta.format || 'WEBP';
-        if (badgeSize) badgeSize.textContent = meta.sizeKB ? `${meta.sizeKB} KB` : '≤ 100 KB';
+        if (badgeSize) {
+          badgeSize.textContent = meta.sizeKB ? `${meta.sizeKB} KB` : '≤ 100 KB';
+          badgeSize.style.display = '';
+        }
       } else {
         const isWebp = cleanUrl.toLowerCase().includes('.webp') || cleanUrl.startsWith('data:image/webp');
         if (badgeFormat) badgeFormat.textContent = isWebp ? 'WEBP' : 'BANNER';
-        if (badgeSize) badgeSize.textContent = '16:9';
+        // Ukuran file tidak diketahui untuk banner lama; ukuran piksel dibaca dari gambar itu sendiri
+        if (badgeSize) badgeSize.style.display = 'none';
+        if (badgeRatio && previewImg) {
+          badgeRatio.textContent = '…';
+          previewImg.onload = () => {
+            badgeRatio.textContent = `${previewImg.naturalWidth}×${previewImg.naturalHeight}`;
+          };
+        }
       }
     } else {
       if (previewImg) previewImg.src = '';

@@ -17,7 +17,7 @@
 <body>
 
   <!-- ─── Sidebar ─── -->
-  <aside class="admin-sidebar">
+  <aside class="admin-sidebar" id="admin-sidebar">
     <div class="sidebar-header">
       <a href="/admin/index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
         <img src="/assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
@@ -28,28 +28,28 @@
     <nav class="sidebar-menu">
       <div class="menu-label">Navigasi Utama</div>
       <a href="/admin/index.html" class="nav-item">
-        <span class="nav-icon nav-icon-db">DB</span>
+        <span class="nav-icon nav-icon-db"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#layout-dashboard"></use></svg></span>
         <span>Dashboard</span>
       </a>
       <a href="/admin/programs.html" class="nav-item active">
-        <span class="nav-icon nav-icon-tv">TV</span>
+        <span class="nav-icon nav-icon-tv"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#tv"></use></svg></span>
         <span>Kelola Program</span>
       </a>
 
       <div class="menu-label">Pengaturan</div>
       <a href="#" class="nav-item" onclick="alert('Fitur Pengaturan Server akan aktif saat terhubung Backend Database.')">
-        <span class="nav-icon nav-icon-cfg">&#9881;</span>
+        <span class="nav-icon nav-icon-cfg"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#database"></use></svg></span>
         <span>Sistem Backend</span>
       </a>
     </nav>
 
-    <div class="sidebar-footer" style="display:flex; flex-direction:column; gap:8px;">
-      <a href="/" target="_blank" class="btn-public-site">
-        <span>&#8599;</span>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" rel="noopener" class="btn-public-site">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
         <span>Lihat Website Publik</span>
       </a>
-      <button class="btn-admin-logout" style="width:100%; padding:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#FCA5A5; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;">
-        <span>&#8594;</span>
+      <button type="button" class="btn-admin-logout">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#log-out"></use></svg>
         <span>Keluar (Logout)</span>
       </button>
     </div>
@@ -60,21 +60,25 @@
     
     <!-- Top Header -->
     <header class="admin-header">
-      <h1 class="header-title">Manajemen Katalog Program</h1>
+      <div class="header-lead">
+        <button type="button" class="admin-menu-toggle" id="admin-menu-toggle" aria-label="Buka menu navigasi" aria-controls="admin-sidebar" aria-expanded="false">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#menu"></use></svg>
+        </button>
+        <h1 class="header-title">Manajemen Katalog Program</h1>
+      </div>
       
       <div class="header-actions">
-        <button class="btn-primary" id="btn-add-program">
-          <span>+</span>
-          <span>Tambah Program Baru</span>
+        <button type="button" class="btn-primary" id="btn-add-program" aria-label="Tambah Program Baru">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#plus"></use></svg>
+          <span class="btn-label">Tambah Program Baru</span>
         </button>
-        <div class="admin-profile" style="cursor:pointer;" title="Klik untuk keluar (Logout)">
+        <div class="admin-profile" role="group" aria-label="Akun admin">
           <div class="avatar">A</div>
           <div>
             <div class="admin-name" id="admin-user-fullname">Admin Redaksi</div>
             <div class="admin-role">Ruai TV Kalbar</div>
           </div>
-          <span style="font-size:12px; opacity:0.6;" title="Logout">&#8594;</span>
-        </div>
+          </div>
       </div>
     </header>
 
@@ -84,7 +88,7 @@
       <!-- Controls & Data Table Card -->
       <section class="admin-card">
         <div class="card-header-bar">
-          <div style="display:flex; align-items:center; gap:12px;">
+          <div class="card-title-group">
             <span class="card-title-text">Daftar Program Ruai TV</span>
             <span class="cat-pill" id="program-count-badge">0 Program</span>
           </div>
@@ -92,19 +96,19 @@
           <div class="toolbar-controls">
             <!-- Search -->
             <div class="search-box">
-              <span class="search-icon">&#9906;</span>
-              <input type="text" id="search-program" placeholder="Cari nama atau deskripsi program..." />
+              <span class="search-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#search"></use></svg></span>
+              <input type="text" id="search-program" placeholder="Cari nama atau deskripsi program..." aria-label="Cari program" />
             </div>
 
             <!-- Filter Status -->
-            <select id="filter-status" class="filter-select">
+            <select id="filter-status" class="filter-select" aria-label="Filter status">
               <option value="all">Semua Status</option>
               <option value="aktif">Aktif Tayang</option>
               <option value="arsip">Arsip</option>
             </select>
 
             <!-- Filter Kategori -->
-            <select id="filter-category" class="filter-select">
+            <select id="filter-category" class="filter-select" aria-label="Filter kategori">
               <option value="all">Semua Kategori</option>
               <option value="berita">Program Berita</option>
               <option value="non-news">Non-News</option>
@@ -117,13 +121,13 @@
           <table class="admin-table">
             <thead>
               <tr>
-                <th style="width: 70px;">Banner</th>
+                <th class="col-banner">Banner</th>
                 <th>Nama Program & Slug</th>
                 <th>Kategori</th>
                 <th>Format</th>
                 <th>Status</th>
                 <th>Durasi</th>
-                <th style="width: 110px; text-align: center;">Aksi</th>
+                <th class="col-actions">Aksi</th>
               </tr>
             </thead>
             <tbody id="programs-table-body">
@@ -141,7 +145,7 @@
     <div class="modal-box">
       <div class="modal-header">
         <h3 class="modal-title" id="modal-title-text">Tambah Program Baru</h3>
-        <button class="modal-close" id="modal-close-btn">&times;</button>
+        <button type="button" class="modal-close" id="modal-close-btn" aria-label="Tutup"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#x"></use></svg></button>
       </div>
 
       <form id="program-form">
@@ -150,7 +154,7 @@
 
           <div class="form-grid">
             <div class="form-group full">
-              <label for="form-title">Nama / Judul Program <span style="color:red">*</span></label>
+              <label for="form-title">Nama / Judul Program <span class="req">*</span></label>
               <input type="text" id="form-title" placeholder="Contoh: Warta Ruai" required />
             </div>
 
@@ -186,8 +190,13 @@
               <input type="text" id="form-duration" placeholder="Contoh: 60 Menit / 30 Menit" />
             </div>
 
+            <div class="form-group">
+              <label for="form-promo-video">Link Video Bumper Promosi (YouTube)</label>
+              <input type="text" id="form-promo-video" placeholder="https://www.youtube.com/watch?v=... atau ID video" />
+            </div>
+
             <div class="form-group full banner-upload-section">
-              <label>Foto Banner / Thumbnail Program <span style="color:#64748B; font-size:12px; font-weight:normal;">(Rasio 16:9 / bebas &bull; WebP &le; 100 KB)</span></label>
+              <label>Foto Banner / Thumbnail Program <span class="label-hint">(Rasio 16:9 / bebas &bull; WebP &le; 100 KB)</span></label>
               
               <!-- Container Preview Banner (Aktif jika ada gambar) -->
               <div id="banner-preview-box" class="banner-preview-box" style="display:none;">
@@ -201,13 +210,13 @@
                 </div>
                 <div class="banner-preview-actions">
                   <button type="button" class="btn-banner-action btn-banner-recrop" id="btn-crop-existing" title="Sesuaikan / Crop Ulang Posisi Gambar">
-                    <span>&#9998;</span> Atur / Crop Ulang
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#pencil"></use></svg> Atur / Crop Ulang
                   </button>
                   <button type="button" class="btn-banner-action btn-banner-change" id="btn-trigger-upload" title="Ganti dengan File Gambar Baru">
-                    <span>&#8644;</span> Ganti Foto
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#replace"></use></svg> Ganti Foto
                   </button>
                   <button type="button" class="btn-banner-action btn-banner-delete" id="btn-remove-thumb" title="Hapus Foto Banner">
-                    <span>&#10005;</span> Hapus
+                    <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#trash"></use></svg> Hapus
                   </button>
                 </div>
               </div>
@@ -215,7 +224,7 @@
               <!-- Dropzone / Empty State Picker (Tampil jika belum ada gambar) -->
               <div id="banner-empty-dropzone" class="banner-dropzone" role="button" tabindex="0">
                 <div class="dropzone-inner">
-                  <div class="dropzone-icon">&#9635;</div>
+                  <div class="dropzone-icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#upload"></use></svg></div>
                   <div class="dropzone-text">
                     <strong>Pilih atau Tarik File Foto Banner</strong>
                     <span>Format: PNG, JPG, JPEG, atau WEBP. Rasio 16:9 atau bebas &bull; Maks 100 KB</span>
@@ -225,60 +234,52 @@
               </div>
 
               <!-- Hidden input file & path input -->
-              <input type="file" id="form-file-upload" accept="image/png,image/jpeg,image/webp,image/jpg" style="display:none;" />
+              <input type="file" id="form-file-upload" accept="image/png,image/jpeg,image/webp,image/jpg" hidden />
               <input type="hidden" id="form-thumb" />
 
-              <div class="banner-manual-path" style="margin-top: 6px;">
-                <details style="font-size: 11px; color: #64748B;">
-                  <summary style="cursor: pointer; user-select: none;">Input Path Manual / URL Langsung</summary>
-                  <div style="display:flex; gap:6px; margin-top: 6px;">
-                    <input type="text" id="form-thumb-manual" placeholder="assets/images/programs/Warta-Ruai.png" style="flex:1; font-size:12px; padding:6px 10px;" />
-                    <button type="button" id="btn-apply-manual-path" style="padding:6px 12px; font-size:12px; background:#F1F5F9; border:1px solid #CBD5E1; border-radius:6px; cursor:pointer; font-weight:600;">Terapkan</button>
+              <div class="banner-manual-path manual-path">
+                <details>
+                  <summary>Input Path Manual / URL Langsung</summary>
+                  <div class="manual-path-row">
+                    <input type="text" id="form-thumb-manual" placeholder="assets/images/programs/Warta-Ruai.png" />
+                    <button type="button" id="btn-apply-manual-path" class="btn-manual-apply">Terapkan</button>
                   </div>
                 </details>
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="form-promo-video">Link Video Bumper Promosi (YouTube)</label>
-              <input type="text" id="form-promo-video" placeholder="https://www.youtube.com/watch?v=... atau ID video" />
-            </div>
-
             <!-- Section Pengaturan Jadwal Tayang -->
-            <div class="form-group full" style="margin-top: 6px; padding: 12px 0; border-top: 1px solid var(--border-color);">
-              <label style="font-size: 13px; font-weight: 700; color: var(--primary);">Pengaturan Jam &amp; Hari Tayang</label>
-              
-              <!-- Slot Pagi -->
-              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
-                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+            <div class="form-group full sched-section">
+              <label class="sched-section-title">Pengaturan Jam &amp; Hari Tayang</label>
+
+              <div class="sched-slot">
+                <label class="sched-slot-head">
                   <input type="checkbox" id="sched-pagi-active" />
                   <span>Slot Pagi</span>
                 </label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                <div class="sched-fields">
                   <input type="text" id="sched-pagi-time" placeholder="Jam (Contoh: 07.00 – 08.00 WIB)" />
                   <input type="text" id="sched-pagi-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
                 </div>
               </div>
 
-              <!-- Slot Siang / Sore -->
-              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
-                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+              <div class="sched-slot">
+                <label class="sched-slot-head">
                   <input type="checkbox" id="sched-siang-active" />
                   <span>Slot Siang / Sore</span>
                 </label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                <div class="sched-fields">
                   <input type="text" id="sched-siang-time" placeholder="Jam (Contoh: 13.00 – 14.00 WIB)" />
                   <input type="text" id="sched-siang-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
                 </div>
               </div>
 
-              <!-- Slot Malam -->
-              <div style="background: #F8FAFC; padding: 10px 12px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border-color);">
-                <label style="display:flex; align-items:center; gap:8px; font-weight:600; cursor:pointer;">
+              <div class="sched-slot">
+                <label class="sched-slot-head">
                   <input type="checkbox" id="sched-malam-active" />
                   <span>Slot Malam</span>
                 </label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:8px;">
+                <div class="sched-fields">
                   <input type="text" id="sched-malam-time" placeholder="Jam (Contoh: 19.00 – 20.00 WIB)" />
                   <input type="text" id="sched-malam-days" placeholder="Hari (Contoh: Senin - Sabtu)" />
                 </div>
@@ -301,14 +302,14 @@
   </div>
 
   <!-- ─── Modal Crop & Compress Banner (16:9 Interaktif & WebP <= 100KB) ─── -->
-  <div class="modal-overlay" id="crop-modal" style="z-index: 1200;">
+  <div class="modal-overlay" id="crop-modal">
     <div class="modal-box crop-modal-box">
       <div class="modal-header">
         <div>
           <h3 class="modal-title">Sesuaikan &amp; Crop Foto Banner</h3>
           <p class="crop-modal-sub">Rasio 16:9 atau bebas &bull; Otomatis konversi WebP &bull; Maksimal 100 KB</p>
         </div>
-        <button type="button" class="modal-close" id="crop-modal-close-btn">&times;</button>
+        <button type="button" class="modal-close" id="crop-modal-close-btn" aria-label="Tutup"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#x"></use></svg></button>
       </div>
 
       <div class="modal-body crop-modal-body">
@@ -323,21 +324,21 @@
         <div class="crop-toolbar">
           <div class="crop-toolbar-group">
             <button type="button" class="crop-tool-btn" id="crop-btn-zoom-in" title="Perbesar (Zoom In)">
-              <span>&#43;</span> Perbesar
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#zoom-in"></use></svg> Perbesar
             </button>
             <button type="button" class="crop-tool-btn" id="crop-btn-zoom-out" title="Perkecil (Zoom Out)">
-              <span>&minus;</span> Perkecil
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#zoom-out"></use></svg> Perkecil
             </button>
           </div>
           <div class="crop-toolbar-group">
             <button type="button" class="crop-tool-btn" id="crop-btn-rotate-left" title="Putar 90 Derajat Kiri">
-              <span>&#8634;</span> Putar Kiri
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#rotate-ccw"></use></svg> Putar Kiri
             </button>
             <button type="button" class="crop-tool-btn" id="crop-btn-rotate-right" title="Putar 90 Derajat Kanan">
-              <span>&#8635;</span> Putar Kanan
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#rotate-cw"></use></svg> Putar Kanan
             </button>
             <button type="button" class="crop-tool-btn" id="crop-btn-reset" title="Kembalikan Posisi Semula">
-              <span>&#8635;</span> Reset
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#undo"></use></svg> Reset
             </button>
           </div>
           <div class="crop-toolbar-group">
@@ -382,6 +383,7 @@
   <script src="/assets/js/supabase-config.js"></script>
   <script src="/assets/js/supabase-client.js"></script>
   <!-- Admin Script -->
+  <script src="/admin/assets/js/admin-ui.js"></script>
   <script src="/admin/assets/js/admin.js"></script>
 </body>
 </html>

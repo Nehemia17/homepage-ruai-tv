@@ -37,8 +37,8 @@
         <label for="login-password">Password</label>
         <div class="login-input-wrap">
           <input type="password" id="login-password" placeholder="Masukkan password..." required autocomplete="current-password" />
-          <button type="button" class="password-toggle-btn" id="btn-toggle-password" title="Tampilkan/Sembunyikan Password" tabindex="-1">
-            &#9673;
+          <button type="button" class="password-toggle-btn" id="btn-toggle-password" title="Tampilkan/Sembunyikan Password" aria-label="Tampilkan password" tabindex="-1">
+            <svg class="icon icon-show" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#eye"></use></svg><svg class="icon icon-hide" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#eye-off"></use></svg>
           </button>
         </div>
       </div>
@@ -48,18 +48,18 @@
           <input type="checkbox" id="login-remember" checked />
           <span>Ingat Saya</span>
         </label>
-        <a href="#" style="color:#94A3B8; text-decoration:none;" id="link-forgot-pass">Lupa Password?</a>
+        <a href="#" class="login-forgot-link" id="link-forgot-pass">Lupa Password?</a>
       </div>
 
       <button type="submit" class="btn-login-submit" id="btn-login">
         <span>Masuk ke Admin Panel</span>
-        <span>&#8594;</span>
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#arrow-right"></use></svg>
       </button>
     </form>
 
     <div class="login-footer-info">
       <p>&copy; 2026 PT. Ruai Televisi — System Secured</p>
-      <p style="margin-top: 6px;"><a href="/">← Kembali ke Website Utama</a></p>
+      <p class="login-footer-link"><a href="/" class="login-back-link"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#arrow-left"></use></svg> Kembali ke Website Utama</a></p>
     </div>
   </div>
 
