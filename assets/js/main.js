@@ -84,10 +84,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // ─── 5. Hero detail button → buka modal Warta Ruai ───────
+  // ─── 5. Hero detail button → buka modal program unggulan ──
   document.getElementById('hero-detail-btn')?.addEventListener('click', () => {
     if (typeof window.openProgramModal === 'function') {
-      window.openProgramModal('warta-ruai');
+      window.openProgramModal(window.RuaiFeaturedId || 'warta-ruai');
     }
   });
 

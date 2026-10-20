@@ -91,6 +91,36 @@
     return Number(!!b?.thumbnail_url) - Number(!!a?.thumbnail_url);
   });
 
+  // ─── Hero: ikuti program unggulan ─────────────────────────
+  // Program unggulan = urutan teratas katalog (aktif & paling sering tayang sepekan).
+  // Banner-nya dipakai sebagai latar hero + kartu Prime Time; teksnya ikut programnya.
+  const applyFeaturedHero = (p) => {
+    window.RuaiFeaturedId = p.id;
+
+    const titleEl = document.getElementById('primetime-title');
+    const descEl  = document.getElementById('primetime-desc');
+    if (titleEl) titleEl.textContent = p.title;
+    if (descEl && p.description) descEl.textContent = p.description;
+
+    document.getElementById('hero-detail-btn')?.setAttribute('aria-label', `Lihat detail program ${p.title}`);
+    document.getElementById('hero-stream-btn')?.setAttribute('aria-label', `Streaming live ${p.title} di YouTube`);
+
+    if (!p.thumbnail_url) return; // tanpa banner: hero tetap polos
+
+    // Url absolut (var() di CSS memakai basis stylesheet, bukan halaman); dipasang hanya setelah gambar termuat
+    let src;
+    try { src = new URL(p.thumbnail_url, document.baseURI).href; } catch (e) { return; }
+    const probe = new Image();
+    probe.onload = () => {
+      document.documentElement.style.setProperty('--hero-image', `url(${JSON.stringify(src)})`);
+      document.getElementById('beranda')?.classList.add('has-hero-image');
+    };
+    probe.src = src;
+  };
+
+  const featuredProgram = programs.find(isAktif);
+  if (featuredProgram) applyFeaturedHero(featuredProgram);
+
   // ─── Render cards ─────────────────────────────────────────
   const grid = document.getElementById('programs-grid');
   if (!grid) return;

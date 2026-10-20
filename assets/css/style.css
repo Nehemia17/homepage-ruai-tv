@@ -286,7 +286,11 @@ body {
   background: var(--hero-image, none) center/cover no-repeat;
   opacity: 0.22;
   z-index: 0;
+  transition: opacity 0.6s ease;
 }
+
+/* Setelah banner program unggulan termuat, latar hero sedikit lebih terlihat */
+#beranda.has-hero-image .hero-bg-img { opacity: 0.38; }
 
 /* Dark gradient overlay */
 .hero-bg-img::after {
@@ -514,7 +518,22 @@ h1.hero-title em {
   font-size: 12px;
   color: rgba(255,255,255,0.4);
   line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+
+/* Kartu Prime Time memakai banner program unggulan sebagai latar bila tersedia */
+#beranda.has-hero-image .hero-primetime-card {
+  background:
+    linear-gradient(to top, rgba(12,8,9,0.96) 0%, rgba(12,8,9,0.72) 45%, rgba(12,8,9,0.12) 100%),
+    var(--hero-image) center/cover no-repeat;
+}
+
+#beranda.has-hero-image .primetime-circles > * { display: none; }
+#beranda.has-hero-image .primetime-info-desc { color: rgba(255,255,255,0.72); }
 
 
 /* ════════════════════════════════════════════════════════════
