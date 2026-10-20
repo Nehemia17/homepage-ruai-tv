@@ -495,8 +495,14 @@
     overlay?.classList.add('open');
     document.body.style.overflow = 'hidden';
     if (modalBox) modalBox.scrollTop = 0;
-    // Overlay masih visibility:hidden di frame pertama transisi, jadi fokus ditunda dua frame
-    requestAnimationFrame(() => requestAnimationFrame(() => closeBtn?.focus()));
+    // Overlay baru "visible" beberapa frame setelah kelas open dipasang (transisi), dan fokus ke elemen
+    // yang masih tersembunyi diabaikan browser. Coba lagi tiap frame sampai berhasil.
+    const focusWhenVisible = (el, tries = 20) => {
+      if (!el) return;
+      el.focus({ preventScroll: true });
+      if (document.activeElement !== el && tries > 0) requestAnimationFrame(() => focusWhenVisible(el, tries - 1));
+    };
+    requestAnimationFrame(() => focusWhenVisible(closeBtn));
   };
 
   const closeModal = () => {

@@ -67,6 +67,7 @@ Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
 | **Video Promo** | Input link YouTube bumper promosi per program |
 | **Jadwal Tayang** | Input jam & hari tayang untuk slot Pagi, Siang/Sore, dan Malam |
 | **Sinkron Supabase** | Semua perubahan langsung ke database; gagal simpan ditampilkan sebagai error, bukan sukses palsu |
+| **Sistem Backend** | Halaman status: kesehatan database & storage Supabase, validitas login admin, uji perlindungan tulis publik, kesehatan data (banner/jadwal), pemeriksaan gambar banner |
 | **Notifikasi** | Konfirmasi hapus, logout, dan toast notifikasi via SweetAlert2 |
 
 ---
@@ -86,6 +87,7 @@ Homepage Statis Ruai-TV/
 │   ├── login.html              # Halaman login admin
 │   ├── index.html              # Dashboard pengelola
 │   ├── programs.html           # Manajemen katalog program
+│   ├── system.html             # Status Sistem Backend (Supabase)
 │   └── assets/
 │       ├── css/admin.css       # Design system admin panel
 │       └── js/
@@ -99,7 +101,9 @@ Homepage Statis Ruai-TV/
     ├── js/
     │   ├── main.js             # Loader komponen, navbar scroll, live status checker
     │   ├── catalog.js          # Render grid program, filter, pencarian, modal detail
-    │   ├── schedule.js         # Render tabel jadwal siaran mingguan dinamis
+    │   ├── schedule.js         # Render tabel jadwal siaran mingguan dinamis (dari data admin)
+    │   ├── schedule-utils.js   # Aturan parsing jam/hari, dipakai katalog & jadwal
+    │   ├── fx3d.js             # Efek 3D ringan (tilt kartu, reveal); mati di layar sentuh/kurangi gerakan
     │   ├── supabase-config.js  # URL & anon key Supabase (publik)
     │   └── supabase-client.js  # Client Supabase: auth, CRUD, storage
     │

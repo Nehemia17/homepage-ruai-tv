@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistem Backend — Admin Ruai TV</title>
+  <link rel="icon" href="/assets/images/logo ruai.png" type="image/png" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Admin Stylesheet -->
+  <link rel="stylesheet" href="/admin/assets/css/admin.css" />
+</head>
+<body>
+
+  <!-- ─── Sidebar ─── -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <a href="/admin/index.html" class="sidebar-header-link" title="Ruai TV Admin Panel">
+        <img src="/assets/images/logo ruai.png" alt="Ruai TV Logo" class="sidebar-logo" />
+        <span class="sidebar-admin-badge">ADMIN</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Navigasi Utama</div>
+      <a href="/admin/index.html" class="nav-item">
+        <span class="nav-icon nav-icon-db"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#layout-dashboard"></use></svg></span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/admin/programs.html" class="nav-item">
+        <span class="nav-icon nav-icon-tv"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#tv"></use></svg></span>
+        <span>Kelola Program</span>
+      </a>
+
+      <div class="menu-label">Pengaturan</div>
+      <a href="/admin/system.html" class="nav-item active" aria-current="page">
+        <span class="nav-icon nav-icon-cfg"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#database"></use></svg></span>
+        <span>Sistem Backend</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" rel="noopener" class="btn-public-site">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
+        <span>Lihat Website Publik</span>
+      </a>
+      <button type="button" class="btn-admin-logout">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#log-out"></use></svg>
+        <span>Keluar (Logout)</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── Main Wrapper ─── -->
+  <div class="admin-wrapper">
+
+    <header class="admin-header">
+      <div class="header-lead">
+        <button type="button" class="admin-menu-toggle" id="admin-menu-toggle" aria-label="Buka menu navigasi" aria-controls="admin-sidebar" aria-expanded="false">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#menu"></use></svg>
+        </button>
+        <h1 class="header-title">Sistem Backend</h1>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="btn-primary" id="btn-recheck" aria-label="Periksa ulang">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#refresh"></use></svg>
+          <span class="btn-label">Periksa Ulang</span>
+        </button>
+        <div class="admin-profile" role="group" aria-label="Akun admin">
+          <div class="avatar">A</div>
+          <div>
+            <div class="admin-name" id="admin-user-fullname">Admin Redaksi</div>
+            <div class="admin-role">Ruai TV Kalbar</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-container">
+
+      <p class="sys-intro">
+        Status layanan yang menjalankan website: database &amp; penyimpanan banner (Supabase), login admin, dan perlindungan datanya.
+        Pemeriksaan hanya membaca data dan tidak mengubah apa pun.
+        <span class="sys-checked" id="sys-checked" aria-live="polite"></span>
+      </p>
+
+      <!-- Ringkasan status -->
+      <section class="stats-grid" aria-label="Ringkasan status sistem">
+        <div class="stat-card sys-card" id="sys-db">
+          <div class="stat-info">
+            <div class="stat-label">Database</div>
+            <div class="stat-value" data-role="value">Memeriksa…</div>
+            <div class="stat-sub" data-role="sub">&nbsp;</div>
+          </div>
+          <div class="stat-icon pending" data-role="icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#database"></use></svg></div>
+        </div>
+
+        <div class="stat-card sys-card" id="sys-storage">
+          <div class="stat-info">
+            <div class="stat-label">Penyimpanan Banner</div>
+            <div class="stat-value" data-role="value">Memeriksa…</div>
+            <div class="stat-sub" data-role="sub">&nbsp;</div>
+          </div>
+          <div class="stat-icon pending" data-role="icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#hard-drive"></use></svg></div>
+        </div>
+
+        <div class="stat-card sys-card" id="sys-auth">
+          <div class="stat-info">
+            <div class="stat-label">Login Admin</div>
+            <div class="stat-value" data-role="value">Memeriksa…</div>
+            <div class="stat-sub" data-role="sub">&nbsp;</div>
+          </div>
+          <div class="stat-icon pending" data-role="icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#user"></use></svg></div>
+        </div>
+
+        <div class="stat-card sys-card" id="sys-guard">
+          <div class="stat-info">
+            <div class="stat-label">Perlindungan Data</div>
+            <div class="stat-value" data-role="value">Memeriksa…</div>
+            <div class="stat-sub" data-role="sub">&nbsp;</div>
+          </div>
+          <div class="stat-icon pending" data-role="icon"><svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#shield-check"></use></svg></div>
+        </div>
+      </section>
+
+      <div class="sys-grid">
+        <!-- Koneksi & konfigurasi -->
+        <section class="admin-card">
+          <div class="card-header-bar">
+            <div class="card-title-text">Koneksi &amp; Konfigurasi</div>
+          </div>
+          <dl class="kv-list sys-body" id="sys-config"></dl>
+        </section>
+
+        <!-- Pemeriksaan keamanan -->
+        <section class="admin-card">
+          <div class="card-header-bar">
+            <div class="card-title-text">Pemeriksaan Keamanan</div>
+          </div>
+          <ul class="check-list sys-body" id="sys-security"></ul>
+        </section>
+      </div>
+
+      <!-- Kesehatan data -->
+      <section class="admin-card">
+        <div class="card-header-bar">
+          <div class="card-title-text">Kesehatan Data</div>
+          <button type="button" class="btn-secondary" id="btn-check-images">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#search"></use></svg>
+            <span>Periksa gambar banner</span>
+          </button>
+        </div>
+        <ul class="check-list sys-body" id="sys-health"></ul>
+        <div class="sys-body sys-images" id="sys-images" hidden></div>
+      </section>
+
+      <!-- Tautan cepat -->
+      <section class="admin-card">
+        <div class="card-header-bar">
+          <div class="card-title-text">Tautan Cepat</div>
+        </div>
+        <div class="quick-links">
+          <a class="btn-secondary" id="link-supabase" href="#" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
+            <span>Buka Supabase Dashboard</span>
+          </a>
+          <a class="btn-secondary" href="/" target="_blank" rel="noopener">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
+            <span>Lihat Website Publik</span>
+          </a>
+          <a class="btn-secondary" href="/admin/programs.html">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#tv"></use></svg>
+            <span>Kelola Program</span>
+          </a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SweetAlert2 CDN (dipakai admin.js untuk dialog logout) -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/assets/js/supabase-config.js"></script>
+  <script src="/assets/js/supabase-client.js"></script>
+  <script src="/assets/js/schedule-utils.js"></script>
+  <script src="/admin/assets/js/admin-ui.js"></script>
+  <!-- admin.js: pemeriksaan login, logout, profil (sama seperti halaman admin lain) -->
+  <script src="/admin/assets/js/admin.js"></script>
+  <script src="/admin/assets/js/system.js"></script>
+</body>
+</html>
