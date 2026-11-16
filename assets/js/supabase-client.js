@@ -26,7 +26,9 @@ window.RuaiSupabase = {
     url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
     const key = (config.anonKey || '').trim();
     const bucket = config.storageBucket || 'banners';
-    return { url, key, bucket, isConfigured: Boolean(url && key) };
+    const bannerStorage = config.bannerStorage === 'supabase' ? 'supabase' : 'bucket';
+    const bannerApi = config.bannerApi || '/api/banner';
+    return { url, key, bucket, bannerStorage, bannerApi, isConfigured: Boolean(url && key) };
   },
 
   // Header untuk request publik (baca)
@@ -321,10 +323,55 @@ window.RuaiSupabase = {
     return true;
   },
 
-  // ─── UPLOAD Banner to Storage Bucket (admin) ───
+  // ─── UPLOAD Banner (admin): ke bucket IDCloudHost atau Supabase Storage ───
   async uploadBanner(blobOrFile, filename) {
-    const { url, key, bucket, isConfigured } = this.getConfig();
+    const { bannerStorage, isConfigured } = this.getConfig();
     if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+    return bannerStorage === 'supabase'
+      ? this._uploadBannerToSupabase(blobOrFile, filename)
+      : this._uploadBannerToBucket(blobOrFile, filename);
+  },
+
+  // Bucket IDCloudHost: browser mengirim gambar ke Vercel Function /api/banner (membawa token login
+  // admin). Function memeriksa token ke Supabase, memvalidasi gambar, lalu menyimpannya ke bucket
+  // dengan kunci rahasia yang hanya ada di server.
+  async _uploadBannerToBucket(blobOrFile, filename) {
+    const { bannerApi } = this.getConfig();
+    const token = await this.getAccessToken();
+    if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');
+
+    let res;
+    try {
+      res = await fetch(bannerApi, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/octet-stream',
+          'X-Filename': String(filename || '').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80)
+        },
+        body: blobOrFile
+      });
+    } catch (e) {
+      throw new Error('Upload banner gagal: server tidak dapat dihubungi.');
+    }
+    if (!res.ok) throw await this._httpError(res, 'Upload banner gagal');
+    const data = await res.json();
+    if (!data.url) throw new Error('Upload banner gagal: server tidak mengembalikan alamat gambar.');
+    return data.url;
+  },
+
+  // Status bucket (khusus admin, baca-saja) untuk halaman Sistem Backend.
+  async bannerStorageStatus() {
+    const { bannerApi } = this.getConfig();
+    const token = await this.getAccessToken();
+    if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');
+    const res = await fetch(bannerApi, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw await this._httpError(res, 'Status bucket');
+    return res.json();
+  },
+
+  async _uploadBannerToSupabase(blobOrFile, filename) {
+    const { url, key, bucket } = this.getConfig();
 
     const token = await this.getAccessToken();
     if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');

@@ -1,7 +1,8 @@
 # File internal: tidak perlu (dan tidak boleh) bisa diakses publik
 database/
 scratch/
-api/
+backend-php/
+uploads/
 README.md
 *.txt
 .vscode/

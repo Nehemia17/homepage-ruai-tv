@@ -1,0 +1,18 @@
+# Hanya skrip endpoint (*.php di folder ini) yang boleh dibuka dari web.
+# Konfigurasi, pustaka, dan alat CLI tidak boleh diakses langsung.
+<IfModule mod_authz_core.c>
+  <FilesMatch "^(config|ruai-config)(\..*)?\.php$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "\.(sql|md|log|bak|inc|ini)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  <FilesMatch "^(config|ruai-config)(\..*)?\.php$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+Options -Indexes

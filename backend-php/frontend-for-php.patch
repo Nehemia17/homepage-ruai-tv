@@ -1,0 +1,1499 @@
+diff --git a/.gitignore b/.gitignore
+index 0f19b53..57a5ea8 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,4 +8,8 @@ Thumbs.db
+ 
+ # Editor folders
+ .vscode/
+-.idea/
+\ No newline at end of file
++.idea/
++# Konfigurasi & data lokal (jangan di-commit)
++api/config.php
++ruai-config.php
++uploads/
+diff --git a/README.md b/README.md
+index 58d96a6..7bc1202 100644
+--- a/README.md
++++ b/README.md
+@@ -8,30 +8,48 @@ Website homepage untuk **Ruai TV**, stasiun televisi lokal Kalimantan Barat yang
+ 
+ ## Cara Menjalankan
+ 
+-### Mode Statis (Tanpa Backend)
+-
+-```bash
+-cd "c:/Apps/Homepage Statis Ruai-TV"
+-python -m http.server 3000
+-```
+-
+-Buka browser: **http://localhost:3000**
+-
+-### Mode Produksi (Vercel + Supabase)
+-
+-Website di-deploy ke **Vercel**; data program, login admin, dan banner memakai **Supabase**.
+-Kredensial publik (URL + anon key) ada di [`assets/js/supabase-config.js`](assets/js/supabase-config.js).
+-
+-Setup Supabase (sekali saja, di SQL Editor, berurutan):
+-
+-1. [`database/supabase_schema.sql`](database/supabase_schema.sql) — tabel `programs`, RLS, bucket `banners`, seed data. **Jangan dijalankan ulang** pada database yang sudah berjalan (seed menimpa data dengan id yang sama).
+-2. [`database/supabase_security.sql`](database/supabase_security.sql) — policy RLS: publik hanya baca, hanya admin yang bisa tulis/upload. Aman dijalankan ulang.
+-3. Buat akun admin: **Authentication → Users → Add user** (centang *Auto Confirm User*), lalu jalankan `UPDATE` di LANGKAH 5 file security dengan email tersebut agar akun diberi `app_metadata.role = 'admin'`.
+-4. Nonaktifkan pendaftaran publik: **Authentication → Sign In / Providers → matikan "Allow new users to sign up"**. (Policy sudah menolak non-admin, ini lapisan tambahan.)
+-
+----
+-
+----
++Website ini membutuhkan backend PHP, jadi `python -m http.server` saja tidak cukup lagi.
++
++### Pengembangan Lokal (XAMPP: PHP + MariaDB)
++
++Prasyarat: PHP 8.0+ (ekstensi `pdo_mysql`, `curl`, `fileinfo`, `mbstring`), MariaDB 10.2+ / MySQL 5.7+.
++
++1. **Database** — buat database kosong (mis. `ruai_tv_dev`), lalu impor skemanya:
++   ```bash
++   mysql -uroot ruai_tv_dev < database/mariadb_schema.sql      # atau phpMyAdmin → Import
++   ```
++2. **Konfigurasi** — salin `api/config.example.php` menjadi `api/config.php` (sudah di-`.gitignore`), isi bagian `db`, dan untuk lokal pakai `'driver' => 'local'` (banner disimpan di folder `uploads/`) serta `'debug' => true`.
++3. **Data program** — isi dari JSON bawaan (atau tambahkan `--from=supabase` untuk menyalin data terkini dari Supabase lama):
++   ```bash
++   php api/tools/import-programs.php
++   ```
++4. **Akun admin** — password minimal 10 karakter:
++   ```bash
++   php api/tools/create-admin.php admin@contoh.id "Nama Admin"
++   ```
++5. **Jalankan** — dari folder proyek:
++   ```bash
++   php -S 127.0.0.1:3000 -t .
++   ```
++   Buka **http://127.0.0.1:3000**. (Server bawaan PHP bersifat satu-proses; cukup untuk pengembangan.)
++
++### Produksi (Shared Hosting IDCloudHost + Object Storage)
++
++1. **Database** — cPanel → *MySQL Databases*: buat database + user (beri semua hak). phpMyAdmin → pilih database → *Import* → [`database/mariadb_schema.sql`](database/mariadb_schema.sql).
++2. **Bucket** — di panel Object Storage IDCloudHost, buat access key, lalu pastikan bucket `storage-homepage-statis`:
++   - **dapat dibaca publik** (gambar dibuka langsung dari URL bucket), tulis tetap hanya lewat kunci;
++   - memperbolehkan **CORS GET** dari domain situs (diperlukan fitur "potong ulang" banner lama di admin).
++3. **Konfigurasi** — salin `api/config.example.php` menjadi `ruai-config.php` di **satu tingkat di atas** `public_html` (di luar web root, paling aman). Isi `db` dan `storage.s3` (`endpoint`, `access_key`, `secret_key`, `public_base_url`). Kunci ini **jangan** dimasukkan ke Git atau ke file JavaScript. Alternatif: `api/config.php` (diblokir `api/.htaccess`).
++4. **Upload situs** — isi folder proyek ke `public_html` (tidak perlu `database/`, `README.md`, `*.txt`, `.git`). `.htaccess` di root, `api/`, `admin/`, dan `database/` ikut terunggah; semuanya butuh `AllowOverride` aktif (standar di cPanel). Pasang SSL (AutoSSL) agar cookie sesi memakai flag `Secure`.
++5. **Data & akun admin** tanpa SSH — jalankan di komputer lokal, hasilnya berupa file SQL untuk phpMyAdmin hosting:
++   ```bash
++   php api/tools/import-programs.php --from=supabase --copy-images --sql=programs.sql
++   php api/tools/create-admin.php admin@contoh.id "Nama Admin" --print-sql
++   ```
++   (`--copy-images` memindahkan banner dari Supabase Storage ke bucket baru, sesuai `storage` di konfigurasi lokal yang diarahkan ke bucket asli.) Bila hosting punya Terminal/SSH, kedua perintah bisa langsung dijalankan di sana tanpa `--sql`/`--print-sql`.
++6. **Verifikasi** — login ke `/admin/login.html`, buka menu **Sistem Backend**: semua kartu harus hijau.
++
++> **Vercel:** Vercel tidak menjalankan PHP. Bila frontend tetap di Vercel dan hanya API di hosting, ubah `baseUrl` di [`assets/js/api-config.js`](assets/js/api-config.js), daftarkan domain Vercel di `cors_allowed_origins`, dan set `cookie_samesite` ke `None` (wajib HTTPS). Disarankan satu domain agar tidak perlu CORS.
+ 
+ ## Fitur Website Publik
+ 
+@@ -54,20 +72,20 @@ Setup Supabase (sekali saja, di SQL Editor, berurutan):
+ 
+ Akses pengelola tersedia di `/admin/login.html`
+ 
+-Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
++Jika menjalankan lokal: **http://127.0.0.1:3000/admin/login.html**
+ 
+ ### Fitur Admin Panel
+ 
+ | Fitur | Keterangan |
+ |---|---|
+-| **Login Page** | Login email + password via Supabase Auth, sesi diverifikasi ke server, hanya role `admin` |
++| **Login Page** | Login email + password, sesi cookie HttpOnly diverifikasi ke server, hanya role `admin` |
+ | **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel 5 program terbaru |
+ | **Kelola Program** | CRUD lengkap: tambah, edit, hapus, toggle aktif/arsip |
+-| **Upload Banner** | Crop 16:9, kompres WebP ≤ 100 KB, upload ke Supabase Storage (khusus admin) |
++| **Upload Banner** | Crop 16:9, kompres WebP ≤ 100 KB, diunggah lewat API ke Object Storage (khusus admin) |
+ | **Video Promo** | Input link YouTube bumper promosi per program |
+ | **Jadwal Tayang** | Input jam & hari tayang untuk slot Pagi, Siang/Sore, dan Malam |
+-| **Sinkron Supabase** | Semua perubahan langsung ke database; gagal simpan ditampilkan sebagai error, bukan sukses palsu |
+-| **Sistem Backend** | Halaman status: kesehatan database & storage Supabase, validitas login admin, uji perlindungan tulis publik, kesehatan data (banner/jadwal), pemeriksaan gambar banner |
++| **Sinkron Database** | Semua perubahan langsung ke database; gagal simpan ditampilkan sebagai error, bukan sukses palsu |
++| **Sistem Backend** | Halaman status: kesehatan database MariaDB & storage banner, validitas sesi admin, uji perlindungan tulis publik, kesehatan data (banner/jadwal), pemeriksaan gambar banner |
+ | **Notifikasi** | Konfirmasi hapus, logout, dan toast notifikasi via SweetAlert2 |
+ 
+ ---
+@@ -78,34 +96,49 @@ Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
+ Homepage Statis Ruai-TV/
+ │
+ ├── index.html                  # Halaman utama publik
++├── .htaccess                   # Header keamanan, cache, blokir berkas internal (Apache)
+ ├── .gitignore
+-├── .vercelignore               # File yang tidak ikut ter-deploy
+-├── vercel.json                 # Header keamanan & cache
++├── .vercelignore               # (lama) File yang tidak ikut ter-deploy di Vercel
++├── vercel.json                 # (lama) Header keamanan & cache untuk Vercel
+ ├── README.md
+ │
++├── api/                        # Backend PHP
++│   ├── config.example.php      # Contoh konfigurasi (salin → config.php atau ../ruai-config.php)
++│   ├── auth.php                # POST login / logout, GET me
++│   ├── programs.php            # GET publik; POST/PATCH/DELETE khusus admin
++│   ├── upload.php              # Upload banner → Object Storage (khusus admin)
++│   ├── health.php              # Status database & storage (khusus admin)
++│   ├── lib/                    # Inti: bootstrap, http, auth, programs, storage (S3/lokal)
++│   └── tools/                  # Alat CLI: create-admin.php, import-programs.php
++│
++├── database/
++│   ├── mariadb_schema.sql      # Skema MariaDB/MySQL (aman dijalankan ulang)
++│   └── legacy/                 # Arsip Supabase (acuan migrasi, tidak dipakai lagi)
++│
+ ├── admin/                      # Admin Panel
+ │   ├── login.html              # Halaman login admin
+ │   ├── index.html              # Dashboard pengelola
+ │   ├── programs.html           # Manajemen katalog program
+-│   ├── system.html             # Status Sistem Backend (Supabase)
++│   ├── system.html             # Status Sistem Backend (database, storage, sesi)
+ │   └── assets/
+ │       ├── css/admin.css       # Design system admin panel
+ │       └── js/
+ │           ├── admin.js        # Logika CRUD, auth guard, SweetAlert2
+-│           └── login.js        # Logika autentikasi & session
++│           ├── login.js        # Logika login
++│           └── system.js       # Pemeriksaan halaman Sistem Backend
+ │
+ └── assets/
+     ├── css/
+     │   └── style.css           # Seluruh styling frontend (CSS murni)
+     │
+     ├── js/
+-    │   ├── main.js             # Loader komponen, navbar scroll, live status checker
++    │   ├── main.js             # Navbar scroll, live status checker
+     │   ├── catalog.js          # Render grid program, filter, pencarian, modal detail
+     │   ├── schedule.js         # Render tabel jadwal siaran mingguan dinamis (dari data admin)
+     │   ├── schedule-utils.js   # Aturan parsing jam/hari, dipakai katalog & jadwal
+     │   ├── fx3d.js             # Efek 3D ringan (tilt kartu, reveal); mati di layar sentuh/kurangi gerakan
+-    │   ├── supabase-config.js  # URL & anon key Supabase (publik)
+-    │   └── supabase-client.js  # Client Supabase: auth, CRUD, storage
++    │   ├── api-config.js       # Alamat API (publik, tanpa rahasia)
++    │   └── api-client.js       # Client API: login, CRUD program, upload banner
+     │
+     ├── data/
+     │   └── programs.json       # Data program fallback (flat file, offline mode)
+@@ -122,27 +155,40 @@ Homepage Statis Ruai-TV/
+ | Layer | Teknologi |
+ |---|---|
+ | **Frontend** | HTML5, CSS3 (Vanilla), JavaScript ES6+ |
+-| **Backend** | Supabase (Auth, PostgREST, Storage) |
+-| **Database** | PostgreSQL (Supabase) dengan Row Level Security |
++| **Backend** | PHP 8.0+ (tanpa framework / Composer), folder `api/` |
++| **Database** | MariaDB 10.2+ / MySQL 5.7+ (skema: `database/mariadb_schema.sql`) |
++| **Storage banner** | Object Storage S3-kompatibel IDCloudHost (tanda tangan AWS SigV4 via cURL) |
+ | **Font** | Google Fonts — Inter |
+ | **Notifikasi** | SweetAlert2 |
+-| **Hosting** | Vercel (static) / Python HTTP Server (lokal) |
++| **Hosting** | Shared hosting IDCloudHost (Apache + PHP) / `php -S` + XAMPP (lokal) |
+ 
+ ---
+ 
+ ## Arsitektur Data
+ 
+-Data program dibaca publik dari Supabase, dengan cadangan statis agar situs tetap tampil:
++```
++Browser ──► /api/*.php (PHP) ──► MariaDB/MySQL   (program, akun admin, sesi)
++                      └───────► Object Storage S3 (file banner, bucket storage-homepage-statis)
++```
++
++Data program dibaca publik dari API, dengan cadangan statis agar situs tetap tampil:
+ 
+ ```
+-1. Supabase (tabel programs)           → data terkini
++1. GET /api/programs.php (tabel programs)  → data terkini
+         |
+         v (jika gagal / kosong)
+-2. assets/data/programs.json           → data statis bawaan
++2. assets/data/programs.json               → data statis bawaan
+ ```
+ 
+-Penulisan data hanya lewat Admin Panel dan hanya diterima Supabase jika
+-JWT pengirim memiliki `app_metadata.role = 'admin'` (ditegakkan oleh RLS, bukan oleh JavaScript).
++Hak akses ditegakkan **di server** (`api/lib/auth.php`), bukan di JavaScript:
++
++- Baca daftar program: publik.
++- Tambah / ubah / hapus program dan upload banner: wajib sesi admin.
++- Sesi = cookie `HttpOnly` + `SameSite=Strict` (token acak, hanya hash-nya disimpan di database), ditambah token CSRF dan pemeriksaan Origin untuk setiap permintaan tulis.
++- Input divalidasi di server (tipe, panjang, URL `http(s)` saja, bentuk jadwal); query memakai prepared statement.
++- Upload dicek dari isi file (bukan ekstensi): hanya WebP/JPEG/PNG, maks. 1 MB, maks. 4096 px.
++- Login dibatasi 5 percobaan gagal / 15 menit per pasangan IP + email.
++- Kunci bucket dan password database hanya ada di konfigurasi server (`api/config.php` atau `../ruai-config.php`), tidak pernah dikirim ke browser.
+ 
+ ---
+ 
+@@ -199,6 +245,7 @@ Telp  : (+62 561) 884524
+ - [x] Login page admin dengan session guard & SweetAlert2
+ - [x] Link live streaming diperbarui ke channel resmi Ruai TV
+ - [x] Migrasi ke Supabase (produksi cloud) + login Supabase Auth & RLS
++- [x] Migrasi dari Supabase ke backend PHP + MariaDB + Object Storage S3 (shared hosting IDCloudHost)
+ - [ ] Halaman detail program per URL slug
+ 
+ ---
+diff --git a/admin/assets/js/admin.js b/admin/assets/js/admin.js
+index 499755a..807ee3e 100644
+--- a/admin/assets/js/admin.js
++++ b/admin/assets/js/admin.js
+@@ -1,6 +1,6 @@
+ /* ============================================================
+    RUAI TV — Admin Panel Logic (admin.js)
+-   Backend: Supabase (Auth, Database, Storage)
++   Backend: API PHP (/api) — login, database MariaDB, storage banner
+    ============================================================ */
+ 
+ (() => {
+@@ -21,9 +21,9 @@
+   });
+ 
+   // ─── Auth Guard & Session ───
+-  // Sesi diverifikasi ke server Supabase (bukan sekadar flag di browser).
++  // Sesi diverifikasi ke server (cookie HttpOnly), bukan sekadar flag di browser.
+   async function checkAuthGuard() {
+-    const user = window.RuaiSupabase ? await window.RuaiSupabase.verifySession() : null;
++    const user = window.RuaiAPI ? await window.RuaiAPI.verifySession() : null;
+     if (!user) {
+       window.location.href = LOGIN_URL;
+       return false;
+@@ -41,7 +41,7 @@
+   function handleAuthFailure(err) {
+     if (err && err.code === 'AUTH_REQUIRED') {
+       showToast('Sesi login berakhir. Mengarahkan ke halaman login...', 'error');
+-      window.RuaiSupabase.clearSession();
++      window.RuaiAPI.clearSession();
+       setTimeout(() => { window.location.href = LOGIN_URL; }, 1200);
+       return true;
+     }
+@@ -52,7 +52,7 @@
+   function initLogoutHandler() {
+     const logoutBtns = document.querySelectorAll('.btn-admin-logout, #btn-logout');
+     const doLogout = async () => {
+-      await window.RuaiSupabase.signOut();
++      await window.RuaiAPI.signOut();
+       window.location.href = LOGIN_URL;
+     };
+ 
+@@ -80,11 +80,11 @@
+     });
+   }
+ 
+-  // ─── Load Programs Data (sumber tunggal: Supabase) ───
++  // ─── Load Programs Data (sumber tunggal: API / database) ───
+   async function loadPrograms() {
+-    const sbData = await window.RuaiSupabase.getPrograms();
++    const sbData = await window.RuaiAPI.getPrograms();
+     if (!Array.isArray(sbData)) {
+-      showToast('Gagal memuat data program dari Supabase. Muat ulang halaman.', 'error');
++      showToast('Gagal memuat data program dari server. Muat ulang halaman.', 'error');
+       programsData = [];
+       return;
+     }
+@@ -110,8 +110,7 @@
+       promo_video_url: p.promo_video_url || null,
+       youtube_live_url: p.youtube_live_url,
+       schedule_json: p.schedule,
+-      featured: Boolean(p.featured),
+-      updated_at: new Date().toISOString()
++      featured: Boolean(p.featured)
+     };
+   }
+ 
+@@ -299,7 +298,7 @@
+ 
+     const nextStatus = p.status === 'aktif' ? 'arsip' : 'aktif';
+     try {
+-      await window.RuaiSupabase.updateProgram(id, { status: nextStatus });
++      await window.RuaiAPI.updateProgram(id, { status: nextStatus });
+     } catch (err) {
+       if (handleAuthFailure(err)) return;
+       showToast(`Gagal mengubah status: ${err.message}`, 'error');
+@@ -475,6 +474,11 @@
+     };
+ 
+     cropImg.onload = initInstance;
++    // Banner di bucket lain domain hanya bisa dipotong ulang bila bucket mengizinkan CORS.
++    cropImg.onerror = () => {
++      closeCropModal();
++      showToast('Banner ini tidak dapat dimuat untuk dipotong ulang. Unggah ulang file gambar aslinya, atau minta Administrator IT mengaktifkan CORS pada bucket.', 'error');
++    };
+     if (cropImg.complete) {
+       initInstance();
+     }
+@@ -538,7 +542,7 @@
+ 
+         showToast(`Mengunggah banner (${sizeKB} KB, ${format})...`, 'info');
+ 
+-        const publicUrl = await window.RuaiSupabase.uploadBanner(blob, cleanFileName);
++        const publicUrl = await window.RuaiAPI.uploadBanner(blob, cleanFileName);
+         updateBannerPreview(publicUrl, { format, sizeKB, ratio: cropRatioMode === 'free' ? 'BEBAS' : '16:9' });
+         showToast(`Banner berhasil diunggah (${sizeKB} KB, ${format})!`, 'success');
+ 
+@@ -837,7 +841,7 @@
+     }
+ 
+     try {
+-      const saved = await window.RuaiSupabase.upsertProgram(toDbRow(draft));
++      const saved = await window.RuaiAPI.upsertProgram(toDbRow(draft));
+       const stored = { ...draft, ...saved, schedule: saved.schedule_json || draft.schedule };
+       if (isEdit) {
+         programsData = programsData.map(x => (x.id === stored.id ? stored : x));
+@@ -863,7 +867,7 @@
+ 
+     const doDelete = async () => {
+       try {
+-        await window.RuaiSupabase.deleteProgram(id);
++        await window.RuaiAPI.deleteProgram(id);
+       } catch (err) {
+         if (handleAuthFailure(err)) return;
+         showToast(`Gagal menghapus program: ${err.message}`, 'error');
+diff --git a/admin/assets/js/login.js b/admin/assets/js/login.js
+index 49046d9..42770d3 100644
+--- a/admin/assets/js/login.js
++++ b/admin/assets/js/login.js
+@@ -1,13 +1,13 @@
+ /* ============================================================
+    RUAI TV — Admin Login Logic (login.js)
+-   Autentikasi via Supabase Auth (email + password)
++   Autentikasi via API PHP (email + password, cookie sesi HttpOnly)
+    ============================================================ */
+ 
+ (() => {
+   // 1. Redirect jika sudah punya sesi yang valid di server
+   (async () => {
+-    if (!window.RuaiSupabase?.getSession()) return;
+-    const user = await window.RuaiSupabase.verifySession();
++    if (!window.RuaiAPI?.getSession()) return;
++    const user = await window.RuaiAPI.verifySession();
+     if (user) window.location.href = '/admin/index.html';
+   })();
+ 
+@@ -22,11 +22,11 @@
+     const forgotBtn = document.getElementById('link-forgot-pass');
+     forgotBtn?.addEventListener('click', (e) => {
+       e.preventDefault();
+-      const msg = 'Reset password dilakukan oleh pemilik project Supabase: Dashboard → Authentication → Users → pilih akun → Send password recovery / Reset password.';
++      const msg = 'Hubungi Administrator IT Redaksi Ruai TV untuk mengatur ulang password Anda.';
+       if (typeof Swal !== 'undefined') {
+         Swal.fire({
+           title: 'Bantuan Lupa Password',
+-          html: 'Hubungi <strong>Administrator IT Redaksi Ruai TV</strong>. Reset password dilakukan dari dashboard Supabase (Authentication → Users).',
++          html: 'Hubungi <strong>Administrator IT Redaksi Ruai TV</strong> untuk mengatur ulang password Anda.',
+           icon: 'info',
+           confirmButtonColor: '#DC2626',
+           confirmButtonText: 'Saya Mengerti'
+@@ -96,7 +96,7 @@
+       btnSubmit.innerHTML = '<span>Memverifikasi...</span>';
+ 
+       try {
+-        const session = await window.RuaiSupabase.signIn(email, password, remember);
++        const session = await window.RuaiAPI.signIn(email, password, remember);
+         const name = session.user.fullname || email;
+ 
+         btnSubmit.innerHTML = `<span>Login Berhasil!</span>${arrowIcon}`;
+diff --git a/admin/assets/js/system.js b/admin/assets/js/system.js
+index 0faec5d..61959a3 100644
+--- a/admin/assets/js/system.js
++++ b/admin/assets/js/system.js
+@@ -1,13 +1,13 @@
+ /* ============================================================
+    RUAI TV — Halaman Sistem Backend (system.js)
+-   Memantau Supabase: database, storage, login admin, perlindungan
+-   data, dan kesehatan data program. Semua pemeriksaan bersifat
+-   baca-saja. Pemeriksaan login/logout ditangani admin.js.
++   Memantau backend PHP: database MariaDB, storage banner, login admin,
++   perlindungan data, dan kesehatan data program. Semua pemeriksaan
++   bersifat baca-saja. Pemeriksaan login/logout ditangani admin.js.
+    ============================================================ */
+ 
+ (() => {
+   const esc = window.escapeHtml;
+-  const S = window.RuaiSupabase;
++  const S = window.RuaiAPI;
+   const icon = (name) => window.AdminUI.icon(name);
+   const $ = (id) => document.getElementById(id);
+ 
+@@ -32,10 +32,33 @@
+   const formatDateTime = (date) =>
+     date.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+ 
+-  const maskKey = (key) => (key ? `${key.slice(0, 14)}••••••••` : '—');
++  // Gambar dimuat lewat <img> (bukan fetch) supaya pemeriksaan tetap jalan untuk
++  // gambar di domain lain tanpa perlu CORS. Hanya bisa tahu "termuat" atau "gagal".
++  const probeImage = (src, timeoutMs = 12000) => new Promise((resolve) => {
++    const img = new Image();
++    let finished = false;
++    const finish = (ok) => {
++      if (finished) return;
++      finished = true;
++      clearTimeout(timer);
++      img.onload = img.onerror = null;
++      resolve(ok);
++    };
++    const timer = setTimeout(() => finish(false), timeoutMs);
++    img.onload = () => finish(true);
++    img.onerror = () => finish(false);
++    img.src = src;
++  });
++
++  const absoluteUrl = (u) => {
++    try { return new URL(u, location.origin + '/').href; } catch (e) { return u; }
++  };
+ 
+-  const projectRef = (url) => {
+-    try { return new URL(url).hostname.split('.')[0]; } catch (e) { return ''; }
++  const storageLabel = (st) => {
++    if (!st) return '—';
++    return st.driver === 's3'
++      ? `Bucket S3 "${st.bucket}"${st.endpoint_host ? ` @ ${st.endpoint_host}` : ''}`
++      : 'Folder lokal (uploads/) — mode pengembangan';
+   };
+ 
+   // ─── Kartu ringkasan ───
+@@ -44,7 +67,7 @@
+     if (!card) return;
+     const s = STATE[state];
+     card.querySelector('[data-role="value"]').textContent = value || s.label;
+-    card.querySelector('[data-role="sub"]').textContent = sub || ' ';
++    card.querySelector('[data-role="sub"]').textContent = sub || ' ';
+     const iconBox = card.querySelector('[data-role="icon"]');
+     iconBox.className = `stat-icon ${s.cls}`;
+   };
+@@ -68,18 +91,19 @@
+     });
+   };
+ 
+-  // ─── Konfigurasi (tanpa menampilkan token apa pun) ───
+-  const renderConfig = (lastUpdate) => {
++  // ─── Konfigurasi (tanpa menampilkan kunci atau password apa pun) ───
++  const renderConfig = (lastUpdate, health) => {
+     const cfg = S.getConfig();
+     const session = S.getSession();
+     const rows = [
+-      ['Project Supabase', projectRef(cfg.url) || '—'],
+-      ['Alamat API', cfg.url || '—'],
+-      ['Bucket banner', cfg.bucket],
+-      ['Kunci publik (anon)', maskKey(cfg.key)],
++      ['Alamat API', absoluteUrl(cfg.baseUrl)],
++      ['Database', health?.database?.server ? `MariaDB/MySQL ${health.database.server}` : '—'],
++      ['Versi PHP', health?.php || '—'],
++      ['Penyimpanan banner', storageLabel(health?.storage)],
++      ['Alamat publik banner', health?.storage?.public_base_url || '—'],
+       ['Akun admin', session?.user?.email || '—'],
+       ['Peran', session?.user?.role || '—'],
+-      ['Sesi login berakhir', session ? formatDateTime(new Date(session.expires_at * 1000)) : '—'],
++      ['Sesi login berakhir', session?.expires_at ? formatDateTime(new Date(session.expires_at * 1000)) : '—'],
+       ['Perubahan data terakhir', lastUpdate ? formatDateTime(lastUpdate) : '—'],
+     ];
+     const dl = $('sys-config');
+@@ -90,65 +114,25 @@
+       row.innerHTML = `<dt>${esc(label)}</dt><dd>${esc(value)}</dd>`;
+       dl.appendChild(row);
+     });
+-
+-    const link = $('link-supabase');
+-    const ref = projectRef(cfg.url);
+-    if (link && ref) link.href = `https://supabase.com/dashboard/project/${encodeURIComponent(ref)}`;
+   };
+ 
+-  // ─── Pemeriksaan ───
+-  const checkDatabase = () => timed(async () => {
+-    const { url } = S.getConfig();
+-    const res = await fetch(`${url}/rest/v1/programs?select=id&limit=1`, { headers: S.getHeaders() });
+-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+-  });
+-
+-  // Uji proteksi tulis: kirim baris tanpa "title" memakai kunci publik.
+-  // Kalau RLS aktif: ditolak (42501). Kalau RLS terbuka: ditolak constraint NOT NULL (23502) — tetap tidak ada data yang tertulis.
+-  const checkWriteGuard = () => timed(async () => {
+-    const { url } = S.getConfig();
+-    const res = await fetch(`${url}/rest/v1/programs`, {
+-      method: 'POST',
+-      headers: S.getHeaders(),
+-      body: JSON.stringify({ id: '__sys_probe__' }),
+-    });
+-    let code = '';
+-    try { code = (await res.json()).code || ''; } catch (e) {}
+-
+-    if (res.status === 201) {
+-      // Seharusnya mustahil (title wajib diisi); bila terjadi, bersihkan dan laporkan sebagai masalah.
+-      await S.deleteProgram('__sys_probe__').catch(() => {});
+-      return { protected: false, note: 'Penulisan publik diterima' };
+-    }
+-    if (res.status === 401 || res.status === 403 || code === '42501') return { protected: true };
+-    if (code === '23502') return { protected: false, note: 'Penulisan publik tidak diblokir (RLS terbuka)' };
+-    return { protected: null, note: `Respons tak terduga (HTTP ${res.status})` };
+-  });
+-
+-  const checkStorage = (programs) => timed(async () => {
+-    const { url } = S.getConfig();
+-    const sample = (programs || []).find(p => p.thumbnail_url && p.thumbnail_url.startsWith(`${url}/storage/`));
+-    if (!sample) return { skipped: true };
+-    const res = await fetch(sample.thumbnail_url, { method: 'HEAD' });
+-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+-    return { skipped: false };
+-  });
+-
+   // ─── Kesehatan data ───
+   const listTitles = (items, max = 4) => {
+     const names = items.slice(0, max).map(p => p.title);
+     return names.join(', ') + (items.length > max ? `, dan ${items.length - max} lainnya` : '');
+   };
+ 
++  const isLegacyHosted = (url) => /^https?:\/\/[^/]*supabase\.co\//i.test(url || '');
++
+   const buildHealth = (programs) => {
+-    const { url } = S.getConfig();
+     const active = programs.filter(p => p.status === 'aktif');
+     const archived = programs.filter(p => p.status === 'arsip');
+     const noBanner = active.filter(p => !p.thumbnail_url);
+-    const localBanner = programs.filter(p => p.thumbnail_url && !/^https?:\/\//i.test(p.thumbnail_url));
++    const legacy = programs.filter(p => isLegacyHosted(p.thumbnail_url));
++    const localBanner = programs.filter(p => p.thumbnail_url && !/^https?:\/\//i.test(p.thumbnail_url) && !p.thumbnail_url.startsWith('/uploads/'));
+     const noSchedule = active.filter(p => window.RuaiSchedule.getEntries(p.schedule_json ? { schedule: p.schedule_json } : p).length === 0);
+ 
+-    return [
++    const items = [
+       {
+         state: 'ok', title: `${programs.length} program tersimpan`,
+         detail: `${active.length} aktif, ${archived.length} arsip`,
+@@ -156,16 +140,28 @@
+       noBanner.length === 0
+         ? { state: 'ok', title: 'Semua program aktif punya banner' }
+         : { state: 'warn', title: `${noBanner.length} program aktif belum punya banner`, detail: listTitles(noBanner) },
++    ];
++
++    if (legacy.length > 0) {
++      items.push({
++        state: 'warn',
++        title: `${legacy.length} banner masih memakai alamat Supabase lama`,
++        detail: `${listTitles(legacy)}. Salin ke storage baru dengan: php api/tools/import-programs.php --from=supabase --copy-images`,
++      });
++    }
++
++    items.push(
+       localBanner.length === 0
+-        ? { state: 'ok', title: 'Semua banner tersimpan di Supabase Storage' }
+-        : { state: 'warn', title: `${localBanner.length} banner masih berupa file lokal`, detail: `${listTitles(localBanner)}. Unggah ulang lewat Kelola Program agar otomatis dikompres (WebP ≤100 KB).` },
++        ? { state: 'ok', title: 'Semua banner tersimpan di penyimpanan banner' }
++        : { state: 'warn', title: `${localBanner.length} banner masih berupa file lokal di situs`, detail: `${listTitles(localBanner)}. Unggah ulang lewat Kelola Program agar otomatis dikompres (WebP ≤100 KB) dan disimpan di bucket.` },
+       noSchedule.length === 0
+         ? { state: 'ok', title: 'Semua program aktif punya jadwal tayang yang terbaca' }
+         : { state: 'warn', title: `${noSchedule.length} program aktif tidak muncul di Jadwal Sepekan`, detail: `${listTitles(noSchedule)}. Isi jam (mis. 19.00 – 20.00 WIB) dan hari (mis. Senin - Sabtu) pada slot jadwalnya.` },
+-    ];
++    );
++    return items;
+   };
+ 
+-  // ─── Periksa gambar banner (HEAD ke setiap gambar, 6 sekaligus) ───
++  // ─── Periksa gambar banner (6 sekaligus) ───
+   const checkImages = async (programs) => {
+     const box = $('sys-images');
+     const btn = $('btn-check-images');
+@@ -180,12 +176,8 @@
+     const worker = async () => {
+       while (queue.length) {
+         const p = queue.shift();
+-        let status = 0;
+-        try {
+-          const src = new URL(p.thumbnail_url, location.origin + '/').href;
+-          status = (await fetch(src, { method: 'HEAD' })).status;
+-        } catch (e) { status = 0; }
+-        if (status < 200 || status >= 400) broken.push({ title: p.title, status, status_label: p.status });
++        const ok = await probeImage(absoluteUrl(p.thumbnail_url));
++        if (!ok) broken.push({ title: p.title, status_label: p.status });
+         done += 1;
+         box.textContent = `Memeriksa gambar… ${done}/${withImg.length}`;
+       }
+@@ -207,7 +199,7 @@
+       broken.forEach(b => {
+         const li = document.createElement('li');
+         li.className = 'check-item';
+-        li.innerHTML = `<div class="check-text"><strong>${esc(b.title)}</strong><span>${b.status_label === 'arsip' ? 'Program arsip' : 'Program aktif'} · ${b.status ? 'HTTP ' + b.status : 'tidak dapat dihubungi'}. Unggah banner baru lewat Kelola Program.</span></div>`;
++        li.innerHTML = `<div class="check-text"><strong>${esc(b.title)}</strong><span>${b.status_label === 'arsip' ? 'Program arsip' : 'Program aktif'} · gambar tidak dapat dimuat. Unggah banner baru lewat Kelola Program.</span></div>`;
+         ul.appendChild(li);
+       });
+       box.appendChild(ul);
+@@ -230,16 +222,24 @@
+     renderChecks('sys-security', [{ state: 'pending', title: 'Memeriksa…' }]);
+     renderChecks('sys-health', [{ state: 'pending', title: 'Memeriksa…' }]);
+ 
+-    const [db, programsResult, auth, guard] = await Promise.all([
+-      checkDatabase(),
++    const [healthRes, programsResult, auth, guard] = await Promise.all([
++      timed(() => S.health()),
+       timed(() => S.getPrograms()),
+       timed(() => S.verifySession()),
+-      checkWriteGuard(),
++      timed(() => S.probeWriteGuard()),
+     ]);
+ 
++    const health = healthRes.ok ? healthRes.value : null;
++
+     // Database
+-    if (db.ok) setCard('sys-db', db.ms > 1500 ? 'warn' : 'ok', null, `Merespons dalam ${db.ms} ms`);
+-    else setCard('sys-db', 'fail', null, `Tidak dapat dihubungi (${db.error.message})`);
++    if (health && health.database.ok) {
++      const server = health.database.server ? `MariaDB/MySQL ${health.database.server}` : 'Database';
++      setCard('sys-db', health.database.ms > 1500 ? 'warn' : 'ok', null, `${server} · merespons ${health.database.ms} ms`);
++    } else if (health) {
++      setCard('sys-db', 'fail', null, 'Server tidak dapat terhubung ke database');
++    } else {
++      setCard('sys-db', 'fail', null, `Status tidak dapat dimuat (${healthRes.error.message})`);
++    }
+ 
+     // Data program
+     const programs = programsResult.ok && Array.isArray(programsResult.value) ? programsResult.value : null;
+@@ -254,25 +254,46 @@
+     const g = guard.ok ? guard.value : null;
+     if (g && g.protected === true) setCard('sys-guard', 'ok', 'Terlindungi', 'Penulisan tanpa login ditolak');
+     else if (g && g.protected === false) setCard('sys-guard', 'fail', null, g.note);
+-    else setCard('sys-guard', 'warn', null, g ? g.note : 'Uji tidak dapat dijalankan');
+-
+-    // Storage (butuh daftar program untuk memilih gambar contoh)
+-    const storage = await checkStorage(programs);
+-    if (!storage.ok) setCard('sys-storage', 'fail', null, `Gambar contoh gagal dimuat (${storage.error.message})`);
+-    else if (storage.value.skipped) setCard('sys-storage', 'warn', 'Belum dipakai', 'Belum ada banner di Supabase Storage');
+-    else setCard('sys-storage', 'ok', null, `Merespons dalam ${storage.ms} ms`);
++    else setCard('sys-guard', 'warn', null, 'Uji tidak dapat dijalankan (server tidak terjangkau)');
++
++    // Storage: (1) server ke bucket dengan kunci, (2) gambar publik dimuat browser
++    const st = health ? health.storage : null;
++    let publicImage = null; // null = tidak ada contoh
++    if (st && st.public_base_url && programs) {
++      const sample = programs.find(p => p.thumbnail_url && p.thumbnail_url.startsWith(st.public_base_url));
++      if (sample) {
++        const t = await timed(() => probeImage(sample.thumbnail_url));
++        publicImage = { ok: t.ok && t.value, ms: t.ms };
++      }
++    }
++    if (!st) {
++      setCard('sys-storage', 'fail', null, 'Status storage tidak dapat dimuat');
++    } else if (!st.ok) {
++      setCard('sys-storage', 'fail', null, st.detail);
++    } else if (publicImage && !publicImage.ok) {
++      setCard('sys-storage', 'warn', 'Perlu perhatian', 'Server bisa menulis ke bucket, tetapi gambar publik tidak termuat. Periksa akses baca publik bucket.');
++    } else {
++      const where = st.driver === 's3' ? `Bucket "${st.bucket}"` : 'Folder lokal';
++      setCard('sys-storage', 'ok', null, `${where} · merespons ${st.ms} ms`);
++    }
+ 
+     // Keamanan
++    const readOk = programs !== null;
+     renderChecks('sys-security', [
+       g && g.protected === true
+         ? { state: 'ok', title: 'Penulisan data tanpa login ditolak', detail: 'Hanya akun admin yang bisa menambah, mengubah, atau menghapus program. (Satu pesan "401" di console browser adalah hasil uji ini, bukan galat.)', meta: `${guard.ms} ms` }
+         : { state: g && g.protected === false ? 'fail' : 'warn', title: 'Perlindungan penulisan data tidak terkonfirmasi', detail: g ? g.note : 'Uji tidak dapat dijalankan', meta: `${guard.ms} ms` },
+-      db.ok
+-        ? { state: 'ok', title: 'Pengunjung publik dapat membaca daftar program', detail: 'Diperlukan agar website tampil.', meta: `${db.ms} ms` }
+-        : { state: 'fail', title: 'Daftar program tidak dapat dibaca', detail: db.error.message },
++      readOk
++        ? { state: 'ok', title: 'Pengunjung publik dapat membaca daftar program', detail: 'Diperlukan agar website tampil.', meta: `${programsResult.ms} ms` }
++        : { state: 'fail', title: 'Daftar program tidak dapat dibaca', detail: 'Periksa koneksi server dan database di atas.' },
+       user
+-        ? { state: 'ok', title: 'Sesi admin valid', detail: `Diverifikasi ke server Supabase sebagai ${user.role}.` }
++        ? { state: 'ok', title: 'Sesi admin valid', detail: `Diverifikasi ke server sebagai ${user.role} (cookie HttpOnly + token CSRF).` }
+         : { state: 'fail', title: 'Sesi admin tidak valid', detail: 'Login ulang untuk melanjutkan.' },
++      !st
++        ? { state: 'warn', title: 'Penyimpanan banner tidak terkonfirmasi', detail: 'Status storage tidak dapat dimuat.' }
++        : st.ok
++          ? { state: 'ok', title: 'Server dapat mengakses penyimpanan banner', detail: st.detail, meta: `${st.ms} ms` }
++          : { state: 'fail', title: 'Server tidak dapat mengakses penyimpanan banner', detail: st.detail },
+     ]);
+ 
+     // Kesehatan data + kartu data
+@@ -282,10 +303,10 @@
+         .filter(d => !isNaN(d) && d.getTime() > 0)
+         .sort((a, b) => b - a)[0] || null;
+       renderChecks('sys-health', buildHealth(programs));
+-      renderConfig(lastUpdate);
++      renderConfig(lastUpdate, health);
+     } else {
+       renderChecks('sys-health', [{ state: 'fail', title: 'Data program tidak dapat dimuat', detail: 'Periksa koneksi database di atas.' }]);
+-      renderConfig(null);
++      renderConfig(null, health);
+     }
+ 
+     $('sys-checked').textContent = `Terakhir diperiksa ${new Date().toLocaleTimeString('id-ID')}.`;
+@@ -294,13 +315,14 @@
+     running = false;
+   };
+ 
+-  document.addEventListener('DOMContentLoaded', () => {
+-    // Tanpa sesi, admin.js akan mengarahkan ke halaman login
+-    if (!S || !S.getSession()) return;
++  document.addEventListener('DOMContentLoaded', async () => {
++    if (!S) return;
+ 
+-    renderConfig(null);
++    renderConfig(null, null);
+     $('btn-recheck').addEventListener('click', runChecks);
+     $('btn-check-images').addEventListener('click', () => checkImages(latestPrograms));
+-    runChecks();
++
++    // Tanpa sesi sah, admin.js mengarahkan ke halaman login; tidak perlu menjalankan pemeriksaan.
++    if (await S.verifySession()) runChecks();
+   });
+ })();
+diff --git a/admin/index.html b/admin/index.html
+index 887523e..aef2fd0 100644
+--- a/admin/index.html
++++ b/admin/index.html
+@@ -148,9 +148,9 @@
+ 
+   <!-- SweetAlert2 CDN -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+-  <!-- Supabase Integration -->
+-  <script src="/assets/js/supabase-config.js"></script>
+-  <script src="/assets/js/supabase-client.js"></script>
++  <!-- API backend (PHP) -->
++  <script src="/assets/js/api-config.js"></script>
++  <script src="/assets/js/api-client.js"></script>
+   <!-- Admin Script -->
+   <script src="/admin/assets/js/admin-ui.js"></script>
+   <script src="/admin/assets/js/admin.js"></script>
+diff --git a/admin/login.html b/admin/login.html
+index e38d938..0fea103 100644
+--- a/admin/login.html
++++ b/admin/login.html
+@@ -65,8 +65,8 @@
+ 
+   <!-- SweetAlert2 CDN -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+-  <script src="/assets/js/supabase-config.js"></script>
+-  <script src="/assets/js/supabase-client.js"></script>
++  <script src="/assets/js/api-config.js"></script>
++  <script src="/assets/js/api-client.js"></script>
+   <!-- Login Script -->
+   <script src="/admin/assets/js/login.js"></script>
+ </body>
+diff --git a/admin/programs.html b/admin/programs.html
+index 0e0b23d..e90f62b 100644
+--- a/admin/programs.html
++++ b/admin/programs.html
+@@ -379,9 +379,9 @@
+   <script src="/admin/assets/js/cropper.min.js"></script>
+   <!-- SweetAlert2 CDN -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+-  <!-- Supabase Integration -->
+-  <script src="/assets/js/supabase-config.js"></script>
+-  <script src="/assets/js/supabase-client.js"></script>
++  <!-- API backend (PHP) -->
++  <script src="/assets/js/api-config.js"></script>
++  <script src="/assets/js/api-client.js"></script>
+   <!-- Admin Script -->
+   <script src="/admin/assets/js/admin-ui.js"></script>
+   <script src="/admin/assets/js/admin.js"></script>
+diff --git a/admin/system.html b/admin/system.html
+index b6eb3e5..b13f311 100644
+--- a/admin/system.html
++++ b/admin/system.html
+@@ -82,7 +82,7 @@
+     <main class="admin-container">
+ 
+       <p class="sys-intro">
+-        Status layanan yang menjalankan website: database &amp; penyimpanan banner (Supabase), login admin, dan perlindungan datanya.
++        Status layanan yang menjalankan website: database &amp; penyimpanan banner, login admin, dan perlindungan datanya.
+         Pemeriksaan hanya membaca data dan tidak mengubah apa pun.
+         <span class="sys-checked" id="sys-checked" aria-live="polite"></span>
+       </p>
+@@ -163,10 +163,6 @@
+           <div class="card-title-text">Tautan Cepat</div>
+         </div>
+         <div class="quick-links">
+-          <a class="btn-secondary" id="link-supabase" href="#" target="_blank" rel="noopener noreferrer">
+-            <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
+-            <span>Buka Supabase Dashboard</span>
+-          </a>
+           <a class="btn-secondary" href="/" target="_blank" rel="noopener">
+             <svg class="icon" aria-hidden="true" focusable="false"><use href="/admin/assets/icons.svg#external-link"></use></svg>
+             <span>Lihat Website Publik</span>
+@@ -183,8 +179,8 @@
+ 
+   <!-- SweetAlert2 CDN (dipakai admin.js untuk dialog logout) -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+-  <script src="/assets/js/supabase-config.js"></script>
+-  <script src="/assets/js/supabase-client.js"></script>
++  <script src="/assets/js/api-config.js"></script>
++  <script src="/assets/js/api-client.js"></script>
+   <script src="/assets/js/schedule-utils.js"></script>
+   <script src="/admin/assets/js/admin-ui.js"></script>
+   <!-- admin.js: pemeriksaan login, logout, profil (sama seperti halaman admin lain) -->
+diff --git a/assets/js/catalog.js b/assets/js/catalog.js
+index 83c605d..d84fac1 100644
+--- a/assets/js/catalog.js
++++ b/assets/js/catalog.js
+@@ -7,20 +7,20 @@
+   const LIVE_URL = 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams';
+   let   programs = [];
+ 
+-  // ─── Load data (Supabase -> programs.json) ───────────────
++  // ─── Load data (API -> programs.json) ────────────────────
+   const esc = window.escapeHtml;
+ 
+-  if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
++  if (window.RuaiAPI && window.RuaiAPI.getConfig().isConfigured) {
+     try {
+-      const sbData = await window.RuaiSupabase.getPrograms();
+-      if (Array.isArray(sbData) && sbData.length > 0) {
+-        programs = sbData.map(p => ({
++      const apiData = await window.RuaiAPI.getPrograms();
++      if (Array.isArray(apiData) && apiData.length > 0) {
++        programs = apiData.map(p => ({
+           ...p,
+           schedule: p.schedule_json || p.schedule
+         }));
+       }
+     } catch (e) {
+-      console.warn('Supabase fetch failed in catalog.js:', e);
++      console.warn('Gagal memuat data API di catalog.js:', e);
+     }
+   }
+ 
+diff --git a/assets/js/schedule.js b/assets/js/schedule.js
+index 6037215..96e419e 100644
+--- a/assets/js/schedule.js
++++ b/assets/js/schedule.js
+@@ -13,18 +13,18 @@ document.addEventListener('DOMContentLoaded', async () => {
+ 
+   let programsData = [];
+ 
+-  // ─── 1. Load Programs Data (Supabase -> programs.json) ───
+-  if (window.RuaiSupabase && window.RuaiSupabase.getConfig().isConfigured) {
++  // ─── 1. Load Programs Data (API -> programs.json) ───
++  if (window.RuaiAPI && window.RuaiAPI.getConfig().isConfigured) {
+     try {
+-      const sbData = await window.RuaiSupabase.getPrograms();
+-      if (Array.isArray(sbData) && sbData.length > 0) {
+-        programsData = sbData.map(p => ({
++      const apiData = await window.RuaiAPI.getPrograms();
++      if (Array.isArray(apiData) && apiData.length > 0) {
++        programsData = apiData.map(p => ({
+           ...p,
+           schedule: p.schedule_json || p.schedule
+         }));
+       }
+     } catch (e) {
+-      console.warn('Supabase fetch failed in schedule.js:', e);
++      console.warn('Gagal memuat data API di schedule.js:', e);
+     }
+   }
+ 
+diff --git a/assets/js/supabase-client.js b/assets/js/supabase-client.js
+deleted file mode 100644
+index 650c2a3..0000000
+--- a/assets/js/supabase-client.js
++++ /dev/null
+@@ -1,348 +0,0 @@
+-// ============================================================
+-// RUAI TV — Supabase Client Adapter (Vanilla JS REST, Auth & Storage)
+-// Berjalan langsung di browser tanpa node_modules / bundler
+-//
+-// Baca data program: publik (anon key).
+-// Tulis data / upload banner: wajib sesi Supabase Auth dengan
+-// app_metadata.role = 'admin'. Penegakan sebenarnya ada di RLS
+-// (database/supabase_security.sql), bukan di JS ini.
+-// ============================================================
+-
+-window.escapeHtml = function escapeHtml(value) {
+-  return String(value ?? '')
+-    .replace(/&/g, '&amp;')
+-    .replace(/</g, '&lt;')
+-    .replace(/>/g, '&gt;')
+-    .replace(/"/g, '&quot;')
+-    .replace(/'/g, '&#39;');
+-};
+-
+-window.RuaiSupabase = {
+-  SESSION_KEY: 'ruai_admin_session',
+-
+-  getConfig() {
+-    const config = window.RUAI_SUPABASE_CONFIG || {};
+-    let url = (config.url || '').trim();
+-    url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+-    const key = (config.anonKey || '').trim();
+-    const bucket = config.storageBucket || 'banners';
+-    return { url, key, bucket, isConfigured: Boolean(url && key) };
+-  },
+-
+-  // Header untuk request publik (baca)
+-  getHeaders() {
+-    const { key } = this.getConfig();
+-    return {
+-      'apikey': key,
+-      'Authorization': `Bearer ${key}`,
+-      'Content-Type': 'application/json'
+-    };
+-  },
+-
+-  // Header untuk request admin (tulis): apikey anon + JWT milik user
+-  async getAuthHeaders() {
+-    const { key } = this.getConfig();
+-    const token = await this.getAccessToken();
+-    if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');
+-    return {
+-      'apikey': key,
+-      'Authorization': `Bearer ${token}`,
+-      'Content-Type': 'application/json'
+-    };
+-  },
+-
+-  _authError(message) {
+-    const err = new Error(message);
+-    err.code = 'AUTH_REQUIRED';
+-    return err;
+-  },
+-
+-  async _httpError(res, label) {
+-    let detail = '';
+-    try {
+-      const body = await res.json();
+-      detail = body.message || body.msg || body.error_description || body.error || '';
+-    } catch (e) {}
+-    if (res.status === 401 || res.status === 403) {
+-      const err = this._authError(`${label}: akses ditolak (${res.status}). ${detail}`.trim());
+-      err.status = res.status;
+-      return err;
+-    }
+-    const err = new Error(`${label} (${res.status}) ${detail}`.trim());
+-    err.status = res.status;
+-    return err;
+-  },
+-
+-  // ─── Auth: sesi ───
+-  _readSession() {
+-    try {
+-      const raw = localStorage.getItem(this.SESSION_KEY) || sessionStorage.getItem(this.SESSION_KEY);
+-      if (!raw) return null;
+-      const s = JSON.parse(raw);
+-      return s && s.access_token && s.refresh_token ? s : null;
+-    } catch (e) {
+-      return null;
+-    }
+-  },
+-
+-  _writeSession(session, remember) {
+-    const useLocal = remember !== undefined ? remember : Boolean(localStorage.getItem(this.SESSION_KEY));
+-    try {
+-      localStorage.removeItem(this.SESSION_KEY);
+-      sessionStorage.removeItem(this.SESSION_KEY);
+-      (useLocal ? localStorage : sessionStorage).setItem(this.SESSION_KEY, JSON.stringify(session));
+-    } catch (e) {
+-      console.warn('Gagal menyimpan sesi:', e);
+-    }
+-  },
+-
+-  clearSession() {
+-    try {
+-      localStorage.removeItem(this.SESSION_KEY);
+-      sessionStorage.removeItem(this.SESSION_KEY);
+-    } catch (e) {}
+-  },
+-
+-  getSession() {
+-    return this._readSession();
+-  },
+-
+-  _toSession(payload) {
+-    const u = payload.user || {};
+-    const meta = u.user_metadata || {};
+-    return {
+-      access_token: payload.access_token,
+-      refresh_token: payload.refresh_token,
+-      expires_at: payload.expires_at || (Math.floor(Date.now() / 1000) + (payload.expires_in || 3600)),
+-      user: {
+-        id: u.id,
+-        email: u.email,
+-        fullname: meta.full_name || meta.name || u.email,
+-        role: (u.app_metadata && u.app_metadata.role) || null
+-      }
+-    };
+-  },
+-
+-  // ─── Auth: login / refresh / logout ───
+-  async signIn(email, password, remember = true) {
+-    const { url, key, isConfigured } = this.getConfig();
+-    if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+-
+-    const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+-      method: 'POST',
+-      headers: { 'apikey': key, 'Content-Type': 'application/json' },
+-      body: JSON.stringify({ email, password })
+-    });
+-
+-    if (!res.ok) {
+-      if (res.status === 400 || res.status === 401) {
+-        throw new Error('Email atau password salah.');
+-      }
+-      if (res.status === 429) {
+-        throw new Error('Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.');
+-      }
+-      throw await this._httpError(res, 'Login gagal');
+-    }
+-
+-    const session = this._toSession(await res.json());
+-    if (session.user.role !== 'admin') {
+-      // Akun valid tapi bukan admin: jangan simpan sesi, cabut token yang baru terbit.
+-      await fetch(`${url}/auth/v1/logout`, {
+-        method: 'POST',
+-        headers: { 'apikey': key, 'Authorization': `Bearer ${session.access_token}` }
+-      }).catch(() => {});
+-      throw new Error('Akun ini tidak memiliki akses admin.');
+-    }
+-
+-    this._writeSession(session, remember);
+-    return session;
+-  },
+-
+-  _refreshing: null,
+-
+-  async _refresh(session) {
+-    if (this._refreshing) return this._refreshing;
+-    const { url, key } = this.getConfig();
+-
+-    this._refreshing = (async () => {
+-      try {
+-        const res = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
+-          method: 'POST',
+-          headers: { 'apikey': key, 'Content-Type': 'application/json' },
+-          body: JSON.stringify({ refresh_token: session.refresh_token })
+-        });
+-        if (!res.ok) {
+-          this.clearSession();
+-          return null;
+-        }
+-        const next = this._toSession(await res.json());
+-        this._writeSession(next);
+-        return next;
+-      } catch (e) {
+-        // Gangguan jaringan: pertahankan sesi lama, biarkan pemanggil gagal sendiri.
+-        return null;
+-      } finally {
+-        this._refreshing = null;
+-      }
+-    })();
+-
+-    return this._refreshing;
+-  },
+-
+-  // Token valid (otomatis diperbarui jika hampir kedaluwarsa); null jika tidak login.
+-  async getAccessToken() {
+-    const session = this._readSession();
+-    if (!session) return null;
+-    const now = Math.floor(Date.now() / 1000);
+-    if (session.expires_at - now > 60) return session.access_token;
+-    const next = await this._refresh(session);
+-    return next ? next.access_token : null;
+-  },
+-
+-  // Verifikasi sesi ke server dan pastikan role admin. Mengembalikan user atau null.
+-  async verifySession() {
+-    const { url, key, isConfigured } = this.getConfig();
+-    if (!isConfigured) return null;
+-    let token;
+-    try {
+-      token = await this.getAccessToken();
+-    } catch (e) {
+-      return null;
+-    }
+-    if (!token) return null;
+-
+-    try {
+-      const res = await fetch(`${url}/auth/v1/user`, {
+-        headers: { 'apikey': key, 'Authorization': `Bearer ${token}` }
+-      });
+-      if (!res.ok) {
+-        if (res.status === 401 || res.status === 403) this.clearSession();
+-        return null;
+-      }
+-      const u = await res.json();
+-      if (!u.app_metadata || u.app_metadata.role !== 'admin') {
+-        this.clearSession();
+-        return null;
+-      }
+-      const session = this._readSession();
+-      return session ? session.user : null;
+-    } catch (e) {
+-      return null;
+-    }
+-  },
+-
+-  async signOut() {
+-    const { url, key } = this.getConfig();
+-    const session = this._readSession();
+-    this.clearSession();
+-    if (session) {
+-      try {
+-        await fetch(`${url}/auth/v1/logout`, {
+-          method: 'POST',
+-          headers: { 'apikey': key, 'Authorization': `Bearer ${session.access_token}` }
+-        });
+-      } catch (e) {}
+-    }
+-  },
+-
+-  // ─── GET Programs (publik) ───
+-  async getPrograms() {
+-    const { url, isConfigured } = this.getConfig();
+-    if (!isConfigured) return null;
+-
+-    try {
+-      const res = await fetch(`${url}/rest/v1/programs?select=*&order=created_at.desc`, {
+-        method: 'GET',
+-        headers: this.getHeaders()
+-      });
+-      if (!res.ok) throw new Error(`Supabase error: ${res.status} ${res.statusText}`);
+-      const data = await res.json();
+-      return Array.isArray(data) ? data : null;
+-    } catch (err) {
+-      console.warn('Supabase fetch programs failed:', err);
+-      return null;
+-    }
+-  },
+-
+-  // ─── INSERT / UPDATE Program (admin) ───
+-  async upsertProgram(programData) {
+-    const { url, isConfigured } = this.getConfig();
+-    if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+-
+-    const res = await fetch(`${url}/rest/v1/programs?on_conflict=id`, {
+-      method: 'POST',
+-      headers: {
+-        ...(await this.getAuthHeaders()),
+-        'Prefer': 'resolution=merge-duplicates,return=representation'
+-      },
+-      body: JSON.stringify(programData)
+-    });
+-    if (!res.ok) throw await this._httpError(res, 'Simpan program gagal');
+-    const rows = await res.json();
+-    if (!Array.isArray(rows) || rows.length === 0) {
+-      throw new Error('Simpan program gagal: tidak ada baris yang tersimpan (cek policy RLS).');
+-    }
+-    return rows[0];
+-  },
+-
+-  // ─── PATCH sebagian kolom Program (admin) ───
+-  async updateProgram(programId, fields) {
+-    const { url, isConfigured } = this.getConfig();
+-    if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+-
+-    const res = await fetch(`${url}/rest/v1/programs?id=eq.${encodeURIComponent(programId)}`, {
+-      method: 'PATCH',
+-      headers: { ...(await this.getAuthHeaders()), 'Prefer': 'return=representation' },
+-      body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() })
+-    });
+-    if (!res.ok) throw await this._httpError(res, 'Ubah program gagal');
+-    const rows = await res.json();
+-    if (!Array.isArray(rows) || rows.length === 0) {
+-      throw new Error('Ubah program gagal: program tidak ditemukan atau akses ditolak.');
+-    }
+-    return rows[0];
+-  },
+-
+-  // ─── DELETE Program (admin) ───
+-  async deleteProgram(programId) {
+-    const { url, isConfigured } = this.getConfig();
+-    if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+-
+-    const res = await fetch(`${url}/rest/v1/programs?id=eq.${encodeURIComponent(programId)}`, {
+-      method: 'DELETE',
+-      headers: { ...(await this.getAuthHeaders()), 'Prefer': 'return=representation' }
+-    });
+-    if (!res.ok) throw await this._httpError(res, 'Hapus program gagal');
+-    // RLS menyaring baris secara diam-diam, jadi 0 baris = tidak ada yang terhapus.
+-    const rows = await res.json();
+-    if (!Array.isArray(rows) || rows.length === 0) {
+-      throw new Error('Hapus program gagal: program tidak ditemukan atau akses ditolak.');
+-    }
+-    return true;
+-  },
+-
+-  // ─── UPLOAD Banner to Storage Bucket (admin) ───
+-  async uploadBanner(blobOrFile, filename) {
+-    const { url, key, bucket, isConfigured } = this.getConfig();
+-    if (!isConfigured) throw new Error('Konfigurasi Supabase belum diatur.');
+-
+-    const token = await this.getAccessToken();
+-    if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');
+-
+-    const cleanName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+-    const uniqueFilename = `${Date.now()}-${cleanName}`;
+-
+-    const res = await fetch(`${url}/storage/v1/object/${bucket}/${uniqueFilename}`, {
+-      method: 'POST',
+-      headers: {
+-        'apikey': key,
+-        'Authorization': `Bearer ${token}`,
+-        'Content-Type': blobOrFile.type || 'image/webp'
+-      },
+-      body: blobOrFile
+-    });
+-    if (!res.ok) throw await this._httpError(res, 'Upload banner gagal');
+-
+-    return `${url}/storage/v1/object/public/${bucket}/${uniqueFilename}`;
+-  }
+-};
+diff --git a/assets/js/supabase-config.js b/assets/js/supabase-config.js
+deleted file mode 100644
+index 3f8f709..0000000
+--- a/assets/js/supabase-config.js
++++ /dev/null
+@@ -1,15 +0,0 @@
+-// ============================================================
+-// RUAI TV — Supabase Credentials & Configuration
+-// Connected to Supabase Project: ruai-tv
+-// ============================================================
+-
+-window.RUAI_SUPABASE_CONFIG = {
+-  // URL Project Supabase Ruai TV
+-  url: "https://ivofwlzwxzjwvuuehier.supabase.co",
+-  
+-  // Anon Public Key Supabase
+-  anonKey: "sb_publishable_bAr_VCx8tnPXbZvKw07vxQ_70oxh_G1",
+-  
+-  // Nama bucket Supabase Storage untuk upload gambar thumbnail banner
+-  storageBucket: "banners"
+-};
+diff --git a/cara menjalankan program.txt b/cara menjalankan program.txt
+index 11dfc69..96a0a9a 100644
+--- a/cara menjalankan program.txt	
++++ b/cara menjalankan program.txt	
+@@ -1,5 +1,6 @@
+-# 1. Jalankan Python server dulu
+-python -m http.server 3000 --bind 0.0.0.0
++# 1. Jalankan server PHP dulu (butuh MariaDB XAMPP aktif + api/config.php; lihat README)
++#    (python http.server tidak bisa menjalankan API PHP)
++C:\xampp\php\php.exe -S 0.0.0.0:3000 -t .
+ 
+ # 2. Baru buka tunnel (terminal baru / bisa dari sini juga)
+ $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","User")
+diff --git a/database/supabase_schema.sql b/database/supabase_schema.sql
+deleted file mode 100644
+index 9acb555..0000000
+--- a/database/supabase_schema.sql
++++ /dev/null
+@@ -1,96 +0,0 @@
+--- ============================================================
+--- RUAI TV — Supabase PostgreSQL Schema & Seeder
+--- Versi AMAN (Non-Destructive / Tidak Menghapus Data)
+--- Copy-paste semua script ini ke Supabase SQL Editor lalu klik "Run"
+--- PERINGATAN: seed di bawah menimpa data program dengan id yang sama.
+--- Untuk database yang sudah berjalan, JANGAN dijalankan ulang; cukup supabase_security.sql.
+--- ============================================================
+-
+--- 1. Buat Tabel programs jika belum ada (TIDAK MENGHAPUS TABEL/DATA LAMA)
+-CREATE TABLE IF NOT EXISTS programs (
+-  id VARCHAR(64) PRIMARY KEY,
+-  title VARCHAR(255) NOT NULL,
+-  slug VARCHAR(255) NOT NULL,
+-  category VARCHAR(50) NOT NULL DEFAULT 'berita' CHECK (category IN ('berita', 'non-news', 'kerja-sama')),
+-  category_label VARCHAR(100),
+-  status VARCHAR(20) NOT NULL DEFAULT 'aktif' CHECK (status IN ('aktif', 'arsip')),
+-  format VARCHAR(100) DEFAULT '—',
+-  duration VARCHAR(50) DEFAULT '—',
+-  description TEXT,
+-  thumbnail_url TEXT,
+-  promo_video_url TEXT,
+-  youtube_live_url TEXT,
+-  schedule_json JSONB,
+-  featured BOOLEAN DEFAULT FALSE,
+-  created_at TIMESTAMPTZ DEFAULT NOW(),
+-  updated_at TIMESTAMPTZ DEFAULT NOW()
+-);
+-
+--- Index pencarian dan filter
+-CREATE INDEX IF NOT EXISTS idx_programs_category ON programs(category);
+-CREATE INDEX IF NOT EXISTS idx_programs_status ON programs(status);
+-CREATE INDEX IF NOT EXISTS idx_programs_slug ON programs(slug);
+-
+--- 2. Aktifkan Row Level Security (default: semua akses ditolak)
+--- Policy baca publik & tulis khusus admin ada di database/supabase_security.sql.
+--- JALANKAN supabase_security.sql SETELAH file ini.
+-ALTER TABLE programs ENABLE ROW LEVEL SECURITY;
+-
+--- 3. Storage bucket banners (policy upload khusus admin: supabase_security.sql)
+-INSERT INTO storage.buckets (id, name, public)
+-VALUES ('banners', 'banners', true)
+-ON CONFLICT (id) DO NOTHING;
+-
+--- 4. Seed Seluruh Data Program Lengkap (35 Program Ruai TV dari data terbaru)
+--- Jika id program sudah ada, data diperbarui (ON CONFLICT DO UPDATE). Data tidak akan hilang!
+-INSERT INTO programs (id, title, slug, category, category_label, status, format, duration, description, thumbnail_url, promo_video_url, youtube_live_url, schedule_json, featured) VALUES
+-('cbn-solusi', 'CBN — Solusi', 'cbn-solusi', 'kerja-sama', 'Kerja Sama', 'aktif', 'Talkshow', '—', 'Program talkshow hasil kerja sama dengan CBN yang menghadirkan solusi praktis untuk berbagai permasalahan kehidupan sehari-hari.', 'assets/images/programs/CBN---Solusi-1789098886.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "Cek Jadwal Mingguan", "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('forum-ruai', 'Forum Ruai', 'forum-ruai', 'berita', 'Program Berita', 'aktif', 'Talkshow', '60 Menit', 'Forum Ruai Adalah ruang diskusi kritis yang sehat untuk memaparkan suatu masalah yang sedang terjadi maupun yang mungkin akan terjadi, membedah dari berbagai sudut pandang intelektualitas dengan kritis dan professional dan selalu memberi rekomendasi diakhir acara.', 'assets/images/programs/Forum-Ruai-1789098899.png', 'https://youtu.be/zpSi_KJT_o4', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": true, "label": "MALAM", "time": "20.05 – 21.05 WIB", "days": "Kamis"}}'::jsonb, false),
+-('rumah-kita', 'Rumah Kita', 'rumah-kita', 'berita', 'Program Berita', 'aktif', 'Talkshow / Podcast', '60 Menit', 'Program bincang-bincang/podcast inspiratif yang mengangkat kisah hidup, dedikasi, perjuangan, serta kiprah para tokoh publik, pemuka agama, pelaku seni, maupun individu inspiratif di Kalimantan Barat dalam melayani dan memberikan dampak positif bagi komunitas serta masyarakat luas.', 'assets/images/programs/Rumah-Kita-1789098909.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": true, "label": "MALAM", "time": "20.05 – 21.05 WIB", "days": "Senin"}}'::jsonb, false),
+-('warta-ruai', 'Warta Ruai', 'warta-ruai', 'berita', 'Program Berita', 'aktif', 'Berita', '60 Menit', 'Paket buletin berita hasil liputan harian pada peristiwa dan isu aktual yang terjadi di Pontianak dan sekitarnya, serta Kalimantan Barat pada umumnya. Tayang tiga kali sehari pagi, siang, dan malam untuk memastikan pemirsa selalu mendapatkan informasi terkini.', 'assets/images/programs/Warta-Ruai-1789098931.png', 'https://youtu.be/4R79XKJR7kQ', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "07.00 – 08.00 WIB", "days": "Senin - Sabtu"}, "siang": {"active": true, "label": "SIANG", "time": "13.00 – 14.00 WIB", "days": "Senin - Sabtu"}, "malam": {"active": true, "label": "MALAM", "time": "19.00 – 20.00 WIB", "days": "Senin - Sabtu"}}'::jsonb, true),
+-('ruai-sepekan', 'Ruai Sepekan', 'ruai-sepekan', 'berita', 'Program Berita', 'aktif', 'Buletin Berita', '30 Menit', 'Rangkuman berita terhangat atau berita-berita utama selama sepekan dari Warta Ruai. Disajikan secara interaktif di mana publik memiliki ruang untuk mengomentari, mempertanyakan, dan memberikan opini terhadap materi berita atau permasalahan yang menjadi isi berita.', 'assets/images/programs/Ruai-Sepekan-1789098943.png', 'https://youtu.be/J1xt2rWyUzo', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": true, "label": "MALAM", "time": "19.30 – 20.00 WIB", "days": "Minggu"}}'::jsonb, false),
+-('cbn-dialog-jc', 'CBN — Dialog JC', 'cbn-dialog-jc', 'kerja-sama', 'Kerja Sama', 'aktif', 'Talkshow', '—', 'Program dialog kerja sama dengan CBN yang membahas berbagai topik kehidupan dan iman dari sudut pandang yang mencerahkan.', 'assets/images/programs/CBN-Solusi.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('cbn-super-book', 'CBN — Super Book', 'cbn-super-book', 'kerja-sama', 'Kerja Sama', 'aktif', 'Animasi Anak', '—', 'Tayangan animasi anak-anak berbasis kisah inspiratif hasil kerja sama dengan CBN, menghadirkan nilai moral dan karakter positif untuk anak-anak.', 'assets/images/programs/bungaran-logo-1789099049.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('special-dialog', 'Special Dialog', 'special-dialog', 'berita', 'Program Berita', 'aktif', 'Talkshow', '60 Menit', 'Program dialog mendalam yang membahas isu-isu strategis politik, ekonomi, sosial, dan budaya bersama narasumber terpilih dari kalangan pejabat, pakar, dan tokoh masyarakat Kalimantan Barat.', 'assets/images/programs/Spesial-Dialog-1789099062.png', 'https://youtu.be/NVJ87eyjJV0', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "Tentatif / Kondisioanl", "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('warta-warganet', 'Warta Warganet', 'warta-warganet', 'berita', 'Program Berita', 'aktif', 'Buletin Berita', '30 Menit', 'Acara yang digagas untuk memberi ruang dan menghargai WargaNet di Media Arustama. Memberikan apresiasi atas karya spontanitas maupun terencana terhadap segala kekayaan adat budaya, lingkungan, alam dan bahkan kesenjangan sosial yang tertangkap mata kamera Warganet.', 'assets/images/programs/WargaNet-1789099084.png', 'https://youtu.be/_HgDvO0pCTs', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": true, "label": "SIANG", "time": "18.30 – 19.00 WIB", "days": "Selasa & Jumat"}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('cbn-super-youth', 'CBN — Super Youth', 'cbn-super-youth', 'kerja-sama', 'Kerja Sama', 'aktif', 'Youth Program', '—', 'Program anak muda hasil kerja sama CBN dan Ruai TV yang menghadirkan konten inspiratif, edukatif, dan menghibur untuk generasi muda Kalimantan Barat.', 'assets/images/programs/CBN---Super-Youth-1789099104.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('voa-jalan-jalan', 'VOA — Jalan-Jalan Amerika', 'voa-jalan-jalan', 'kerja-sama', 'Kerja Sama', 'aktif', 'Dokumenter', '30 Menit', 'Program hasil kerja sama Ruai TV dengan Voice of America (VOA) yang menghadirkan tayangan dokumenter perjalanan dan budaya Amerika untuk pemirsa Kalimantan Barat.', 'assets/images/programs/VOA---Jalan-Jalan-Amerika-1789099113.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": true, "label": "SIANG", "time": "Menyesuaikan", "days": "Cek jadwal"}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('voa-warung-kita', 'VOA — Warung Kita', 'voa-warung-kita', 'kerja-sama', 'Kerja Sama', 'aktif', 'Feature', '—', 'Program kerja sama dengan VOA yang menghadirkan konten feature khas kearifan lokal dan budaya Nusantara dalam sudut pandang internasional VOA.', 'assets/images/programs/VOA---Warung-Kita-1789099136.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "Cek Jadwal Mingguan", "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('slada-video-klip', 'Slada Video Klip', 'slada-video-klip', 'non-news', 'Non-News', 'aktif', 'Hiburan', '—', 'Program hiburan yang menayangkan video klip musik pilihan, menemani pemirsa Ruai TV dengan sajian musik terbaik dari berbagai genre.', 'assets/images/programs/Slada-1789099150.png', 'https://youtu.be/HnxLC1yw3E8', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('borneo-rawa-island', 'Borneo Rawa Island', 'borneo-rawa-island', 'kerja-sama', 'Kerja Sama', 'aktif', 'Dokumenter', '—', 'Program dokumenter hasil kerja sama yang mengeksplorasi kekayaan alam, ekosistem gambut, dan kehidupan di pulau Borneo/Kalimantan.', 'assets/images/programs/Borneo-Rawa-Island-1789099159.png', 'https://youtu.be/FN0saik5Of0', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "Cek Jadwal Mingguan", "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('antara', 'Antara', 'antara', 'kerja-sama', 'Kerja Sama', 'arsip', 'Berita', '—', 'Tayangan religi kerja sama yang menghadirkan ceramah dan pencerahan spiritual dari narasumber terpilih untuk masyarakat Kalimantan Barat.', 'assets/images/programs/Warta-Ruai.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('ringkus', 'Ringkus (Ringkasan Kriminal)', 'ringkus', 'berita', 'Program Berita', 'arsip', 'Feature Berita', '—', 'Program ringkasan berita kriminal yang menyajikan laporan singkat dan aktual tentang peristiwa hukum dan kriminalitas di Kalimantan Barat.', 'assets/images/programs/Warta-Ruai.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('gong-ruai', 'Gong Ruai (On Target)', 'gong-ruai', 'berita', 'Program Berita', 'arsip', 'News Feature', '30 Menit', 'Acara Gong Ruai adalah ruai dokumenter reporting indept terhadap suatu kasus atau masalah yang sedang menjadi perhatian publik atau masyarakat tertentu seperti isu pengukuhan dan atau pengakuan akan hak masyarakat adat. Laporannya lebih dalam, tajam, kritis dan solutif. Menyajikan data primer, data sekunder dan sudut pandang dari sejumlah pakar dan pihak-pihak yang terlibat dalam topik dokumenter.', 'assets/images/programs/Gong-Ruai-1789099175.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('bincang-cu', 'Bincang CU', 'bincang-cu', 'non-news', 'Non-News', 'arsip', 'Talkshow', '—', 'Program bincang-bincang seputar dunia Credit Union (CU) dan koperasi simpan pinjam di Kalimantan Barat, menghadirkan edukasi finansial berbasis ekonomi kerakyatan.', 'assets/images/programs/Warta-Ruai.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('bumi-hijau', 'Bumi Hijau', 'bumi-hijau', 'kerja-sama', 'Kerja Sama', 'arsip', 'Dokumenter', '—', 'Berita nasional dan daerah dari kantor berita ANTARA yang disiarkan melalui Ruai TV untuk melengkapi cakupan informasi bagi pemirsa Kalimantan Barat.', 'assets/images/programs/Warta-Ruai.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('kilas-ruai', 'Kilas Ruai', 'kilas-ruai', 'berita', 'Program Berita', 'arsip', 'Breaking News', '—', 'Kilas ruai adalah ruang aktual penyajian berita dari berbagai jenis peristiwa yang terjadi disetiap redaksi mendapat informasi yang langsung direspon dengan cepat, cekat dan profesional tanpa mengurangi nilai kebenaran peristiwa. Selalu mengacu kepada 5W+1H', 'assets/images/programs/Kilas-Ruai.png', 'https://youtu.be/sV7ZDykIwYA', 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": true, "label": "PAGI", "time": "10.00 WIB", "days": "Senin - Sabtu"}, "siang": {"active": true, "label": "SIANG", "time": "15.00 WIB", "days": "Senin - Sabtu"}, "malam": {"active": true, "label": "MALAM", "time": "17.00 WIB", "days": "Senin - Sabtu"}}'::jsonb, false),
+-('pantun-rias', 'Pantun Rias', 'pantun-rias', 'non-news', 'Non-News', 'arsip', 'Seni Budaya', '—', 'Ruang pelestarian seni pantun dan sastra lisan Melayu Kalimantan Barat yang menampilkan pertunjukan pantun, syair, dan gurindam dari seniman lokal terpilih.', 'assets/images/programs/Warta-Ruai.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('pentas-aksi', 'Pentas Aksi', 'pentas-aksi', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Program hiburan yang menampilkan pertunjukan seni dan aksi panggung dari para seniman dan pelaku seni budaya Kalimantan Barat.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('ananda-buana', 'Ananda Buana', 'ananda-buana', 'kerja-sama', 'Kerja Sama', 'arsip', 'Dokumenter', '—', 'Dokumenter alam liar dan eksplorasi Borneo yang mengangkat kekayaan biodiversitas dan keunikan ekosistem Kalimantan. Saat ini dalam status arsip.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('beranda-ruai', 'Beranda Ruai', 'beranda-ruai', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Program Non-News Ruai TV yang menghadirkan konten hiburan dan informasi ringan untuk menemani pemirsa di rumah.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('bersama-sosok', 'Bersama Sosok', 'bersama-sosok', 'berita', 'Program Berita', 'arsip', 'Feature / Talkshow', '—', 'Program yang mengangkat profil dan kisah inspiratif tokoh-tokoh berpengaruh di Kalimantan Barat dari berbagai bidang kehidupan.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('penyejuk-iman', 'Penyejuk Iman', 'penyejuk-iman', 'non-news', 'Non-News', 'arsip', 'Religi', '—', 'Program rohani yang menghadirkan ceramah, renungan, dan tayangan inspiratif untuk memperkuat keimanan dan spiritualitas pemirsa Ruai TV.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('slada-reguler', 'Slada Reguler', 'slada-reguler', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Senandung Lagu Daerah (SLADA) reguler — program yang melestarikan dan memopulerkan lagu-lagu daerah Kalimantan Barat dalam format tayangan yang modern.', 'assets/images/programs/Slada.png', NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('kapuas-karaoke', 'Kapuas (Karaoke Sampai Puas)', 'kapuas-karaoke', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Program interaktif karaoke yang mengundang pemirsa untuk ikut bernyanyi bersama dan menikmati lagu-lagu favorit dalam format hiburan yang menyenangkan.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('slada-week-end', 'Slada Week End', 'slada-week-end', 'non-news', 'Non-News', 'arsip', 'Hiburan', '—', 'Edisi akhir pekan dari program Senandung Lagu Daerah (SLADA) yang hadir dengan nuansa lebih santai dan pilihan lagu yang lebih beragam untuk menemani waktu weekend keluarga.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('voa-dunia-kita', 'VOA — Dunia Kita', 'voa-dunia-kita', 'kerja-sama', 'Kerja Sama', 'arsip', 'Feature Berita', '—', 'Wawasan dunia internasional dari Voice of America (VOA) yang menyajikan feature-feature menarik tentang kehidupan dan perkembangan global.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('bursa-musik-ruai', 'Bursa Musik Ruai (BMR)', 'bursa-musik-ruai', 'non-news', 'Non-News', 'arsip', 'Hiburan Musik', '—', 'Program musik Ruai TV yang menghadirkan bursa lagu-lagu pilihan dari berbagai genre, menemani pemirsa dengan sajian musik terbaik dari artis lokal dan nasional.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('masakan-istimewa', 'Masakan Istimewa (Maskis)', 'masakan-istimewa', 'non-news', 'Non-News', 'arsip', 'Kuliner', '—', 'Program kuliner yang mengeksplorasi kekayaan cita rasa masakan khas dan istimewa Kalimantan Barat, menghadirkan resep, teknik memasak, dan cerita di balik hidangan tradisional maupun modern.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('warta-credit-union', 'Warta Credit Union', 'warta-credit-union', 'berita', 'Program Berita', 'arsip', '—', '—', 'Jendela berita ekonomi kerakyatan berbasis koperasi simpan pinjam (Credit Union) di Kalimantan Barat, salah satu gerakan CU terbesar di Indonesia.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('galeri-khatulistiwa', 'Galeri Khatulistiwa', 'galeri-khatulistiwa', 'non-news', 'Non-News', 'arsip', 'Dokumenter', '—', 'Tayangan dokumenter yang menampilkan keindahan alam dan budaya Kalimantan Barat serta Nusantara dalam format visual yang memukau.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false),
+-('warta-ruai-3-bahasa', 'Warta Ruai 3 Bahasa', 'warta-ruai-3-bahasa', 'berita', 'Program Berita', 'arsip', 'Program Berita / Talkshow', '—', 'Program berita unggulan Ruai TV yang disajikan dalam lima bahasa daerah Kalimantan Barat, menjangkau berbagai komunitas etnis di seluruh pelosok Kalbar.', NULL, NULL, 'https://www.youtube.com/@livestreamingruaitelevisi5647/streams', '{"pagi": {"active": false, "label": "PAGI", "time": null, "days": null}, "siang": {"active": false, "label": "SIANG", "time": null, "days": null}, "malam": {"active": false, "label": "MALAM", "time": null, "days": null}}'::jsonb, false)
+-ON CONFLICT (id) DO UPDATE SET
+-  title = EXCLUDED.title,
+-  slug = EXCLUDED.slug,
+-  category = EXCLUDED.category,
+-  category_label = EXCLUDED.category_label,
+-  status = EXCLUDED.status,
+-  format = EXCLUDED.format,
+-  duration = EXCLUDED.duration,
+-  description = EXCLUDED.description,
+-  thumbnail_url = EXCLUDED.thumbnail_url,
+-  promo_video_url = EXCLUDED.promo_video_url,
+-  youtube_live_url = EXCLUDED.youtube_live_url,
+-  schedule_json = EXCLUDED.schedule_json,
+-  featured = EXCLUDED.featured;
+-
+diff --git a/database/supabase_security.sql b/database/supabase_security.sql
+deleted file mode 100644
+index 5abaa5c..0000000
+--- a/database/supabase_security.sql
++++ /dev/null
+@@ -1,109 +0,0 @@
+--- ============================================================
+--- RUAI TV — Supabase Security (RLS + Storage) — idempotent
+--- Jalankan di Supabase SQL Editor. Aman dijalankan berulang kali dan
+--- TIDAK menyentuh data di tabel programs.
+---
+--- Model akses:
+---   * Publik (anon)  : hanya boleh MEMBACA tabel programs.
+---   * Admin          : boleh tulis programs & upload/hapus banner.
+---                      Admin = user Supabase Auth dengan
+---                      app_metadata.role = 'admin' (lihat LANGKAH 2).
+---     app_metadata hanya bisa diubah lewat service role / SQL, tidak
+---     bisa diubah oleh user sendiri, jadi aman walau sign-up terbuka.
+--- ============================================================
+-
+--- ------------------------------------------------------------
+--- LANGKAH 1 — Bersihkan policy lama yang terbuka untuk publik
+--- ------------------------------------------------------------
+-DROP POLICY IF EXISTS "Allow All Actions on Programs"      ON public.programs;
+-DROP POLICY IF EXISTS "Public Read Access on Programs"     ON public.programs;
+-
+-DROP POLICY IF EXISTS "Public Access Banners Bucket"       ON storage.objects;
+-DROP POLICY IF EXISTS "Allow Upload to Banners Bucket"     ON storage.objects;
+-DROP POLICY IF EXISTS "Allow Update in Banners Bucket"     ON storage.objects;
+-DROP POLICY IF EXISTS "Allow Delete in Banners Bucket"     ON storage.objects;
+-
+--- Tabel users hanya dipakai login palsu lama (hash bcrypt "password" terbaca publik).
+--- Login sekarang memakai Supabase Auth, jadi tabel ini dibuang.
+-DROP TABLE IF EXISTS public.users;
+-
+--- ------------------------------------------------------------
+--- LANGKAH 2 — Helper: apakah pemanggil adalah admin?
+--- ------------------------------------------------------------
+-CREATE OR REPLACE FUNCTION public.is_admin()
+-RETURNS boolean
+-LANGUAGE sql
+-STABLE
+-AS $$
+-  SELECT coalesce((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin', false);
+-$$;
+-
+--- ------------------------------------------------------------
+--- LANGKAH 3 — Policy tabel programs
+--- ------------------------------------------------------------
+-ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
+-
+-DROP POLICY IF EXISTS programs_public_read   ON public.programs;
+-DROP POLICY IF EXISTS programs_admin_insert  ON public.programs;
+-DROP POLICY IF EXISTS programs_admin_update  ON public.programs;
+-DROP POLICY IF EXISTS programs_admin_delete  ON public.programs;
+-
+-CREATE POLICY programs_public_read  ON public.programs FOR SELECT
+-  USING (true);
+-CREATE POLICY programs_admin_insert ON public.programs FOR INSERT
+-  TO authenticated WITH CHECK (public.is_admin());
+-CREATE POLICY programs_admin_update ON public.programs FOR UPDATE
+-  TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
+-CREATE POLICY programs_admin_delete ON public.programs FOR DELETE
+-  TO authenticated USING (public.is_admin());
+-
+--- Auto-update kolom updated_at
+-CREATE OR REPLACE FUNCTION public.set_updated_at()
+-RETURNS trigger
+-LANGUAGE plpgsql
+-AS $$
+-BEGIN
+-  NEW.updated_at = now();
+-  RETURN NEW;
+-END;
+-$$;
+-
+-DROP TRIGGER IF EXISTS trg_programs_updated_at ON public.programs;
+-CREATE TRIGGER trg_programs_updated_at
+-  BEFORE UPDATE ON public.programs
+-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+-
+--- ------------------------------------------------------------
+--- LANGKAH 4 — Storage bucket banners
+---   Bucket publik: file bisa dilihat lewat URL langsung tanpa policy SELECT
+---   (sengaja tidak dibuat agar isi bucket tidak bisa di-list publik).
+---   Hanya admin yang boleh upload/ubah/hapus. Dibatasi gambar & maks 1 MB.
+--- ------------------------------------------------------------
+-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+-VALUES ('banners', 'banners', true, 1048576, ARRAY['image/webp', 'image/jpeg', 'image/png'])
+-ON CONFLICT (id) DO UPDATE SET
+-  public = true,
+-  file_size_limit = 1048576,
+-  allowed_mime_types = ARRAY['image/webp', 'image/jpeg', 'image/png'];
+-
+-DROP POLICY IF EXISTS banners_admin_insert ON storage.objects;
+-DROP POLICY IF EXISTS banners_admin_update ON storage.objects;
+-DROP POLICY IF EXISTS banners_admin_delete ON storage.objects;
+-
+-CREATE POLICY banners_admin_insert ON storage.objects FOR INSERT
+-  TO authenticated WITH CHECK (bucket_id = 'banners' AND public.is_admin());
+-CREATE POLICY banners_admin_update ON storage.objects FOR UPDATE
+-  TO authenticated USING (bucket_id = 'banners' AND public.is_admin())
+-  WITH CHECK (bucket_id = 'banners' AND public.is_admin());
+-CREATE POLICY banners_admin_delete ON storage.objects FOR DELETE
+-  TO authenticated USING (bucket_id = 'banners' AND public.is_admin());
+-
+--- ------------------------------------------------------------
+--- LANGKAH 5 — Jadikan akun Anda admin
+---   Buat dulu user di Dashboard: Authentication → Users → Add user
+---   (centang "Auto Confirm User"), lalu ganti email di bawah dan jalankan.
+---   Setelah itu login ulang agar token memuat role terbaru.
+--- ------------------------------------------------------------
+--- UPDATE auth.users
+--- SET raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role": "admin"}'::jsonb
+--- WHERE email = 'GANTI-DENGAN-EMAIL-ADMIN@contoh.com';
+diff --git a/index.html b/index.html
+index 4ceff4b..e67555a 100644
+--- a/index.html
++++ b/index.html
+@@ -577,8 +577,8 @@
+ </button>
+ 
+ <!-- Scripts -->
+-<script src="assets/js/supabase-config.js"></script>
+-<script src="assets/js/supabase-client.js"></script>
++<script src="assets/js/api-config.js"></script>
++<script src="assets/js/api-client.js"></script>
+ <script src="assets/js/schedule-utils.js"></script>
+ <script src="assets/js/main.js"></script>
+ <script src="assets/js/catalog.js"></script>

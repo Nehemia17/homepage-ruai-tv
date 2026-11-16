@@ -9,3 +9,12 @@ Thumbs.db
 # Editor folders
 .vscode/
 .idea/
+# Konfigurasi & data lokal (jangan di-commit)
+backend-php/api/config.php
+ruai-config.php
+uploads/
+
+# Vercel / env lokal
+.env
+.env.local
+.vercel

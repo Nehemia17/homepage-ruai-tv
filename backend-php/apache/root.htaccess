@@ -1,0 +1,36 @@
+# ============================================================
+# RUAI TV — Pengaturan Apache untuk shared hosting (cPanel / IDCloudHost)
+# Padanan vercel.json. Aktif otomatis bila file ini ada di public_html.
+# ============================================================
+
+Options -Indexes
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Aset statis: simpan 1 hari. (Nama file tidak memakai hash versi, jadi jangan
+  # dibuat "immutable 1 tahun" seperti di Vercel agar perubahan JS/CSS cepat sampai.)
+  <FilesMatch "\.(css|js|png|jpe?g|webp|svg|ico|woff2?)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
+
+# Dokumen internal & berkas tersembunyi tidak boleh diunduh
+# (database/, api/lib/, api/tools/ dilindungi .htaccess di foldernya masing-masing)
+<IfModule mod_authz_core.c>
+  <FilesMatch "\.(md|sql|log|env|bak|sh)$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "^(cara menjalankan program|TRD dan PRD.*)\.txt$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "^\.(?!well-known)">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule (^|/)\.git(/|$) - [F,L]
+</IfModule>

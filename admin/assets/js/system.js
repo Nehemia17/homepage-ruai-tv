@@ -1,6 +1,6 @@
 /* ============================================================
    RUAI TV — Halaman Sistem Backend (system.js)
-   Memantau Supabase: database, storage, login admin, perlindungan
+   Memantau Supabase (database, login) dan bucket banner: database, storage, login admin, perlindungan
    data, dan kesehatan data program. Semua pemeriksaan bersifat
    baca-saja. Pemeriksaan login/logout ditangani admin.js.
    ============================================================ */
@@ -37,6 +37,26 @@
   const projectRef = (url) => {
     try { return new URL(url).hostname.split('.')[0]; } catch (e) { return ''; }
   };
+
+  // Gambar dimuat lewat <img> (bukan fetch) supaya pemeriksaan tetap jalan untuk gambar di
+  // domain lain (bucket IDCloudHost) tanpa perlu CORS. Hanya tahu "termuat" atau "gagal".
+  const probeImage = (src, timeoutMs = 12000) => new Promise((resolve) => {
+    const img = new Image();
+    let finished = false;
+    const finish = (ok) => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      img.onload = img.onerror = null;
+      resolve(ok);
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    img.onload = () => finish(true);
+    img.onerror = () => finish(false);
+    img.src = src;
+  });
+
+  const isBucketMode = () => S.getConfig().bannerStorage === 'bucket';
 
   // ─── Kartu ringkasan ───
   const setCard = (id, state, value, sub) => {
@@ -75,7 +95,8 @@
     const rows = [
       ['Project Supabase', projectRef(cfg.url) || '—'],
       ['Alamat API', cfg.url || '—'],
-      ['Bucket banner', cfg.bucket],
+      ['Penyimpanan banner baru', isBucketMode() ? 'Bucket IDCloudHost (lewat /api/banner)' : `Supabase Storage "${cfg.bucket}"`],
+      ['Banner lama', `Supabase Storage "${cfg.bucket}"`],
       ['Kunci publik (anon)', maskKey(cfg.key)],
       ['Akun admin', session?.user?.email || '—'],
       ['Peran', session?.user?.role || '—'],
@@ -125,13 +146,22 @@
     return { protected: null, note: `Respons tak terduga (HTTP ${res.status})` };
   });
 
+  // Mode "bucket": server (Vercel Function) mengecek bucket dengan kuncinya, lalu browser
+  // memuat satu gambar publik sebagai contoh. Mode "supabase": cukup gambar contoh.
   const checkStorage = (programs) => timed(async () => {
     const { url } = S.getConfig();
-    const sample = (programs || []).find(p => p.thumbnail_url && p.thumbnail_url.startsWith(`${url}/storage/`));
-    if (!sample) return { skipped: true };
-    const res = await fetch(sample.thumbnail_url, { method: 'HEAD' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return { skipped: false };
+    let info = null;
+    if (isBucketMode()) {
+      info = await S.bannerStorageStatus();
+      if (!info.ok) throw new Error(info.detail);
+    }
+    const prefix = info && info.public_base_url ? info.public_base_url + '/' : `${url}/storage/`;
+    const sample = (programs || []).find(p => p.thumbnail_url && p.thumbnail_url.startsWith(prefix));
+    if (!sample) return { skipped: true, info };
+    if (!(await probeImage(sample.thumbnail_url))) {
+      throw new Error('gambar contoh tidak termuat; periksa akses baca publik (bucket policy)');
+    }
+    return { skipped: false, info };
   });
 
   // ─── Kesehatan data ───
@@ -157,8 +187,8 @@
         ? { state: 'ok', title: 'Semua program aktif punya banner' }
         : { state: 'warn', title: `${noBanner.length} program aktif belum punya banner`, detail: listTitles(noBanner) },
       localBanner.length === 0
-        ? { state: 'ok', title: 'Semua banner tersimpan di Supabase Storage' }
-        : { state: 'warn', title: `${localBanner.length} banner masih berupa file lokal`, detail: `${listTitles(localBanner)}. Unggah ulang lewat Kelola Program agar otomatis dikompres (WebP ≤100 KB).` },
+        ? { state: 'ok', title: 'Semua banner tersimpan di penyimpanan cloud' }
+        : { state: 'warn', title: `${localBanner.length} banner masih berupa file lokal`, detail: `${listTitles(localBanner)}. Unggah ulang lewat Kelola Program agar otomatis dikompres (WebP ≤100 KB) dan disimpan di cloud.` },
       noSchedule.length === 0
         ? { state: 'ok', title: 'Semua program aktif punya jadwal tayang yang terbaca' }
         : { state: 'warn', title: `${noSchedule.length} program aktif tidak muncul di Jadwal Sepekan`, detail: `${listTitles(noSchedule)}. Isi jam (mis. 19.00 – 20.00 WIB) dan hari (mis. Senin - Sabtu) pada slot jadwalnya.` },
@@ -180,12 +210,11 @@
     const worker = async () => {
       while (queue.length) {
         const p = queue.shift();
-        let status = 0;
+        let ok = false;
         try {
-          const src = new URL(p.thumbnail_url, location.origin + '/').href;
-          status = (await fetch(src, { method: 'HEAD' })).status;
-        } catch (e) { status = 0; }
-        if (status < 200 || status >= 400) broken.push({ title: p.title, status, status_label: p.status });
+          ok = await probeImage(new URL(p.thumbnail_url, location.origin + '/').href);
+        } catch (e) { ok = false; }
+        if (!ok) broken.push({ title: p.title, status_label: p.status });
         done += 1;
         box.textContent = `Memeriksa gambar… ${done}/${withImg.length}`;
       }
@@ -207,7 +236,7 @@
       broken.forEach(b => {
         const li = document.createElement('li');
         li.className = 'check-item';
-        li.innerHTML = `<div class="check-text"><strong>${esc(b.title)}</strong><span>${b.status_label === 'arsip' ? 'Program arsip' : 'Program aktif'} · ${b.status ? 'HTTP ' + b.status : 'tidak dapat dihubungi'}. Unggah banner baru lewat Kelola Program.</span></div>`;
+        li.innerHTML = `<div class="check-text"><strong>${esc(b.title)}</strong><span>${b.status_label === 'arsip' ? 'Program arsip' : 'Program aktif'} · gambar tidak dapat dimuat. Unggah banner baru lewat Kelola Program.</span></div>`;
         ul.appendChild(li);
       });
       box.appendChild(ul);
@@ -258,9 +287,11 @@
 
     // Storage (butuh daftar program untuk memilih gambar contoh)
     const storage = await checkStorage(programs);
-    if (!storage.ok) setCard('sys-storage', 'fail', null, `Gambar contoh gagal dimuat (${storage.error.message})`);
-    else if (storage.value.skipped) setCard('sys-storage', 'warn', 'Belum dipakai', 'Belum ada banner di Supabase Storage');
-    else setCard('sys-storage', 'ok', null, `Merespons dalam ${storage.ms} ms`);
+    const where = isBucketMode() ? 'Bucket IDCloudHost' : 'Supabase Storage';
+    if (!storage.ok) setCard('sys-storage', 'fail', null, `${where} bermasalah (${storage.error.message})`);
+    else if (storage.value.skipped && isBucketMode()) setCard('sys-storage', 'ok', null, `${where} terhubung · belum ada banner diunggah ke sana`);
+    else if (storage.value.skipped) setCard('sys-storage', 'warn', 'Belum dipakai', `Belum ada banner di ${where}`);
+    else setCard('sys-storage', 'ok', null, `${where} · merespons ${storage.ms} ms`);
 
     // Keamanan
     renderChecks('sys-security', [

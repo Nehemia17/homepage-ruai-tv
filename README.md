@@ -19,8 +19,8 @@ Buka browser: **http://localhost:3000**
 
 ### Mode Produksi (Vercel + Supabase)
 
-Website di-deploy ke **Vercel**; data program, login admin, dan banner memakai **Supabase**.
-Kredensial publik (URL + anon key) ada di [`assets/js/supabase-config.js`](assets/js/supabase-config.js).
+Website di-deploy ke **Vercel**. Data program dan login admin memakai **Supabase**; file banner baru disimpan di **bucket Object Storage IDCloudHost** (`storage-homepage-statis`).
+Kredensial publik Supabase (URL + anon key) ada di [`assets/js/supabase-config.js`](assets/js/supabase-config.js). Kunci bucket **tidak** ada di sana (lihat bagian bucket di bawah).
 
 Setup Supabase (sekali saja, di SQL Editor, berurutan):
 
@@ -29,6 +29,41 @@ Setup Supabase (sekali saja, di SQL Editor, berurutan):
 3. Buat akun admin: **Authentication → Users → Add user** (centang *Auto Confirm User*), lalu jalankan `UPDATE` di LANGKAH 5 file security dengan email tersebut agar akun diberi `app_metadata.role = 'admin'`.
 4. Nonaktifkan pendaftaran publik: **Authentication → Sign In / Providers → matikan "Allow new users to sign up"**. (Policy sudah menolak non-admin, ini lapisan tambahan.)
 
+Setup bucket banner (sekali saja):
+
+1. **Bucket policy** (CS Browser / S3 Browser → klik kanan bucket → *Edit Bucket Policy*): izinkan baca publik saja, tanpa `s3:ListBucket` dan tanpa izin tulis:
+   ```json
+   {"Version":"2012-10-17","Statement":[{"Sid":"PublicReadGetObject","Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"arn:aws:s3:::storage-homepage-statis/*"}]}
+   ```
+2. **CORS** (klik kanan bucket → *CORS Configuration*): hanya diperlukan agar fitur "potong ulang" banner lama di admin bisa memuat gambar dari bucket. Ganti domainnya dengan domain situs:
+   ```xml
+   <CORSConfiguration><CORSRule>
+     <AllowedOrigin>https://homepage-ruai-tv.vercel.app</AllowedOrigin>
+     <AllowedMethod>GET</AllowedMethod><AllowedMethod>HEAD</AllowedMethod>
+     <AllowedHeader>*</AllowedHeader><MaxAgeSeconds>3600</MaxAgeSeconds>
+   </CORSRule></CORSConfiguration>
+   ```
+3. **Environment Variables di Vercel** (Project → Settings → Environment Variables, lalu *Redeploy*). Nilai access key dan secret key diambil dari console.idcloudhost.com → Storage → *Storage access keys*. **Jangan** dimasukkan ke Git atau file JavaScript:
+
+   | Nama | Isi |
+   |---|---|
+   | `S3_ENDPOINT` | `https://is3.cloudhost.id` |
+   | `S3_BUCKET` | `storage-homepage-statis` |
+   | `S3_ACCESS_KEY` | access key ID |
+   | `S3_SECRET_KEY` | secret access key |
+   | `S3_PUBLIC_BASE_URL` | `https://is3.cloudhost.id/storage-homepage-statis` |
+   | `S3_REGION` | (opsional) bawaan `us-east-1` |
+   | `S3_ACL` | (opsional) kosongkan; akses publik sudah diatur bucket policy |
+
+4. Login ke `/admin/login.html` → menu **Sistem Backend**: kartu *Penyimpanan Banner* harus hijau. Lalu unggah satu banner dari **Kelola Program**.
+
+Cara kerja upload: browser mengirim gambar ke [`api/banner.js`](api/banner.js) (Vercel Function) beserta token login admin. Function menanyakan token itu ke Supabase (harus `role = admin`), memeriksa isi file (hanya WebP/JPEG/PNG, maks. 1 MB), lalu menyimpannya ke bucket dengan kunci rahasia yang hanya ada di Vercel. Mengembalikan ke Supabase Storage: ubah `bannerStorage` menjadi `"supabase"` di `supabase-config.js`.
+
+Banner lama yang sudah ada di Supabase Storage tetap tampil dari sana; hanya unggahan baru yang masuk ke bucket.
+
+> **Menjalankan lokal dengan upload ke bucket:** server Python tidak menjalankan Vercel Function. Pakai `npx vercel dev` (isi variabel di `.env.local`, sudah di-`.gitignore`), atau ubah `bannerStorage` ke `"supabase"` untuk percobaan lokal.
+
+> **Backend PHP + MariaDB** (alternatif bila suatu saat ada hosting PHP) sudah disiapkan dan diuji di folder [`backend-php/`](backend-php/README.md). Tidak ikut ter-deploy ke Vercel.
 ---
 
 ---
@@ -63,11 +98,11 @@ Jika menggunakan mode statis: **http://localhost:3000/admin/login.html**
 | **Login Page** | Login email + password via Supabase Auth, sesi diverifikasi ke server, hanya role `admin` |
 | **Dashboard** | Statistik program (total, aktif, arsip, berita) + tabel 5 program terbaru |
 | **Kelola Program** | CRUD lengkap: tambah, edit, hapus, toggle aktif/arsip |
-| **Upload Banner** | Crop 16:9, kompres WebP ≤ 100 KB, upload ke Supabase Storage (khusus admin) |
+| **Upload Banner** | Crop 16:9, kompres WebP ≤ 100 KB, upload ke bucket Object Storage IDCloudHost lewat Vercel Function (khusus admin) |
 | **Video Promo** | Input link YouTube bumper promosi per program |
 | **Jadwal Tayang** | Input jam & hari tayang untuk slot Pagi, Siang/Sore, dan Malam |
 | **Sinkron Supabase** | Semua perubahan langsung ke database; gagal simpan ditampilkan sebagai error, bukan sukses palsu |
-| **Sistem Backend** | Halaman status: kesehatan database & storage Supabase, validitas login admin, uji perlindungan tulis publik, kesehatan data (banner/jadwal), pemeriksaan gambar banner |
+| **Sistem Backend** | Halaman status: kesehatan database Supabase & bucket banner, validitas login admin, uji perlindungan tulis publik, kesehatan data (banner/jadwal), pemeriksaan gambar banner |
 | **Notifikasi** | Konfirmasi hapus, logout, dan toast notifikasi via SweetAlert2 |
 
 ---
@@ -82,6 +117,11 @@ Homepage Statis Ruai-TV/
 ├── .vercelignore               # File yang tidak ikut ter-deploy
 ├── vercel.json                 # Header keamanan & cache
 ├── README.md
+│
+├── api/
+│   └── banner.js               # Vercel Function: upload banner ke bucket + status bucket (khusus admin)
+│
+├── backend-php/                # Arsip: backend PHP + MariaDB (tidak ikut ter-deploy), lihat README-nya
 │
 ├── admin/                      # Admin Panel
 │   ├── login.html              # Halaman login admin
@@ -104,8 +144,8 @@ Homepage Statis Ruai-TV/
     │   ├── schedule.js         # Render tabel jadwal siaran mingguan dinamis (dari data admin)
     │   ├── schedule-utils.js   # Aturan parsing jam/hari, dipakai katalog & jadwal
     │   ├── fx3d.js             # Efek 3D ringan (tilt kartu, reveal); mati di layar sentuh/kurangi gerakan
-    │   ├── supabase-config.js  # URL & anon key Supabase (publik)
-    │   └── supabase-client.js  # Client Supabase: auth, CRUD, storage
+    │   ├── supabase-config.js  # URL & anon key Supabase (publik) + tujuan upload banner
+    │   └── supabase-client.js  # Client Supabase: auth, CRUD; upload banner via /api/banner
     │
     ├── data/
     │   └── programs.json       # Data program fallback (flat file, offline mode)
@@ -122,8 +162,9 @@ Homepage Statis Ruai-TV/
 | Layer | Teknologi |
 |---|---|
 | **Frontend** | HTML5, CSS3 (Vanilla), JavaScript ES6+ |
-| **Backend** | Supabase (Auth, PostgREST, Storage) |
+| **Backend** | Supabase (Auth, PostgREST) + Vercel Function (Node.js, tanpa dependensi) |
 | **Database** | PostgreSQL (Supabase) dengan Row Level Security |
+| **Storage banner** | Object Storage S3-kompatibel IDCloudHost (tanda tangan AWS SigV4) |
 | **Font** | Google Fonts — Inter |
 | **Notifikasi** | SweetAlert2 |
 | **Hosting** | Vercel (static) / Python HTTP Server (lokal) |
@@ -199,6 +240,7 @@ Telp  : (+62 561) 884524
 - [x] Login page admin dengan session guard & SweetAlert2
 - [x] Link live streaming diperbarui ke channel resmi Ruai TV
 - [x] Migrasi ke Supabase (produksi cloud) + login Supabase Auth & RLS
+- [x] Upload banner baru ke bucket Object Storage IDCloudHost (Vercel Function)
 - [ ] Halaman detail program per URL slug
 
 ---
