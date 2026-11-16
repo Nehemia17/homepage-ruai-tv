@@ -114,18 +114,54 @@ body {
 }
 
 .nav-links a {
+  position: relative;
   display: block;
   padding: 6px 14px;
   font-size: 13.5px;
-  font-weight: 600;
-  color: var(--on-orange);
+  font-weight: 700;
+  color: #FFFFFF;
+  /* bayangan tipis menjaga teks putih tetap terbaca di atas oranye terang */
+  text-shadow: 0 1px 2px rgba(110, 30, 0, 0.5);
   text-decoration: none;
   border-radius: 6px;
   white-space: nowrap;
   transition: var(--ease);
 }
 
-.nav-links a:hover { background: rgba(255,255,255,0.35); }
+/* Garis bawah tipis yang meluncur masuk dari kiri saat di-hover / difokus keyboard */
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 1px;
+  height: 2px;
+  border-radius: 2px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(110, 30, 0, 0.35);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-links a:hover::after,
+.nav-links a:focus-visible::after { transform: scaleX(1); }
+
+.nav-links a:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+/* Pengguna yang mengurangi animasi: tanpa gerakan meluncur, cukup fade-in singkat */
+@media (prefers-reduced-motion: reduce) {
+  .nav-links a::after {
+    transform: scaleX(1);
+    opacity: 0;
+    transition: opacity 0.15s linear;
+  }
+  .nav-links a:hover::after,
+  .nav-links a:focus-visible::after { opacity: 1; }
+}
 
 /* Search bar */
 .nav-search-wrap {
@@ -244,7 +280,7 @@ body {
   cursor: pointer;
   margin-left: auto;
 }
-.menu-toggle span { display: block; width: 20px; height: 2px; background: var(--on-orange); border-radius: 2px; }
+.menu-toggle span { display: block; width: 20px; height: 2px; background: #FFFFFF; border-radius: 2px; box-shadow: 0 1px 2px rgba(110, 30, 0, 0.4); }
 
 #mobile-menu {
   background: linear-gradient(90deg, #FFB03F 0%, #FF5722 100%);
@@ -259,12 +295,14 @@ body {
   display: block;
   padding: 12px 24px;
   font-size: 14px;
-  font-weight: 600;
-  color: var(--on-orange);
+  font-weight: 700;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(110, 30, 0, 0.5);
   text-decoration: none;
   border-bottom: 1px solid rgba(42,21,0,0.12);
 }
-#mobile-menu a:hover { background: rgba(255,255,255,0.3); }
+#mobile-menu a:hover,
+#mobile-menu a:focus-visible { background: rgba(110, 30, 0, 0.14); }
 
 
 /* ════════════════════════════════════════════════════════════
