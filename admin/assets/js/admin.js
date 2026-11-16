@@ -148,13 +148,18 @@
     return clean.substring(0, 2).toUpperCase();
   }
 
+  // Halaman admin ada di /admin/, jadi path relatif seperti "assets/images/..." harus
+  // dijadikan path dari akar situs agar gambarnya ketemu.
+  function resolveImgSrc(url) {
+    const src = String(url || '').trim();
+    if (!src || src.startsWith('data:') || src.startsWith('blob:') || src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/')) return src;
+    return `/${src}`;
+  }
+
   function getProgramThumbHtml(p) {
     const title = esc(p.title);
     if (p.thumbnail_url && p.thumbnail_url !== 'assets/images/programs/' && p.thumbnail_url !== 'null' && p.thumbnail_url !== '-') {
-      let imgSrc = p.thumbnail_url.trim();
-      if (!imgSrc.startsWith('data:') && !imgSrc.startsWith('http://') && !imgSrc.startsWith('https://') && !imgSrc.startsWith('/')) {
-        imgSrc = `/${imgSrc}`;
-      }
+      const imgSrc = resolveImgSrc(p.thumbnail_url);
       return `<img src="${esc(imgSrc)}" alt="${title}" class="table-thumb" data-initials="${esc(getInitials(p.title))}" />`;
     }
     return `<div class="table-no-thumb" title="${title}"><div class="thumb-circle"></div><span class="thumb-initials">${esc(getInitials(p.title))}</span></div>`;
@@ -382,7 +387,7 @@
 
     if (url && url.trim().length > 0) {
       const cleanUrl = url.trim();
-      if (previewImg) previewImg.src = cleanUrl;
+      if (previewImg) previewImg.src = resolveImgSrc(cleanUrl);
       if (thumbInput) thumbInput.value = cleanUrl;
       if (manualInput) manualInput.value = cleanUrl;
 
@@ -421,6 +426,26 @@
   // ─── Interactive Cropper Modal (16:9 terkunci atau bebas) ───
   const CROP_RATIO_LOCKED = 16 / 9;
   let cropperInstance = null;
+  let cropObjectUrl = null; // URL sementara (blob:) untuk gambar dari domain lain
+
+  // Cropper hanya bisa memotong gambar yang satu domain (atau berizin CORS). Gambar dari domain
+  // lain diambil dulu sebagai blob — langsung bila CORS diizinkan, bila tidak lewat server
+  // (/api/banner) — lalu dipakai lewat URL blob: yang pasti satu domain.
+  async function prepareCropSource(url) {
+    const src = resolveImgSrc(url);
+    if (src.startsWith('data:') || src.startsWith('blob:')) return src;
+    if (new URL(src, location.href).origin === location.origin) return src;
+    showToast('Memuat gambar banner...', 'info');
+    const blob = await window.RuaiSupabase.fetchBannerBlob(src);
+    return URL.createObjectURL(blob);
+  }
+
+  function releaseCropObjectUrl() {
+    if (cropObjectUrl) {
+      URL.revokeObjectURL(cropObjectUrl);
+      cropObjectUrl = null;
+    }
+  }
   let cropRatioMode = '16:9'; // '16:9' | 'free'
 
   function setCropRatio(mode) {
@@ -451,6 +476,8 @@
     }
 
     setCropRatio('16:9');
+    releaseCropObjectUrl();
+    if (imageSrc.startsWith('blob:')) cropObjectUrl = imageSrc;
     cropImg.src = imageSrc;
     cropModal.classList.add('active');
 
@@ -475,6 +502,10 @@
     };
 
     cropImg.onload = initInstance;
+    cropImg.onerror = () => {
+      closeCropModal();
+      showToast('Gambar tidak dapat dimuat untuk dipotong. Unggah ulang file gambar aslinya.', 'error');
+    };
     if (cropImg.complete) {
       initInstance();
     }
@@ -487,6 +518,7 @@
       cropperInstance.destroy();
       cropperInstance = null;
     }
+    releaseCropObjectUrl();
     const fileInput = document.getElementById('form-file-upload');
     if (fileInput) fileInput.value = '';
   }
@@ -602,12 +634,20 @@
       reader.readAsDataURL(file);
     }
 
-    btnRecrop?.addEventListener('click', () => {
+    btnRecrop?.addEventListener('click', async () => {
       const currentThumb = document.getElementById('form-thumb')?.value;
-      if (currentThumb) {
-        openCropModal(currentThumb);
-      } else {
+      if (!currentThumb) {
         triggerFileSelect();
+        return;
+      }
+      btnRecrop.disabled = true;
+      try {
+        openCropModal(await prepareCropSource(currentThumb));
+      } catch (err) {
+        if (handleAuthFailure(err)) return;
+        showToast(`Banner tidak dapat dimuat untuk dipotong ulang: ${err.message}`, 'error');
+      } finally {
+        btnRecrop.disabled = false;
       }
     });
 

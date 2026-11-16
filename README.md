@@ -35,7 +35,7 @@ Setup bucket banner (sekali saja):
    ```json
    {"Version":"2012-10-17","Statement":[{"Sid":"PublicReadGetObject","Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"arn:aws:s3:::storage-homepage-statis/*"}]}
    ```
-2. **CORS** (klik kanan bucket → *CORS Configuration*): hanya diperlukan agar fitur "potong ulang" banner lama di admin bisa memuat gambar dari bucket. Ganti domainnya dengan domain situs:
+2. **CORS** (opsional; klik kanan bucket → *CORS Configuration*): tidak wajib. Tanpa CORS, editor crop di admin tetap bisa memotong ulang banner dari bucket karena gambar diambil lewat server (`/api/banner?src=`). Dengan CORS, gambar diambil langsung dari bucket (lebih hemat). Ganti domainnya dengan domain situs:
    ```xml
    <CORSConfiguration><CORSRule>
      <AllowedOrigin>https://homepage-ruai-tv.vercel.app</AllowedOrigin>

@@ -11,6 +11,12 @@
 //   GET   status bucket (baca-saja, khusus admin) untuk halaman Sistem Backend
 //         → 200 {ok, detail, bucket, endpoint_host, public_base_url, ms}
 //
+//   GET ?src=<URL gambar di bucket>   (khusus admin)
+//         Mengambil gambar banner lewat server agar editor crop di admin bisa memakainya
+//         walau bucket belum mengizinkan CORS. Hanya mau mengambil dari S3_PUBLIC_BASE_URL
+//         dan folder banners/ (bukan proxy bebas).
+//         → 200 isi gambar
+//
 // Kunci bucket hanya dibaca dari Environment Variables Vercel; tidak pernah dikirim
 // ke browser. Siapa yang boleh mengunggah ditentukan dengan menanyakan token ke
 // Supabase (role admin), jadi akses tetap satu pintu dengan login yang sudah ada.
@@ -200,6 +206,40 @@ function send(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+// ─── Ambil gambar banner dari bucket lewat server ───
+const MAX_PROXY_BYTES = 2 * 1024 * 1024;
+
+async function proxyBanner(res, cfg, src) {
+  const prefix = cfg.publicBase + '/banners/';
+  if (!src.startsWith(prefix)) throw new HttpError(400, 'Alamat gambar bukan milik bucket banner.');
+  const name = src.slice(prefix.length);
+  if (!/^[A-Za-z0-9._%-]{1,200}$/.test(name) || name.includes('..') || /%2e|%2f|%5c/i.test(name)) {
+    throw new HttpError(400, 'Nama file gambar tidak valid.');
+  }
+
+  let upstream;
+  try {
+    upstream = await fetch(prefix + name, { redirect: 'manual', signal: AbortSignal.timeout(15000) });
+  } catch (err) {
+    console.error('[banner] gagal mengambil gambar:', err.message);
+    throw new HttpError(502, 'Tidak dapat mengambil gambar dari penyimpanan banner.');
+  }
+  if (upstream.status === 404) throw new HttpError(404, 'Gambar tidak ditemukan di bucket.');
+  if (!upstream.ok) throw new HttpError(502, `Penyimpanan banner menolak permintaan (HTTP ${upstream.status}). Cek akses baca publik bucket.`);
+
+  const bytes = Buffer.from(await upstream.arrayBuffer());
+  if (bytes.length > MAX_PROXY_BYTES) throw new HttpError(413, 'Gambar terlalu besar.');
+  const type = IMAGE_TYPES.find((t) => t.test(bytes));
+  if (!type) throw new HttpError(415, 'Berkas di alamat itu bukan gambar WebP/JPEG/PNG.');
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', type.mime);
+  res.setHeader('Content-Length', String(bytes.length));
+  res.setHeader('Cache-Control', 'private, max-age=300');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.end(bytes);
+}
+
 // ─── Handler ───
 async function handler(req, res) {
   try {
@@ -212,6 +252,9 @@ async function handler(req, res) {
     await requireAdmin(req, cfg);
 
     if (req.method === 'GET') {
+      const src = new URL(req.url, 'http://localhost').searchParams.get('src');
+      if (src !== null) return await proxyBanner(res, cfg, src);
+
       const t0 = Date.now();
       let r;
       try {

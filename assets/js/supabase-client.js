@@ -360,6 +360,26 @@ window.RuaiSupabase = {
     return data.url;
   },
 
+  // Ambil gambar banner sebagai blob supaya bisa dipotong ulang di admin. Dicoba langsung
+  // (berhasil bila host gambar mengizinkan CORS, mis. Supabase Storage); bila gagal, diambil
+  // lewat server (/api/banner?src=...) yang hanya mau mengambil dari bucket banner.
+  async fetchBannerBlob(url) {
+    try {
+      const res = await fetch(url, { mode: 'cors' });
+      if (res.ok) {
+        const blob = await res.blob();
+        if (blob.type.startsWith('image/')) return blob;
+      }
+    } catch (e) { /* host tanpa CORS: lanjut lewat server */ }
+
+    const { bannerApi } = this.getConfig();
+    const token = await this.getAccessToken();
+    if (!token) throw this._authError('Sesi login berakhir. Silakan login kembali.');
+    const res = await fetch(`${bannerApi}?src=${encodeURIComponent(url)}`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw await this._httpError(res, 'Muat banner gagal');
+    return res.blob();
+  },
+
   // Status bucket (khusus admin, baca-saja) untuk halaman Sistem Backend.
   async bannerStorageStatus() {
     const { bannerApi } = this.getConfig();
