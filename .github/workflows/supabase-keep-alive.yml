@@ -1,0 +1,22 @@
+name: Supabase Keep Alive
+
+on:
+  schedule:
+    # Jalan otomatis tiap Senin dan Kamis jam 16:00 WIB
+    - cron: '0 9 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_KEY }}")
+          echo "HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Ping gagal!"
+            exit 1
+          fi
